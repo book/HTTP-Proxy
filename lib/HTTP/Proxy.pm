@@ -590,6 +590,14 @@ sub serve_connections {
         }
 
         # what about X-Died and X-Content-Range?
+        if( my $died = $response->header('X-Died') ) {
+            $self->log( ERROR, "($$) ERROR:", $died );
+            $sent = 0;
+            $response = HTTP::Response->new( 500, "Proxy filter error" );
+            $response->content_type( "text/plain" );
+            $response->content($died);
+            $self->response($response);
+        }
 
       SEND:
 
@@ -870,9 +878,8 @@ sub push_filter {
         # for $self, $mime, $method, $scheme, $host, $path
         my $match = sub {
             if ( defined $mime ) {
-                return 0
-                  if $self->response->headers->header('Content-Type') !~
-                  $mime;
+                my $ct = $self->response->content_type || "";
+                return 0 if $ct !~ $mime;
             }
             return 0 if $self->{request}->method !~ $method;
             return 0 if $self->{request}->uri->scheme !~ $scheme;
@@ -1077,7 +1084,10 @@ sub filter {
             $_->filter( $data, $message, $protocol, $self->{buffers}[ $i++ ] );
         }
     }
-    else { $_->filter(@_) for @{ $self->{current} }; }
+    else {
+        $_->filter(@_) for @{ $self->{current} };
+        $self->eod;
+    }
 }
 
 #
