@@ -1,4 +1,4 @@
-use Test::More tests => 6;
+use Test::More tests => 7;
 use strict;
 use HTTP::Proxy::BodyFilter::simple;
 
@@ -22,9 +22,11 @@ $sub = sub {
     $$dataref =~ s/foo/bar/g;
 };
 
+$filter = HTTP::Proxy::BodyFilter::simple->new($sub),
+is( $filter->can('filter'), $sub, "filter() runs the correct filter" );
+
 # test the filter
 for (
-    HTTP::Proxy::BodyFilter::simple->new($sub),
     [ "\nfoo\n", "", "\nbar\n", "" ],
   )
 {
