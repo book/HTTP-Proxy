@@ -818,9 +818,12 @@ I've heard that some Unix systems do not support calling accept() in a
 child process when the socket was opened by the parent (especially
 when several child process accept() at the same time).
 
-Expect the prefork system to change.
+It looks like it's the case under Windows.
+Expect the prefork system to change soon.
 
 =head1 TODO
+
+* support Windows systems
 
 * Provide an interface for logging.
 
