@@ -306,6 +306,11 @@ Some connections to the client are never closed.
 
 Philippe "BooK" Bruhat, E<lt>book@cpan.orgE<gt>.
 
+=head1 COPYRIGHT
+
+This module is free software; you can redistribute it or modify it under
+the same terms as Perl itself.
+
 =cut
 
 1;
