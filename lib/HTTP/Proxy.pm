@@ -20,7 +20,7 @@ require Exporter;
 @EXPORT_OK = qw( NONE ERROR STATUS PROCESS CONNECT HEADERS FILTER ALL );
 %EXPORT_TAGS = ( log => [@EXPORT_OK] );    # only one tag
 
-$VERSION = '0.12';
+$VERSION = '0.13';
 
 my $CRLF = "\015\012";                     # "\r\n" is not portable
 
@@ -34,11 +34,12 @@ use constant STATUS  => 1;
 use constant PROCESS => 2;
 use constant CONNECT => 4;
 use constant HEADERS => 8;
-use constant FILTER  => 16;
-use constant ALL     => 31;
+use constant SSL     => 16;
+use constant FILTER  => 32;
+use constant ALL     => 63;
 
 # Methods we can forward
-@METHODS = qw( OPTIONS GET HEAD POST PUT DELETE TRACE );
+@METHODS = qw( OPTIONS GET HEAD POST PUT DELETE TRACE CONNECT );
 
 # useful regexes (from RFC 2616 BNF grammar)
 my %RX;
@@ -508,11 +509,12 @@ sub serve_connections {
             $self->log( ERROR, "($$) Getting request failed:", $conn->reason );
             return;
         }
-        $self->log( STATUS, "($$) Request:", $req->method . ' ' . $req->uri );
+        $self->log( STATUS, "($$) Request:", $req->method . ' '
+           . ( $req->method eq 'CONNECT' ? $req->uri->host_port : $req->uri ) );
 
         # can we forward this method?
         if ( !grep { $_ eq $req->method } @METHODS ) {
-            $response = new HTTP::Response( 501, 'Not Implemented' );
+            $response = HTTP::Response->new( 501, 'Not Implemented' );
             $response->content_type( "text/plain" );
             $response->content(
                 "Method " . $req->method . " is not supported by this proxy." );
@@ -524,7 +526,7 @@ sub serve_connections {
         if ( !$self->agent->is_protocol_supported( my $s = $req->uri->scheme ) )
         {
             # should this be 400 Bad Request?
-            $response = new HTTP::Response( 501, 'Not Implemented' );
+            $response = HTTP::Response->new( 501, 'Not Implemented' );
             $response->content_type( "text/plain" );
             $response->content("Scheme $s is not supported by this proxy.");
             $self->response($response);
@@ -533,6 +535,12 @@ sub serve_connections {
 
         # massage the request
         $self->{headers}{request}->filter( $req->headers, $req );
+
+        # CONNECT method is a very special case
+        if( $req->method eq 'CONNECT' ) {
+            $last = $self->_handle_CONNECT($served);
+            return if $last;
+        }
 
         # FIXME I don't know how to get the LWP::Protocol objet...
         # NOTE: the request is always received in one piece
@@ -559,7 +567,7 @@ sub serve_connections {
                     $self->{headers}{response}
                          ->filter( $response->headers, $response );
                     ( $last, $chunked ) =
-                      $self->_send_response_headers( $conn, $served );
+                      $self->_send_response_headers( $served );
                 }
 
                 # filter and send the data
@@ -618,7 +626,7 @@ sub serve_connections {
         # (empty body or error)
         # FIXME some error response headers might not be filtered
         if ( !$sent ) {
-            ($last, $chunked) = $self->_send_response_headers( $conn, $served );
+            ($last, $chunked) = $self->_send_response_headers( $served );
             my $content = $response->content;
             if ($chunked) {
                 printf $conn "%x$CRLF%s$CRLF", length($content), $content
@@ -634,8 +642,6 @@ sub serve_connections {
             $conn->print( $response->content );
         }
 
-        $self->log( STATUS,  "($$) Response:", $response->status_line );
-        $self->log( HEADERS, "($$) Response:", $response->headers->as_string );
         last if $last || $served >= $self->maxserve;
     }
     $self->log( CONNECT, "($$) Connection closed by the client" )
@@ -647,11 +653,12 @@ sub serve_connections {
 
 # INTERNAL METHOD
 # send the response headers for the proxy
-# expects $conn and $served  (connection object, number of requests served)
+# expects $served  (number of requests served)
 # returns $last and $chunked (last request served, chunked encoding)
 sub _send_response_headers {
-    my ( $self, $conn, $served ) = @_;
+    my ( $self, $served ) = @_;
     my ( $last, $chunked ) = ( 0, 0 );
+    my $conn = $self->client_socket;
     my $response = $self->response;
 
     # correct headers
@@ -691,7 +698,75 @@ sub _send_response_headers {
         print $conn $response->headers_as_string($CRLF);
         print $conn $CRLF;    # separates headers and content
     }
+    $self->log( STATUS,  "($$) Response:", $response->status_line );
+    $self->log( HEADERS, "($$) Response:", $response->headers->as_string );
     return ($last, $chunked);
+}
+
+# INTERNAL method
+# FIXME no man-in-the-middle for now
+sub _handle_CONNECT {
+    my ($self, $served) = @_;
+    my $last = 0;
+
+    my $conn = $self->client_socket;
+    my $req  = $self->request;
+    my $upstream = IO::Socket::INET->new( PeerAddr => $req->uri->host_port );
+    unless( $upstream and $upstream->connected ) {
+        # 502 Bad Gateway / 504 Gateway Timeout
+        # Note to implementors: some deployed proxies are known to
+        # return 400 or 500 when DNS lookups time out.
+        my $response = HTTP::Response->new( 200 );
+        $response->content_type( "text/plain" );
+        $self->response($response);
+        return $last;
+    }
+
+    # send the response headers (FIXME more headers required?)
+    my $response = HTTP::Response->new(200);
+    $self->response($response);
+    $self->_send_response_headers( $served );
+
+    # we now have a TCP connection
+    $last = 1;
+
+    my $select = IO::Select->new;
+    for ( $conn, $upstream ) {
+         $_->autoflush(1);
+         $_->blocking(0);
+         $select->add($_);
+    }
+
+    # loop while there is data
+    while ( my @ready = $select->can_read ) {
+        for (@ready) {
+            my $data = "";
+            my ($sock, $peer, $from ) = $conn eq $_
+                                      ? ( $conn, $upstream, "client" )
+                                      : ( $upstream, $conn, "server" );
+
+            # read the data
+            my $read = $sock->sysread( $data, 4096 );
+          
+            # check for errors or end of connection
+            $read = 0 if not defined $read ;
+
+            # end of connection
+            if ( $read == 0 ) {
+                $_->close for ( $sock, $peer );
+                $self->log( CONNECT, "($$) Connection closed by the $from" );
+                $self->log( PROCESS, "($$) Served $served requests" );
+                return $last;
+            }
+
+            # proxy the data
+            $self->log( SSL, "($$) SSL:",
+                             "$read encrypted bytes received from $from" );
+            $peer->syswrite($data);
+        }
+    }
+    $self->log( ERROR, "($$) SSL:", "ERROR - wrong exit out of _handle_CONNECT");
+    return $last;
 }
 
 =head1 FILTERS
@@ -952,19 +1027,19 @@ This module does not work under Windows, but I can't see why, and do not
 have a development platform under that system. Patches and explanations
 very welcome.
 
-David Fishburn says:
+I guess it is because fork() is not well supported. You can try to use
+the following workaround to prevent forking:
+
+    $proxy->maxchild(0);
 
 =over 4
+
+=item However, David Fishburn says:
 
 This did not work for me under WinXP - ActiveState Perl 5.6, but it DOES        
 work on WinXP ActiveState Perl 5.8. 
 
 =back
-
-I guess it is because fork() is not well supported. You can try to use
-the following workaround to prevent forking:
-
-    $proxy->maxchild(0);
 
 =head1 SEE ALSO
 
