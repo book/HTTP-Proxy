@@ -42,3 +42,9 @@ The eg/ directory holds a few example proxies.
    This filter outputs the request URI and the form parameters of
    all POST requests.
 
+ * logger.pl
+
+   This filter outputs the important information out of GET and POST
+   requests: method, URI, cookies, content-type (text/*) and POST
+   request parameters.
+
