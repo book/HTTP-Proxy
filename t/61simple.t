@@ -1,10 +1,13 @@
-use Test::More tests => 9;
+use Test::More tests => 10;
 use strict;
 use HTTP::Proxy::BodyFilter::simple;
 
 my ( $filter, $sub );
 
 # error checking
+eval { $filter = HTTP::Proxy::BodyFilter::simple->new() };
+like( $@, qr/^Constructor called without argument/, "Need at least one arg" );
+
 eval { $filter = HTTP::Proxy::BodyFilter::simple->new("foo") };
 like( $@, qr/^Single parameter must be a CODE reference/, "Single coderef" );
 

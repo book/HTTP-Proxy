@@ -70,9 +70,13 @@ See HTTP::Proxy::BodyFilter.pm for more details about the filter_file() method.
 
 =cut
 
+my $methods = join '|', qw( start filter filter_file );
+$methods = qr/^(?:$methods)$/;
+
 sub init {
     my $self = shift;
 
+    croak "Constructor called without argument" unless @_;
     if ( @_ == 1 ) {
         croak "Single parameter must be a CODE reference"
           unless ref $_[0] eq 'CODE';
@@ -85,7 +89,8 @@ sub init {
             # basic error checking
             croak "Parameter to $name must be a CODE reference"
               unless ref $code eq 'CODE';
-            croak "Unkown method $name" unless $name =~ /^filter(?:_file)$/;
+            croak "Unkown method $name"
+              unless $name =~ $methods;
 
             $self->{"_$name"} = $code;
         }
@@ -93,13 +98,15 @@ sub init {
 }
 
 # transparently call the actual methods
+sub start       { goto &{ $_[0]{_start} }; }
 sub filter      { goto &{ $_[0]{_filter} }; }
 sub filter_file { goto &{ $_[0]{_filter_file} }; }
 
 sub can {
     my ( $self, $method ) = @_;
-    return $method =~ /^filter(?:_file)?$/ ? $self->{"_$method"}
-                                           : UNIVERSAL::can($self, $method);
+    return $method =~ $methods
+      ? $self->{"_$method"}
+      : UNIVERSAL::can( $self, $method );
 }
 
 =head1 AUTHOR

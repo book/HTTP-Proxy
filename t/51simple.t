@@ -7,17 +7,17 @@ my ( $filter, $sub, $h );
 
 # error checking
 eval { $filter = HTTP::Proxy::HeaderFilter::simple->new() };
-like( $@, qr/^Parameter must be a CODE reference/, "Must pass a coderef" );
+like( $@, qr/^Constructor called without argument/, "Need at least one arg" );
 
 eval { $filter = HTTP::Proxy::HeaderFilter::simple->new('foo') };
-like( $@, qr/^Parameter must be a CODE reference/, "Must pass a coderef" );
+like( $@, qr/^Single parameter must be a CODE /, "Must pass a coderef" );
 
 $sub = sub {
     my ( $self, $headers, $message ) = @_;
     $headers->header( User_Agent => 'Foo/1.0' );
 };
 
-$filter = HTTP::Proxy::HeaderFilter::simple->new( $sub );
+$filter = HTTP::Proxy::HeaderFilter::simple->new($sub);
 
 # test the filter
 $h = HTTP::Headers->new(
@@ -27,5 +27,5 @@ $h = HTTP::Headers->new(
 );
 
 $filter->filter( $h, undef );
-is( $h->header( 'User-Agent' ), 'Foo/1.0', "Header modified" );
+is( $h->header('User-Agent'), 'Foo/1.0', "Header modified" );
 
