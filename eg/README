@@ -87,3 +87,11 @@ command-line. Example: ./proxy.pl port 3128 host 0.0.0.0
 
    Filter: HTTP::Proxy::BodyFilter::save
 
+ * dragon.pl
+
+   A proxy that removes some of the shortcomings of the Dragon Go
+   Server website (http://www.dragongoserver.net/)
+
+   Filter: HTTP::Proxy::HeaderFilter::simple
+           HTTP::Proxy::BodyFilter::simple
+           HTTP::Proxy::BodyFilter::tags
