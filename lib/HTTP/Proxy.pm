@@ -641,6 +641,7 @@ which are:
     scheme => 'http'
     host   => ''
     path   => ''
+    query  => ''
 
 The C<mime> parameter is a glob-like string, with a required C</>
 character and a C<*> as a joker. Thus, C<*/*> matches I<all> responses,
@@ -717,6 +718,7 @@ sub push_filter {
         scheme => 'http',
         host   => '',
         path   => '',
+        query  => '',
     );
 
     # parse parameters
@@ -731,8 +733,8 @@ sub push_filter {
     $self->init;
 
     # prepare the variables for the closure
-    my ( $mime, $method, $scheme, $host, $path ) =
-      @arg{qw( mime method scheme host path )};
+    my ( $mime, $method, $scheme, $host, $path, $query ) =
+      @arg{qw( mime method scheme host path query )};
 
     if ( defined $mime && $mime ne '' ) {
         $mime =~ m!/! or croak "Invalid MIME type definition: $mime";
@@ -753,8 +755,9 @@ sub push_filter {
     $scheme = @scheme ? '(?:' . join ( '|', @scheme ) . ')' : '';
     $scheme = qr/$scheme/;
 
-    $host ||= '.*';
-    $path ||= '.*';
+    $host  ||= '.*'; $host  = qr/$host/i;
+    $path  ||= '.*'; $path  = qr/$path/;
+    $query ||= '.*'; $query = qr/$query/;
 
     # push the filter and its match method on the correct stack
     while(@_) {
@@ -787,6 +790,7 @@ sub push_filter {
             return 0 if $self->{request}->uri->scheme !~ $scheme;
             return 0 if $self->{request}->uri->authority !~ $host;
             return 0 if $self->{request}->uri->path !~ $path;
+            return 0 if $self->{request}->uri->query !~ $query;
             return 1;    # it's a match
         };
 
