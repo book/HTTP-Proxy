@@ -194,6 +194,10 @@ HTTP::Proxy, HTTP::Proxy::HeaderFilter.
 
 =head1 COPYRIGHT
 
+Copyright 2003-2004, Philippe Bruhat
+
+=head1 LICENSE
+
 This module is free software; you can redistribute it or modify it under
 the same terms as Perl itself.
 

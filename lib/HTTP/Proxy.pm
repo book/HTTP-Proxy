@@ -1066,6 +1066,10 @@ and my growing user base... C<;-)>
 
 =head1 COPYRIGHT
 
+Copyright 2002-2004, Philippe Bruhat
+
+=head1 LICENSE
+
 This module is free software; you can redistribute it or modify it under
 the same terms as Perl itself.
 
