@@ -4,3 +4,4 @@ Makefile.PL
 README
 lib/HTTP/Proxy.pm
 t/00basic.t
+t/05new.t
