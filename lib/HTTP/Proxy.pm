@@ -5,6 +5,7 @@ use LWP::UserAgent;
 use LWP::ConnCache;
 use CGI;
 use Fcntl ':flock';    # import LOCK_* constants
+use POSIX;
 use Carp;
 
 use strict;
@@ -28,7 +29,7 @@ HTTP::Proxy - A pure Perl HTTP proxy
     # alternate initialisation
     my $proxy = HTTP::Proxy->new;
     $proxy->port( 3128 ); # the classical accessors are here!
-    
+
     # you can also use your own UserAgent
     my $agent = LWP::RobotUA->new;
     $proxy->agent( $agent );
@@ -56,7 +57,7 @@ sub new {
         control  => 'proxy',
         daemon   => undef,
         host     => 'localhost',
-        maxchild => 16,
+        maxchild => 10,
         maxconn  => 0,
         logfh    => *STDERR,
         port     => 8080,
@@ -228,6 +229,7 @@ sub start {
 
     my @kids;
     my $reap;
+    my $hupped;
 
     # zombies reaper
     my $reaper;
@@ -236,47 +238,53 @@ sub start {
         $SIG{CHLD} = $reaper;    # for sysV systems
     };
     $SIG{CHLD} = $reaper;
+    $SIG{HUP}  = sub { $hupped++ };
 
     # the main loop
     my $daemon = $self->daemon;
-    while ( $self->loop and my $conn = $daemon->accept ) {
+    while ( $self->loop ) {
+
+        # prefork children process
+        for ( 1 .. $self->maxchild - @kids ) {
+
+            my $child = fork;
+            if ( !defined $child ) {
+                $self->log( 0, "Cannot fork" );
+                $self->maxchild( $self->maxchild - 1 ) if $self->maxchild > 1;
+                next;
+            }
+
+            # the parent process
+            if ($child) {
+                $self->log( 3, "Preforked child process $child" );
+                push @kids, $child;
+            }
+
+            # the child process handles the whole connection
+            else {
+                my $conn = $daemon->accept;
+                $SIG{INT} = 'IGNORE';
+                $self->process($conn);
+                exit;    # let's die!
+            }
+        }
+
+        # wait for a signal
+        POSIX::pause();
 
         # handle zombies
         while ($reap) {
             my $pid = wait;
             @kids = grep { $_ != $pid } @kids;
+            $self->{conn}++;    # Cannot use the interface for RO attributes
             $self->log( 3, "Reaped child process $pid" );
             $reap--;
         }
 
-        # too many children, wait for some to die
-        if ( $self->maxchild && @kids >= $self->maxchild ) {
-            $reap++;
-            next;
-        }
+        # did a child send us information?
+        if ($hupped) {
 
-        my $child = fork;
-        if ( !defined $child ) {
-
-            # This could use a Retry-After: header...
-            $self->log( 0,          "Cannot fork" );
-            $conn->send_error( 503, "Proxy cannot fork" );
-            next;
-        }
-
-        # the parent process
-        if ($child) {
-            $self->{conn}++;    # Cannot use the interface for RO attributes
-            $self->log( 3, "Forked child process $child" );
-            push @kids, $child;
-        }
-
-        # the child process handles the connection
-        else {
-            $self->process($conn);
-            $conn->close;
-            undef $conn;
-            exit;               # let's die!
+            # TODO
         }
 
         # this was the last child we forked
@@ -285,6 +293,8 @@ sub start {
 
     # wait for remaining children
     $self->log( 3, "Remaining kids: @kids" );
+    kill INT => @kids;
+
     while (@kids) {
         my $pid = wait;
         @kids = grep { $_ != $pid } @kids;
@@ -348,33 +358,34 @@ sub _init_agent {
 sub process {
     my ( $self, $conn ) = @_;
     my $response;
-    while ( my $req = $conn->get_request() ) {
-        unless ( defined $req ) {
-            $self->log( 0, "Getting request failed:", $conn->reason );
-            redo;    # does not execute the continue block
-        }
-        $self->log( 1, "($$) Request:", $req->uri );
-        $self->log( 5, "($$) Request:", $req->headers->as_string );
+    my $req = $conn->get_request();
 
-        # can we serve this protocol?
-        if ( !$self->agent->is_protocol_supported( my $s = $req->uri->scheme ) )
-        {
-            $response = new HTTP::Response( 501, 'Not Implemented' );
-            $response->content(
-                "Scheme $s is not supported by the proxy's LWP::UserAgent");
-            next;
-        }
-
-        # handle the Connection: header from the request
-        $response = $self->agent->simple_request($req);
+    unless ( defined $req ) {
+        $self->log( 0, "Getting request failed:", $conn->reason );
     }
-    continue {
 
-        # send the response
-        $conn->print( $response->as_string );
-        $self->log( 1, "($$) Response:", $response->status_line );
-        $self->log( 5, "($$) Response:", $response->headers->as_string );
+    # can we serve this protocol?
+    if ( !$self->agent->is_protocol_supported( my $s = $req->uri->scheme ) ) {
+        $response = new HTTP::Response( 501, 'Not Implemented' );
+        $response->content(
+            "Scheme $s is not supported by the proxy's LWP::UserAgent");
+        goto SEND; # yuck :-)
     }
+
+    # massage the request to pop a response
+    $req->headers->remove_header('Proxy-Connection');
+    $self->log( 1, "($$) Request:", $req->uri );
+    $self->log( 5, "($$) Request:", $req->headers->as_string );
+    $response = $self->agent->simple_request($req);
+
+    # remove Connection: headers from the response
+    $response->headers->remove_header('Connection');
+
+    # send the response
+    SEND:
+    $conn->print( $response->as_string );
+    $self->log( 1, "($$) Response:", $response->status_line );
+    $self->log( 5, "($$) Response:", $response->headers->as_string );
 }
 
 =item log( $level, $message )
@@ -391,7 +402,7 @@ sub log {
 
     return if $self->verbose < $level;
 
-    my ($prefix, $msg) = (@_, '');
+    my ( $prefix, $msg ) = ( @_, '' );
     my @lines = split /\n/, $msg;
     @lines = ('') if not @lines;
 
@@ -419,12 +430,20 @@ Some connections to the client are never closed.
 =head1 TODO
 
 * Provide an interface for logging.
- 
+
 * Provide control over the proxy through special URLs
 
 =head1 AUTHOR
 
 Philippe "BooK" Bruhat, E<lt>book@cpan.orgE<gt>.
+
+=head1 THANKS
+
+Many people helped me during the development of this module, either on
+mailing-lists, irc, or over a beer in a pub...
+
+So, in no particular order, thanks to Michael Schwern (testing while forking),
+Eric 'echo' Cholet (preforked processes).
 
 =head1 COPYRIGHT
 
