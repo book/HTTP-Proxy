@@ -25,21 +25,37 @@ is a pure Perl RFC 2616 compliant proxy module. At least, that's my goal.
 Read the <a href="http://search.cpan.org/author/BOOK/HTTP-Proxy/lib/HTTP/Proxy.pm">module documentation</a>.
 </p>
 <h3>Features</h3>
-<p>HTTP::Proxy version 0.07 supports the following features:</p>
+<p>HTTP::Proxy version 0.10 will support the following features:</p>
 <ul>
 <li>Persistent HTTP/1.1 connections</li>
 <li>Filter chains on the requests and response, applied according
 to the scheme, method, host, path or MIME type</li>
+<li>Helper filters that make writing new filters a very easy task
 </ul>
+<p><b>Warning:</b> As from version 0.10, a new API for filter exists,
+which is not compatible with previous versions of HTTP::Proxy.</p>
 
 <h3>Support</h3>
 <p>
-There is a developper mailing-list, <tt>http-proxy[at]mongueurs.net</tt>,
-where you can ask questions about this module, submit patches and
-receive all the commit emails.
+There are two mailing-list related to HTTP::Proxy:
+<ul>
+<li><tt>http-proxy[at]mongueurs.net</tt>, where you can ask questions
+about this module, submit patches and follow the general discussions
+about its development</li>
+<li><tt>http-proxy-cvs[at]mongueurs.net</tt>, where all the commit
+emails are sent, and discussion about them eventually occurs</li>
+</ul>
 </p><p>
 To subscribe, send an email to <tt>majordomo@mongueurs.net</tt> with the
-line <tt>subscribe http-proxy</tt> in the body of your message.
+line <tt>subscribe http-proxy</tt> or <tt>subscribe http-proxy-cvs</tt> in
+the body of your message.
+</p>
+
+<h3>Bugs</h3>
+<p>
+Please report all bugs to:
+<a href="http://rt.cpan.org/NoAuth/Bugs.html?Dist=HTTP-Proxy">http://rt.cpan.org/NoAuth/Bugs.html?Dist=HTTP-Proxy/</a>, or to the developpers
+mailing list, http-proxy[at]mongueurs.net.
 </p>
 
 <h2>Downloads</h2>
@@ -54,12 +70,15 @@ Here you can download:
 <p><b>Warning:</b> The distribution file for version 0.06 is not fully
 functional, since some files are missing.</p>
 
-<h2>Bugs</h2>
+<h2>HTTP::Proxy usage</h2>
 <p>
-Please report all bugs to:
-<a href="http://rt.cpan.org/NoAuth/Bugs.html?Dist=HTTP-Proxy">http://rt.cpan.org/NoAuth/Bugs.html?Dist=HTTP-Proxy/</a>, or to the developpers
-mailing list, http-proxy[at]mongueurs.net.
+Other people or projects actually use HTTP::Proxy:
 </p>
+<ul>
+<li><a href="http://search.cpan.org/dist/HTTP-Recorder/">HTTP::Recorder</a>
+(by Linda Julien) is a User-Agent designed to be used by HTTP::Proxy to
+record interaction with web sites.
+</ul>
 
 <h2>Author</h2>
 <p>Philippe '<a href="http://search.cpan.org/author/BOOK/">BooK</a>' Bruhat
