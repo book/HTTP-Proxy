@@ -40,7 +40,10 @@ use constant CONNECT => 64;    # Data transmitted by the CONNECT method
 use constant ALL     => 127;   # All of the above
 
 # Methods we can forward
-@METHODS = qw( OPTIONS GET HEAD POST PUT DELETE TRACE CONNECT );
+@METHODS = (
+    qw( OPTIONS GET HEAD POST PUT DELETE TRACE CONNECT ), # HTTP
+    qw( PROPFIND COPY MOVE ),                             # WEBDAV
+);
 
 # useful regexes (from RFC 2616 BNF grammar)
 my %RX;
