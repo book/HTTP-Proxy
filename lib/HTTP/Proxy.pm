@@ -1047,7 +1047,7 @@ work on WinXP ActiveState Perl 5.8.
 
 =head1 SEE ALSO
 
-L<Proxy::BodyFilter>, L<Proxy::HeaderFilter>, the examples in eg/.
+L<HTTP::Proxy::BodyFilter>, L<HTTP::Proxy::HeaderFilter>, the examples in eg/.
 
 =head1 AUTHOR
 
