@@ -10,6 +10,153 @@ use File::Spec;
 use File::Path;
 use Carp;
 
+sub init {
+    my $self = shift;
+
+    # options 
+    my %args = (
+         template   => File::Spec->catfile( '%h', '%P' ),
+         no_host    => 0,
+         no_dirs    => 0,
+         cut_dirs   => 0,
+         prefix     => '',
+         filename   => undef,
+         multiple   => 1,
+         keep_old   => 1, # no_clobber in wget parlance
+         timestamp  => 0,
+         status     => [ 200 ],
+         @_
+    );
+    # keep_old and timestamp can't be selected together
+    croak "Can't timestamp and keep older files at the same time"
+      if $args{keep_old} && $args{timestamp};
+    croak "status must be an array reference"
+      unless ref($args{status}) eq 'ARRAY';
+    croak "status must contain only HTTP codes"
+      if grep { !/^[12345]\d\d$/ } @{ $args{status} };
+    croak "filename must be a code reference"
+      if defined $args{filename} && UNIVERSAL::isa($args{filename}, 'CODE');
+
+    $self->{"_hpbf_save_$_"} = $args{$_}
+      for qw( template no_host no_dirs cut_dirs prefix
+              filename
+              multiple keep_old timestamp status );
+}
+
+sub begin {
+    my ( $self, $message ) = @_;
+
+    my $uri = $message->isa( 'HTTP::Request' )
+            ? $message->uri : $message->request->uri;
+
+    # save only the accepted status codes
+    if( $message->isa( 'HTTP::Response' ) ) {
+        my $code = $message->code;
+        return unless grep { $code eq $_ } @{ $self->{_hpbf_save_status} };
+    }
+    
+    my $file = '';
+    if( defined $self->{_hpbf_save_filename} ) {
+        # use the user-provided callback
+        $file = &{ $self->{_hpbf_save_filename} }->($message);
+        unless ( defined $file and $file ne '' ) {
+            $self->proxy->log( HTTP::Proxy::FILTERS, "HTBF::save",
+                               "Filter will not save $uri" );
+            return;
+        }
+    }
+    else {
+        # set the template variables from the URI
+        my @segs = $uri->path_segments; # starts with an empty string
+        shift @segs;
+        splice(@segs, 1, $self->{_hpbf_save_cut_dirs} >= @segs
+                         ? @segs - 1 : $self->{_hpbf_save_cut_dirs} );
+        my %vars = (
+             '%' => '%',
+             h   => $self->{_hpbf_save_no_host} ? '' : $uri->host,
+             f   => $segs[-1] || 'index.html', # same default as wget
+             p   => $self->{_hpbf_save_no_dirs} ? $segs[-1] || 'index.html'
+                                                : File::Spec->catfile(@segs),
+             q   => $uri->query,
+        );
+        pop @segs;
+        $vars{d} = $self->{_hpbf_save_no_dirs} ? ''
+                                               : File::Spec->catfile(@segs);
+        $vars{P} = $vars{p} . ( $vars{q} ? "?$vars{q}" : '' );
+    
+        # create the filename
+        $file = File::Spec->catfile( $self->{_hpbf_save_prefix} || (),
+                                     $self->{_hpbf_save_template} );
+        $file =~ s/%(.)/$vars{$1}/g;
+    }
+    $file = File::Spec->rel2abs( $file );
+
+    # internal data initialisation
+    $self->{_hpbf_save_filename} = "";
+    $self->{_hpbf_save_fh} = undef;
+
+    # create the directory
+    my $dir = File::Spec->catdir( (File::Spec->splitpath($file))[ 0, 1 ] );
+    eval { mkpath( $dir ) };
+    if ($@) {
+        $self->proxy->log( HTTP::Proxy::ERROR, "HTBF::save",
+                          "Unable to create directory $dir" );
+        return;
+    }
+
+    # open and lock the file
+    my ( $ext, $n, $i ) = ( "", 0 );
+    while( ! sysopen( $self->{_hpbf_save_fh}, "$file$ext",
+                      O_WRONLY | O_EXCL | O_CREAT ) ) {
+        $self->proxy->log( HTTP::Proxy::ERROR, "HPBF::save",
+                           "Too many errors opening $file$ext" ), return
+          if $i++ - $n == 10; # should be ok now
+        if( $self->{_hpbf_save_multiple} ) {
+            $ext = "." . ++$n while -e $file.$ext;
+            next;
+        }
+        if( $self->{_hpbf_save_timestamp} ) {
+            # FIXME timestamp
+        } elsif( $self->{_hpbf_save_keep_old} ) {
+            $self->proxy->log( HTTP::Proxy::FILTERS, "HPBF::save",
+                               "Skip saving $uri" );
+            delete $self->{_hpbf_save_fh}; # it's a closed filehandle
+            return;
+        } else {
+            unlink $file; # FIXME error ?
+        }
+    }
+
+    # we have an open filehandle
+    $self->{_hpbf_save_filename} = $file.$ext;
+    binmode( $self->{_hpbf_save_fh} );    # for Win32 and friends
+    $self->proxy->log( HTTP::Proxy::FILTERS, "HPBF::save",
+                       "Saving $uri to $file$ext" );
+}
+
+sub filter {
+    my ( $self, $dataref ) = @_;
+    return unless exists $self->{_hpbf_save_fh};
+
+    # save the data to the file
+    my $res = $self->{_hpbf_save_fh}->syswrite( $$dataref );
+    $self->proxy->log( HTTP::Proxy::ERROR, "HPBF::save", "syswrite() error: $!")
+      if ! defined $res;  # FIXME error handling
+}
+
+sub end {
+    my ($self) = @_;
+
+    # close file
+    if( $self->{_hpbf_save_fh} ) {
+        $self->{_hpbf_save_fh}->close; # FIXME error handling
+    }
+}
+
+1;
+
+__END__
+
 =head1 NAME
 
 HTTP::Proxy::BodyFilter::save - A filter that saves transfered data to a file
@@ -45,41 +192,6 @@ as it flows through the proxy. Depending on where the filter is located
 in the stack, the saved data can be more or less modified.
 
 This filter I<will> create directories if it needs to!
-
-=cut
-
-sub init {
-    my $self = shift;
-
-    # options 
-    my %args = (
-         template   => File::Spec->catfile( '%h', '%P' ),
-         no_host    => 0,
-         no_dirs    => 0,
-         cut_dirs   => 0,
-         prefix     => '',
-         filename   => undef,
-         multiple   => 1,
-         keep_old   => 1, # no_clobber in wget parlance
-         timestamp  => 0,
-         status     => [ 200 ],
-         @_
-    );
-    # keep_old and timestamp can't be selected together
-    croak "Can't timestamp and keep older files at the same time"
-      if $args{keep_old} && $args{timestamp};
-    croak "status must be an array reference"
-      unless ref($args{status}) eq 'ARRAY';
-    croak "status must contain only HTTP codes"
-      if grep { !/^[12345]\d\d$/ } @{ $args{status} };
-    croak "filename must be a code reference"
-      if defined $args{filename} && UNIVERSAL::isa($args{filename}, 'CODE');
-
-    $self->{"_hpbf_save_$_"} = $args{$_}
-      for qw( template no_host no_dirs cut_dirs prefix
-              filename
-              multiple keep_old timestamp status );
-}
 
 =head2 Constructor
 
@@ -210,121 +322,9 @@ pages (for 404 codes).
 
 =back
 
-=cut
-
-sub begin {
-    my ( $self, $message ) = @_;
-
-    my $uri = $message->isa( 'HTTP::Request' )
-            ? $message->uri : $message->request->uri;
-
-    # save only the accepted status codes
-    if( $message->isa( 'HTTP::Response' ) ) {
-        my $code = $message->code;
-        return unless grep { $code eq $_ } @{ $self->{_hpbf_save_status} };
-    }
-    
-    my $file = '';
-    if( defined $self->{_hpbf_save_filename} ) {
-        # use the user-provided callback
-        $file = &{ $self->{_hpbf_save_filename} }->($message);
-        unless ( defined $file and $file ne '' ) {
-            $self->proxy->log( HTTP::Proxy::FILTERS, "HTBF::save",
-                               "Filter will not save $uri" );
-            return;
-        }
-    }
-    else {
-        # set the template variables from the URI
-        my @segs = $uri->path_segments; # starts with an empty string
-        shift @segs;
-        splice(@segs, 1, $self->{_hpbf_save_cut_dirs} >= @segs
-                         ? @segs - 1 : $self->{_hpbf_save_cut_dirs} );
-        my %vars = (
-             '%' => '%',
-             h   => $self->{_hpbf_save_no_host} ? '' : $uri->host,
-             f   => $segs[-1] || 'index.html', # same default as wget
-             p   => $self->{_hpbf_save_no_dirs} ? $segs[-1] || 'index.html'
-                                                : File::Spec->catfile(@segs),
-             q   => $uri->query,
-        );
-        pop @segs;
-        $vars{d} = $self->{_hpbf_save_no_dirs} ? ''
-                                               : File::Spec->catfile(@segs);
-        $vars{P} = $vars{p} . ( $vars{q} ? "?$vars{q}" : '' );
-    
-        # create the filename
-        $file = File::Spec->catfile( $self->{_hpbf_save_prefix} || (),
-                                     $self->{_hpbf_save_template} );
-        $file =~ s/%(.)/$vars{$1}/g;
-    }
-    $file = File::Spec->rel2abs( $file );
-
-    # internal data initialisation
-    $self->{_hpbf_save_filename} = "";
-    $self->{_hpbf_save_fh} = undef;
-
-    # create the directory
-    my $dir = File::Spec->catdir( (File::Spec->splitpath($file))[ 0, 1 ] );
-    eval { mkpath( $dir ) };
-    if ($@) {
-        $self->proxy->log( HTTP::Proxy::ERROR, "HTBF::save",
-                          "Unable to create directory $dir" );
-        return;
-    }
-
-    # open and lock the file
-    my ( $ext, $n, $i ) = ( "", 0 );
-    while( ! sysopen( $self->{_hpbf_save_fh}, "$file$ext",
-                      O_WRONLY | O_EXCL | O_CREAT ) ) {
-        $self->proxy->log( HTTP::Proxy::ERROR, "HPBF::save",
-                           "Too many errors opening $file$ext" ), return
-          if $i++ - $n == 10; # should be ok now
-        if( $self->{_hpbf_save_multiple} ) {
-            $ext = "." . ++$n while -e $file.$ext;
-            next;
-        }
-        if( $self->{_hpbf_save_timestamp} ) {
-            # FIXME timestamp
-        } elsif( $self->{_hpbf_save_keep_old} ) {
-            $self->proxy->log( HTTP::Proxy::FILTERS, "HPBF::save",
-                               "Skip saving $uri" );
-            delete $self->{_hpbf_save_fh}; # it's a closed filehandle
-            return;
-        } else {
-            unlink $file; # FIXME error ?
-        }
-    }
-
-    # we have an open filehandle
-    $self->{_hpbf_save_filename} = $file.$ext;
-    binmode( $self->{_hpbf_save_fh} );    # for Win32 and friends
-    $self->proxy->log( HTTP::Proxy::FILTERS, "HPBF::save",
-                       "Saving $uri to $file$ext" );
-}
-
-sub filter {
-    my ( $self, $dataref ) = @_;
-    return unless exists $self->{_hpbf_save_fh};
-
-    # save the data to the file
-    my $res = $self->{_hpbf_save_fh}->syswrite( $$dataref );
-    $self->proxy->log( HTTP::Proxy::ERROR, "HPBF::save", "syswrite() error: $!")
-      if ! defined $res;  # FIXME error handling
-}
-
-sub end {
-    my ($self) = @_;
-
-    # close file
-    if( $self->{_hpbf_save_fh} ) {
-        $self->{_hpbf_save_fh}->close; # FIXME error handling
-    }
-}
-
 =head2 Examples
 
-Given a request for the http://search.cpan.org/dist/HTTP-Proxy/ URI,
+Given a request for the L<http://search.cpan.org/dist/HTTP-Proxy/> URI,
 the filename is computed as follows, depending on the constructor
 options:
 
@@ -342,6 +342,35 @@ options:
 
     cut_dirs => 2       -> search.cpan.org/index.html
 
+=head1 METHODS
+
+This filter implements several methods, which are all called atuomatically:
+
+=over 4
+
+=item init()
+
+Handle all the parameters passed to the constructor to define the
+filter behaviour.
+
+=item begin()
+
+Open the file to which the data will be saved.
+
+=item filter()
+
+Save all the data that goes through to the opened file.
+
+=item end()
+
+Close the file when the whole message body has been processed.
+
+=back
+
+=head1 SEE ALSO
+
+L<HTTP::Proxy>, L<HTTP::Proxy::BodyFilter>.
+
 =head1 AUTHOR
 
 Philippe "BooK" Bruhat, E<lt>book@cpan.orgE<gt>.
@@ -357,7 +386,7 @@ Wget(1) provided the inspiration for many of the file naming options.
 Thanks to Nicolas Chuche for telling me about C<O_EXCL>.
 
 Thanks to Rafaël Garcia-Suarez and David Rigaudiere for their help on
-irc while coding the nasty begin() method. C<;-)>
+irc while coding the nasty C<begin()> method. C<;-)>
 
 Thanks to Howard Jones for the inspiration and initial patch for the
 C<filename> option. Lucas Gonze provided a patch to make C<status>
@@ -373,6 +402,4 @@ This module is free software; you can redistribute it or modify it under
 the same terms as Perl itself.
 
 =cut
-
-1;
 
