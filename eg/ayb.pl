@@ -8,7 +8,7 @@ use strict;
 my $proxy = HTTP::Proxy->new( @ARGV );
 
 # all your base...
-my @ayb = grep { $_ } split/$/m, << 'AYB';
+my @ayb = grep { !/^$/ } split/$/m, << 'AYB';
 In A.D. 2101
 War was beginning.
 What happen ?
@@ -40,30 +40,37 @@ $parser->handler(
     },
     "self"
 );
+
 $parser->handler(
     start => sub {
-        my ( $self, $tag, $text ) = @_;
+        my ( $self, $tag, $attr, $text ) = @_;
         $self->{ayb} = 1 if $tag =~ /^h\d/;
+        if( $tag eq 'img' ) {
+            $attr->{src} = 'http://home.uchicago.edu/~obmontoy/cats.jpg';
+            $text = "<$tag "
+                  . join(' ', map { qq($_="$attr->{$_}") } keys %$attr )
+                  . ">";
+        }
         $self->{output} .= $text;
     },
-    "self,tagname,text"
+    "self,tagname,attr,text"
 );
+
 $parser->handler(
     end => sub {
         my ( $self, $tag, $text ) = @_;
         if( $tag =~ /^h\d/ ) {
             $self->{ayb} = 0;
-            $text = $ayb[$self->{i}++] . $text;
-            $self->{i} %= @ayb;
         }
         $self->{output} .= $text;
     },
     "self,tagname,text"
 );
+
 $parser->handler(
     default => sub {
         my ( $self, $text ) = @_;
-        $self->{output} .= $self->{ayb} ? '' : $text;
+        $self->{output} .= $self->{ayb} ? $ayb[($self->{i} += 1 ) %= @ayb] : $text;
     },
     "self,text"
 );
