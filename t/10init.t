@@ -5,7 +5,7 @@ use HTTP::Proxy;
 my ( $proxy, $agent, $daemon );
 
 # individual methods
-$proxy = HTTP::Proxy->new;
+$proxy = HTTP::Proxy->new( port => 0 );
 is( $proxy->agent,  undef, 'agent undefined at startup' );
 is( $proxy->daemon, undef, 'daemon undefined at startup' );
 
@@ -19,7 +19,7 @@ isa_ok( $daemon, 'HTTP::Daemon',   'init_daemon' );
 $daemon = undef;
 
 # combined init method
-$proxy = HTTP::Proxy->new;
+$proxy = HTTP::Proxy->new( port => 0 );
 $agent = $proxy->init;
 isa_ok( $proxy->agent,  'LWP::UserAgent', 'init agent' );
 isa_ok( $proxy->daemon, 'HTTP::Daemon',   'init daemon' );
