@@ -59,11 +59,16 @@ sub init {
          multiple   => 1,
          keep_old   => 1, # no_clobber in wget parlance
          timestamp  => 0,
+         status     => [ 200 ],
          @_
     );
     # keep_old and timestamp can't be selected together
     croak "Can't timestamp and keep older files at the same time"
       if $args{keep_old} && $args{timestamp};
+    croak "status must be an array reference"
+      unless ref($args{status}) eq 'ARRAY';
+    croak "status must contain only HTTP codes"
+      if grep { !/^[12345]\d\d$/ } @{ $args{status} };
 
     $self->{"_hpbf_save_$_"} = $args{$_}
       for qw( template no_host no_dirs cut_dirs prefix timestamp
@@ -147,7 +152,11 @@ with the same name already exists. Default is I<false>.
 No matter if B<multiple> is set or not, the file will I<not> be saved
 if B<keep_old> is set to true.
 
-Here, keep_old is as badly as in wget, 
+=item B<status> \@codes
+
+The C<status> option limits the status codes for which a response body
+will be saved. The default is C<[ 200 ]>, which prevent saving error
+pages (for 404 codes).
 
 =back
 
@@ -159,6 +168,12 @@ sub start {
     my $uri = $message->isa( 'HTTP::Request' )
             ? $message->uri : $message->request->uri;
 
+    # save only the accepted status codes
+    if( $message->isa( 'HTTP::Response' ) ) {
+        my $code = $message->code;
+        return unless grep { $code eq $_ } @{ $self->{_hpbf_save_status} };
+    }
+    
     # set the template variables from the URI
     my @segs = $uri->path_segments; # starts with an empty string
     shift @segs;
@@ -190,7 +205,7 @@ sub start {
     my $dir = File::Spec->catdir( (File::Spec->splitpath($file))[ 0, 1 ] );
     eval { mkpath( $dir ) };
     if ($@) {
-        $self->proxy->log( HTTP::Proxy::ERROR, "HTBF-save",
+        $self->proxy->log( HTTP::Proxy::ERROR, "HTBF::save",
                           "Unable to create directory $dir" );
         return;
     }
@@ -199,7 +214,7 @@ sub start {
     my ( $ext, $n, $i ) = ( "", 0 );
     while( ! sysopen( $self->{_hpbf_save_fh}, "$file$ext",
                       O_WRONLY | O_EXCL | O_CREAT ) ) {
-        $self->proxy->log( HTTP::Proxy::ERROR, "HPBF-save",
+        $self->proxy->log( HTTP::Proxy::ERROR, "HPBF::save",
                            "Too many errors opening $file$ext" ), return
           if $i++ - $n == 10; # should be ok now
         if( $self->{_hpbf_save_multiple} ) {
@@ -209,7 +224,7 @@ sub start {
         if( $self->{_hpbf_save_timestamp} ) {
             # FIXME timestamp
         } elsif( $self->{_hpbf_save_keep_old} ) {
-            $self->proxy->log( HTTP::Proxy::FILTERS, "HPBF-save",
+            $self->proxy->log( HTTP::Proxy::FILTERS, "HPBF::save",
                                "Skip saving $uri" );
             delete $self->{_hpbf_save_fh}; # it's a closed filehandle
             return;
