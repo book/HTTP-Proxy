@@ -260,6 +260,7 @@ sub process {
         }
         $self->log( 1, "($$) Request: " . $req->uri );
         $self->log( 5, "($$) Request: " . $req->headers->as_string );
+	# handle the Connection: header from the request
         my $res = $self->agent->simple_request($req);
         $conn->print( $res->as_string );
         $self->log( 1, "($$) Response: " . $res->status_line );
@@ -290,7 +291,8 @@ at differents stages of the request/response handling.
 
 =head1 BUGS
 
-For now the proxy doesn't even fork.
+Some connections to the client are never closed.
+(HTTP::Proxy should handle the client and the server connection separately.)
 
 =head1 TODO
 
