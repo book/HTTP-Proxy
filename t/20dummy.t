@@ -24,6 +24,7 @@ $test->no_ending(1);
 
 # create a HTTP::Daemon (on an available port)
 my $server = server_start();
+my $serverurl = $server->url;
 
 my $proxy = HTTP::Proxy->new( port => 0, maxconn => scalar @requests );
 $proxy->init;    # required to access the url later
@@ -75,7 +76,7 @@ my $ua = LWP::UserAgent->new;
 $ua->proxy( http => $proxy->url );
 
 for (@requests) {
-    my $req = HTTP::Request->new( GET => $server->url . $_ );
+    my $req = HTTP::Request->new( GET => $serverurl . $_ );
     my $rep = $ua->simple_request($req);
     ok( $rep->is_success, "Got an answer (@{[$rep->status_line]})" );
     my $re = quotemeta;
