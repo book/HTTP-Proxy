@@ -20,3 +20,4 @@ CVS/.*
 ^cover_db/
 ^_build/
 ^talks/
+^.lwpcookies$
