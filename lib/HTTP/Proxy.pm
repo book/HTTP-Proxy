@@ -525,7 +525,7 @@ It is possible to push the same coderef on the request and response
 stacks, as in the following example:
 
     $proxy->push_header_filter( request => $coderef, response => $coderef );
- 
+
 Named parameters can be added. They are:
 
     mime   - the MIME type (for a response-body filter)
