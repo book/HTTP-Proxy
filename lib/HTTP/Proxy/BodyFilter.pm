@@ -2,6 +2,26 @@ package HTTP::Proxy::BodyFilter;
 
 use Carp;
 
+sub new {
+    my $class = shift;
+    my $self = bless {}, $class;
+    $self->init(@_) if $self->can('init');
+    return $self;
+}
+
+sub proxy {
+    my ( $self, $new ) = @_;
+    return $new ? $self->{_hpbf_proxy} = $new : $self->{_hpbf_proxy};
+}
+
+sub filter {
+    croak "HTTP::Proxy::HeaderFilter cannot be used as a filter";
+}
+
+1;
+
+__END__
+
 =head1 NAME
 
 HTTP::Proxy::BodyFilter - A base class for HTTP messages body filters
@@ -25,19 +45,15 @@ HTTP::Proxy::BodyFilter - A base class for HTTP messages body filters
 The HTTP::Proxy::BodyFilter class is used to create filters for
 HTTP request/response body data.
 
-=cut
-
-sub new {
-    my $class = shift;
-    my $self = bless {}, $class;
-    $self->init(@_) if $self->can('init');
-    return $self;
-}
-
 =head2 Creating a BodyFilter
 
-A BodyFilter is just a derived class that implements the filter()
-method. See the example in L<SYNOPSIS>.
+A BodyFilter is just a derived class that implements some methods
+called by the proxy. Of all the methods presented below, only
+C<filter()> B<must> be defined in the derived class.
+
+=over 4
+
+=item filter()
 
 The signature of the filter() method is the following:
 
@@ -56,7 +72,7 @@ backs of LWP::UserAgent (except that $message is either a HTTP::Request
 or a HTTP::Response object).
 
 $buffer is a reference to a buffer where some of the unprocessed data
-can be stored for the next time the filter will be called (see L<Using
+can be stored for the next time the filter will be called (see L</Using
 a buffer to store data for a later use> for details). Thanks to the
 built-in HTTP::Proxy::BodyFilter::* filters, this is rarely needed.
 
@@ -72,24 +88,18 @@ filters that follows, until the data reaches its recipient.
 A HTTP::Proxy::BodyFilter object is a blessed hash, and the base class
 reserves only hash keys that start with C<_hpbf>.
 
-=head2 Filter customisation
-
-Three methods can be added to a BodyFilter to enhance customisation:
-
-=over 4
-
 =item init()
 
-This method is called by the new() constructeur to perform all
+This method is called by the C<new()> constructeur to perform all
 initisalisation tasks. It's called once in the filter lifetime.
 
-It receives all the parameters passed to new().
+It receives all the parameters passed to C<new()>.
 
 =item begin()
 
 Some filters might require initialisation before they are able to handle
-the data. If a begin() method is defined in your subclass, the proxy
-will call it before sending data to the filter() method.
+the data. If a C<begin()> method is defined in your subclass, the proxy
+will call it before sending data to the C<filter()> method.
 
 It's called once per HTTP message handled by the filter, before data
 processing begins.
@@ -104,8 +114,8 @@ The method signature is as follows:
 =item end()
 
 Some filters might require finalisation after they are finished handling
-the data. If a end() method is defined in your subclass, the proxy
-will call it after it has finished sending data to the filter() method.
+the data. If a C<end()> method is defined in your subclass, the proxy
+will call it after it has finished sending data to the C<filter()> method.
 
 It's called once per HTTP message handled by the filter, after all data
 processing is done.
@@ -146,8 +156,8 @@ HTTP::Proxy implements a I<store and forward> mechanism, for those filters
 which need to have the whole message body to work. It's enabled simply by
 pushing the HTTP::Proxy::BodyFilter::complete filter on the filter stack.
 
-The data is store in memory by the "complete" filter, which passes it
-to the following filter once the full message body has been received.
+The data is stored in memory by the "complete" filter, which passes it
+on to the following filter once the full message body has been received.
 
 =head2 Standard BodyFilters
 
@@ -167,7 +177,7 @@ piece of data for the current HTTP message body.
 =item htmltext
 
 This class lets you create a filter that runs a given code reference
-against text  included in a HTML document (outside C<E<lt>scriptE<gt>>
+against text included in a HTML document (outside C<E<lt>scriptE<gt>>
 and C<E<lt>styleE<gt>> tags). HTML entities are not included in the text.
 
 =item htmlparser
@@ -198,13 +208,7 @@ implementation is not 100% perfect, though.
 
 Please read each filter's documentation for more details about their use.
 
-=cut
-
-sub filter {
-    croak "HTTP::Proxy::HeaderFilter cannot be used as a filter";
-}
-
-=head1 AVAILABLE METHODS
+=head1 USEFUL METHODS FOR SUBCLASSES
 
 Some methods are available to filters, so that they can eventually use
 the little knowledge they might have of HTTP::Proxy's internals. They
@@ -216,13 +220,6 @@ mostly are accessors.
 
 Gets a reference to the HTTP::Proxy objects that owns the filter.
 This gives access to some of the proxy methods.
-
-=cut
-
-sub proxy {
-    my ( $self, $new ) = @_;
-    return $new ? $self->{_hpbf_proxy} = $new : $self->{_hpbf_proxy};
-}
 
 =back
 
@@ -245,4 +242,3 @@ the same terms as Perl itself.
 
 =cut
 
-1;
