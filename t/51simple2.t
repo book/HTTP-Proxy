@@ -50,7 +50,7 @@ is( $response->header( "X-Foo" ), "Bar", "Proxy applied the transformation" );
 # for HEAD requests
 $ua = LWP::UserAgent->new();
 $ua->proxy( http => $url );
-my $response = $ua->request( HTTP::Request->new( HEAD => $server->url ) );
+$response = $ua->request( HTTP::Request->new( HEAD => $server->url ) );
 is( $response->header( "X-Foo" ), "Bar", "Proxy applied the transformation" );
 
 # wait for kids

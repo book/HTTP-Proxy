@@ -55,7 +55,7 @@ $req = HTTP::Request->new( HEAD => $server->url . "headers-head" );
 $res = $ua->simple_request($req);
 @date = $res->headers->header('Date');
 is( scalar @date, 1, "A single Date: header for HEAD request" );
-my @server = $res->headers->header('Server');
+@server = $res->headers->header('Server');
 is( scalar @server, 1, "A single Server: header for HEAD request" );
 
 # for direct proxy responses
@@ -64,7 +64,7 @@ $req = HTTP::Request->new( GET => "file:///etc/passwd" );
 $res = $ua->simple_request($req);
 @date = $res->headers->header('Date');
 is( scalar @date, 1, "A single Date: header for direct proxy response" );
-my @server = $res->headers->header('Server');
+@server = $res->headers->header('Server');
 is( scalar @server, 1, "A single Server: header for direct proxy response" );
 # check the Server: header
 like( $server[0], qr!HTTP::Proxy/\d+\.\d+!, "Correct server name for direct proxy response" );
