@@ -1,9 +1,63 @@
 Revision history for Perl extension HTTP::Proxy
 
-0.14
+0.14 Tue Mar 29 11:40:51 CEST 2005
+        [ANNOUNCE]
+        - It's been more than a year since last release, which is bad.
+          I now plan to release new versions more often, maybe about
+          once a month, or when there are big changes.
+        [DEPRECATION]
+        - the start() method of HTTP::Proxy::Bodyfilter subclasses
+          is renamed begin(), since it now has an end() counterpart.
+          (On a related note, I improve my English. Be sure to check out
+          http://www.landgren.net/perl/lt-2004.html for details)          
+        - start() in filters is therefore declared deprecated, an error
+          message is logged. The start() method will not be called any
+          more as from 0.15.
+        - the FILTER constant is now named FILTERS. FILTER will disappear
+          in 0.15 as well.
+        [ENHANCEMENTS]
+        - subclasses of HTTP::Proxy::BodyFilter can now have a
+          finalisation method, named end()
+        - the start^Wbegin() method of HTTP::Proxy::BodyFilter subclasses
+          now receive the message as an argument
+        - new built-in filter: HTTP::Proxy::BodyFilter::save
+          that can save the message body to a file while browsing
+        - new built-in filter: HTTP::Proxy::BodyFilter::complete
+          that stores the message body in memory and passes it on to the
+          next filters only when it's complete
+        - logs have cleaner prefixes and the pid is always shown
+        - should work under 5.005_03 (Thanks to Mathieu Arnold)
+        - transparent proxying support (mostly to please Martin Zdila
+          and Paul Makepeace)
+        - push_filter() should now accept the query parameter
+        [FIXES]
+        - the FILTER constant is now named FILTERS
+        [BUGS]
+        - the proxy does not work under Win32, except if you force
+          maxchild to 0 (no forking at all).
+        - t/20dummy.t (and a few otrhers) hanged under Win32
+          + Ken Hirsch proposed a patch for HTTP::Daemon
+            (and a workaround for HTTP::Proxy's daemon object)
+          + Bruno De Fraine tracked down the problem to the fork()
+            emulation by Windows threads under Win32 that lead to
+            a deadlock.
+          => both explanations cover the same problem, which I haven't
+             been able to correct yet
+        - all the tests that fork a proxy and a server are therefore
+          skipped under Win32. This is ugly, and will change in the future.
         [EXAMPLES]
+        - eg/rfc.pl    - save rfc\d+\.txt files as we browse them
+        - eg/js.pl     - save \.js files as we browse them
+        - eg/dragon.pl - enhance the Dragon Go Server web site
+        - eg/fudd.pl   - make the web tawk wike Ewmer J. Fudd
+        - eg/switch.pl - switch proxies as you browse
         - Changed all the examples so that they can take HTTP::Proxy::new()
-          parameters on the command-line
+          parameters on the command-line (so, call them with logmask 3,
+          for example)
+        [DOCUMENTATION]
+        - documentation for the filter initialisation methods
+        - removed all references to the so-called "store-and-forward"
+          mechanism (see HTTP::Proxy::BodyFilter::complete)
 
 0.13 Wed Mar  3 17:36:31 CET 2004
         [ENHANCEMENTS]
