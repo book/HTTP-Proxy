@@ -14,6 +14,12 @@ The eg/ directory holds a few example proxies.
 
    Filter: HTTP::Proxy::HeaderFilter::simple
 
+ * proxy-auth.pl
+
+   A very simple proxy, with Basic authentication.
+
+   Filter: HTTP::Proxy::HeaderFilter::simple
+
  * leet.pl
  * rot13.pl
  * rainbow.pl
