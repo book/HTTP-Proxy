@@ -10,7 +10,7 @@ BEGIN {
     );
 }
 
-use Test::More tests => 3 * @requests + 2;
+use Test::More tests => 3 * @requests + 4;
 use HTTP::Daemon;
 use LWP::UserAgent;
 use HTTP::Proxy;
@@ -51,7 +51,7 @@ if ( $pid == 0 ) {
     for (@requests) {
         my $conn = $daemon->accept;
         my $req  = $conn->get_request;
-        ok( $req->uri =~ quotemeta, "The proxy requested what we expected" );
+        ok( $req->uri =~ quotemeta, "The daemon got what it expected" );
         $answer->( $conn, $_ );
     }
 
@@ -60,8 +60,9 @@ if ( $pid == 0 ) {
     my $req  = $conn->get_request;
     ok(
         !$req->headers->header('Proxy-Connection'),
-        "The Proxy-Connection header is filtered"
+        "Proxy-Connection: header filtered"
     );
+    ok( $req->headers->header('Via'), "Proxy says Via: header added" );
     $answer->( $conn, 'Proxy-connection removed' );
     exit 0;
 }
@@ -77,7 +78,8 @@ if ( $pid == 0 ) {
 
     # this is the http proxy
     $proxy->start;
-    ok( $proxy->conn == @requests, "Served the correct number of requests" );
+    ok( $proxy->conn == @requests,
+        "The proxy served the correct number of requests" );
     exit 0;
 }
 
@@ -91,14 +93,15 @@ $ua->proxy( http => $proxy->url );
 for (@requests) {
     my $req = HTTP::Request->new( GET => $daemon->url . $_ );
     my $rep = $ua->simple_request($req);
-    ok( $rep->is_success, "Got an answer (@{[$rep->code]})" );
-    ok( $rep->content =~ quotemeta, "Got what we wanted" );
+    ok( $rep->is_success, "Got an answer (@{[$rep->status_line]})" );
+    ok( $rep->content =~ quotemeta, "The client got what it expected" );
 }
 
 # send a Proxy-Connection header
 my $req = HTTP::Request->new( GET => $daemon->url . "proxy-connection" );
 $req->headers->header( Proxy_Connection => 'Keep-Alive' );
 my $rep = $ua->simple_request($req);
+ok( $rep->headers->header('Via'), "Client says Via: header added" );
 
 # make sure both kids are dead
 wait for @pids;
