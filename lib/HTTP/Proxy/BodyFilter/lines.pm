@@ -15,13 +15,12 @@ HTTP::Proxy::BodyFilter::lines - A filter that outputs only complete lines
 
     my $filter = MyFilter->new();
 
-    # note that both filters will be run on the same messages
-    # (those with a MIME type of text/*)
+    # stack both filters so that they'll handle text/* responses
     $proxy->push_filter(
         mime     => 'text/*',
-        response => HTTP::Proxy::BodyFilter::lines->new
+        response => HTTP::Proxy::BodyFilter::lines->new,
+        response => $filter
     );
-    $proxy->push_filter( mime => 'text/*', response => $filter );
 
     # I want my lines to end with '!'
     # This is equivalent to $/ = '!' in a normal Perl program
