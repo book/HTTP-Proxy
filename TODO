@@ -4,14 +4,21 @@ TODO
 Technical
 ---------
 
-* Finalise the interface for the store and forward mechanism
 * in the push_filter method, host and path are regexp.
   this should be tested and enhanced
 * how do we handle filters for:
   - CONNECT (i.e. a transparent TCP connection through the proxy)
   - SSL (a different socket type, but that's about all)
-* a method to send a response 
 * Sets of HTTP methods (RFC2616, WebDAV, Microsoft RPC, etc...)
+* Leave the Content-Length header untouched if no filter passed on the
+  response body (problem active() does return valid numbers only after
+  filtering has begun)
+* enable filter bypass
+* Add a stash in the proxy (Trelane)
+* do something about utf8:
+  - auto flag utf-8 data ?
+  - believe the Content-Type
+  - autocheck with Encode if Content doesn't tell
 
 Tests
 -----
