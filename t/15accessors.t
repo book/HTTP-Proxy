@@ -1,4 +1,4 @@
-use Test::More tests => 24;
+use Test::More;
 use HTTP::Proxy qw( :log );
 
 my $proxy;
@@ -15,9 +15,11 @@ my %meth = (
     daemon          => undef,
     host            => 'localhost',
     logfh           => *main::STDERR,
-    maxchild        => 10,
-    maxconn         => 0,
-    maxserve        => 10,
+    #maxchild        => 10,
+    #maxconn         => 0,
+    max_connections => 0,
+    #maxserve        => 10,
+    max_requests_per_child => 10,
     port            => 8080,
     request         => undef,
     response        => undef,
@@ -29,6 +31,8 @@ my %meth = (
     # loop is not used/internal for now
 );
 
+plan tests => 11 + keys %meth;
+
 for my $key ( sort keys %meth ) {
     no strict 'refs';
     is( $proxy->$key(), $meth{$key}, "$key has the correct default" );
@@ -36,6 +40,11 @@ for my $key ( sort keys %meth ) {
 
 like( $proxy->via(), qr!\(HTTP::Proxy/$HTTP::Proxy::VERSION\)$!,
       "via has the correct default");
+
+# test deprecated accessors
+$proxy = HTTP::Proxy->new( maxserve => 127,  maxconn => 255 );
+is( $proxy->max_requests_per_child, 127, "deprecated maxserve");
+is( $proxy->max_connections, 255, "deprecated maxconn");
 
 #
 # test generated accessors (they're all the same)
@@ -47,6 +56,9 @@ is( $proxy->port, 8888, "Set works" );
 #
 # other accessors
 #
+
+$proxy->max_clients( 666 );
+is( $proxy->engine->max_clients, 666, "max_clients correctly delegated" );
 
 # check the url() method
 $proxy->port(0);
