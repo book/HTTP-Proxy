@@ -3,12 +3,13 @@ package HTTP::Proxy;
 use HTTP::Daemon;
 use LWP::UserAgent;
 use LWP::ConnCache;
+use Fcntl ':flock';    # import LOCK_* constants
 use Carp;
 
 use strict;
 use vars qw( $VERSION $AUTOLOAD );
 
-$VERSION = 0.01;
+$VERSION = 0.02;
 
 =pod
 
@@ -21,17 +22,23 @@ HTTP::Proxy - A pure Perl HTTP proxy
     use HTTP::Proxy;
 
     # initialisation
-    my $proxy = HTTP::Proxy->new( port =>
+    my $proxy = HTTP::Proxy->new( port => 3128 );
 
     # alternate initialisation
     my $proxy = HTTP::Proxy->new;
-    $proxy->port( 8080 ); # the classical accessors are here!
+    $proxy->port( 3128 ); # the classical accessors are here!
     
+    # you can also use your own UserAgent
+    my $agent = LWP::RobotUA->new;
+    $proxy->agent( $agent );
+
     # this is a MainLoop-like method
     $proxy->start;
 
 =head1 DESCRIPTION
 
+This module implements a HTTP Proxy, using a HTTP::Daemon to accept
+client connections, and a LWP::UserAgent to ask for the requested pages.
 
 =head1 METHODS
 
@@ -44,26 +51,32 @@ sub new {
 
     # some defaults
     my $self = {
-        agent   => undef,
-        daemon  => undef,
-        host    => 'localhost',
-        maxconn => 0,
-        port    => 8080,
-        verbose => 0,
+        agent    => undef,
+        daemon   => undef,
+        host     => 'localhost',
+        maxchild => 16,
+        maxconn  => 0,
+        logfh    => *STDERR,
+        port     => 8080,
+        verbose  => 0,
         @_,
     };
 
     # non modifiable defaults
-    %$self = ( %$self, conn => 0, logfh => *STDERR );
+    %$self = ( %$self, conn => 0 );
     return bless $self, $class;
 }
 
 =head2 Accessors
 
-The HTTP::Proxy has several accessors. They are all AUTOLOADed,
-and read-write. Called with arguments, the accessor returns the
-current value. Called with a single argument, it set the current
-value and returns the previous one, in case you want to keep it.
+The HTTP::Proxy has several accessors. They are all AUTOLOADed.
+
+Called with arguments, the accessor returns the current value.
+Called with a single argument, it set the current value and
+returns the previous one, in case you want to keep it.
+
+If you call a read-only accessor with a parameter, this parameter
+will be ignored.
 
 The defined accessors are (in alphabetical order):
 
@@ -81,6 +94,15 @@ The HTTP::Daemon object used to accept incoming connections.
 =item host
 
 The proxy HTTP::Daemon host (default: 'localhost').
+
+=item logfh
+
+A filehandle to a logfile (default: *STDERR).
+
+=item maxchild
+
+The maximum number of child process the HTTP::Proxy object will spawn
+to handle client requests (default: 16).
 
 =item maxconn
 
@@ -113,7 +135,7 @@ sub AUTOLOAD {
     my $attr = $1;
 
     # must be one of the registered subs
-    if ( $attr =~ /^(?:agent|daemon|host|maxconn
+    if ( $attr =~ /^(?:agent|daemon|host|maxconn|maxchild
                       |logfh|port|conn|verbose)$/x
       )
     {
@@ -137,58 +159,87 @@ sub AUTOLOAD {
 
 =head2 The start() method
 
-This method works like a Tk MainLoop: you hand over control to the
+This method works like Tk's C<MainLoop>: you hand over control to the
 HTTP::Proxy object you created and configured.
 
-If C<maxconn> is not zero, start() will return after processing
+If C<maxconn> is not zero, start() will return after accepting
 at most that many connections.
 
 =cut
 
 sub start {
     my $self = shift;
+    $self->init;
 
-    $self->init if ( !defined $self->daemon or !defined $self->agent );
-
+    my @kids;
+    my $reap;
+    $SIG{CHLD} = sub { $reap++ };
     my $daemon = $self->daemon;
     while ( my $conn = $daemon->accept ) {
-        $self->process($conn);
-        $conn->close;
-        undef $conn;
-        $self->conn( $self->conn + 1 );
-        last if $self->maxconn && $self->conn >= $self->maxconn;
-    }
-    return 1;
-}
+        my $child = fork;
+        if ( !defined $child ) {
 
-#
-# init methods
-#
+            # This could use a Retry-After: header...
+            $conn->send_error( 503, "Proxy cannot fork" );
+            $self->log( 0,          "Cannot fork" );
+            next;
+        }
+        if ($child) {    # the parent process
+            $self->{conn}++;    # Cannot use the interface for RO attributes
+            $self->log( 3, "Forked child process $child" );
+            push @kids, $child;
+
+            # wait if there are more than maxchild kids
+            last if $self->maxconn && $self->conn >= $self->maxconn;
+            while ($reap) {
+                my $pid = wait;
+                $self->log( 3, "Reaped child process $pid" );
+                $reap--;
+            }
+        }
+        else {
+
+            # the child process handles the connection
+            $self->process($conn);
+            $conn->close;
+            undef $conn;
+            exit;    # let's die!
+        }
+    }
+    $self->log( 0, "Done " . $self->conn . " connection(s)" );
+    return $self->conn;
+}
 
 sub init {
     my $self = shift;
 
-    $self->init_daemon if ( !defined $self->daemon );
-    $self->init_agent  if ( !defined $self->agent );
+    $self->_init_daemon if ( !defined $self->daemon );
+    $self->_init_agent  if ( !defined $self->agent );
+    return;
 }
 
-sub init_daemon {
-    my $self = shift;
+#
+# private init methods
+#
+
+sub _init_daemon {
+    my $self   = shift;
     my $daemon = HTTP::Daemon->new(
         LocalHost => $self->host,
         LocalPort => $self->port,
         ReuseAddr => 1,
       )
       or die "Cannot initialize proxy daemon: $!";
+    $daemon->product_tokens("HTTP-Daemon/$VERSION");
     $self->daemon($daemon);
     return $daemon;
 }
 
-sub init_agent {
-    my $self = shift;
-    my $cache = LWP::ConnCache->new;
+sub _init_agent {
+    my $self  = shift;
     my $agent = LWP::UserAgent->new(
-        conn_cache            => $cache,
+        env_proxy             => 1,
+        keep_alive            => 2,
         requests_redirectable => [],
       )
       or die "Cannot initialize proxy agent: $!";
@@ -204,22 +255,50 @@ sub process {
     my ( $self, $conn ) = @_;
     while ( my $req = $conn->get_request() ) {
         unless ( defined $req ) {
-            $self->log( "Getting request failed:", $conn->reason );
+            $self->log( 0, "Getting request failed:", $conn->reason );
             return;
         }
-        $self->log( "Request:\n" . $req->as_string );
-        my $res = $self->agent->send_request($req);
+        $self->log( 1, "($$) Request: " . $req->uri );
+        $self->log( 5, "($$) Request: " . $req->headers->as_string );
+        my $res = $self->agent->simple_request($req);
         $conn->print( $res->as_string );
-        $self->log( "Response:\n" . $res->headers->as_string );
+        $self->log( 1, "($$) Response: " . $res->status_line );
+        $self->log( 5, "($$) Response: " . $res->headers->as_string );
     }
 }
 
 sub log {
-    my $self = shift;
-    print { $self->logfh } "[" . localtime() . "] @_\n";
+    my $self  = shift;
+    my $level = shift;
+    my $fh = $self->logfh;
+
+    return if $self->verbose < $level;
+
+    flock( $fh, LOCK_EX );
+    print $fh "[" . localtime() . "] $_\n" for @_;
+    flock( $fh, LOCK_UN );
 }
 
 =head2 Callbacks
+
+You can alter the way the default HTTP::Proxy works by pluging callbacks
+at differents stages of the request/response handling.
+
+(TO BE IMPLEMENTED)
+
+=cut
+
+=head1 BUGS
+
+For now the proxy doesn't even fork.
+
+=head1 TODO
+
+Provide an interface for logging.
+
+=head1 AUTHOR
+
+Philippe "BooK" Bruhat, E<lt>book@cpan.orgE<gt>.
 
 =cut
 
