@@ -1,4 +1,4 @@
-use Test::More tests => 9;
+use Test::More tests => 13;
 use HTTP::Proxy qw( :log );
 
 my $proxy;
@@ -10,6 +10,7 @@ is( $proxy->logmask, NONE, "Default is no logging" );
 is( $proxy->port, 8080,        "Default port 8080" );
 is( $proxy->host, 'localhost', "Default host localhost" );
 is( $proxy->logfh, *STDERR, "Default logging to STDERR" );
+is( $proxy->timeout, 60, "Default timeout of 60 secs" );
 
 # set/get data
 $proxy->port(8888);
@@ -45,3 +46,9 @@ ok( $proxy->control_regex eq '(?-xism:^http://proxy(?:/(\w+))?)',
 $proxy->control('control');
 ok( $proxy->control_regex eq '(?-xism:^http://control(?:/(\w+))?)',
     "New control regex" );
+
+# check the timeout
+$proxy->init;
+is( $proxy->agent->timeout, 60, "Default agent timeout of 60 secs" );
+is( $proxy->timeout(120), 60, "timeout() returns the old value" );
+is( $proxy->agent->timeout, 120, "New agent timeout value of 120 secs" );
