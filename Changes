@@ -1,10 +1,12 @@
 Revision history for Perl extension HTTP::Proxy
 
-0.06
+0.06  Mon Feb 17 00:21:37 CET 2003
         - better forking system and better reaping of zombies
           (thanks to David Landgren and Stéphane Payrard)
+          Still won't work under Windows, though :-(
         - replaced verbose() by logmask(), so as to fine-tune
           the logging system
+        - put some of the test functions in a test module (t::Utils)
 
 0.05  Tue Feb  4 00:47:23 CET 2003
         - explicitely refuse CONNECT
@@ -23,8 +25,9 @@ Revision history for Perl extension HTTP::Proxy
         - url() method gives a url to reach the proxy
         - new 'control' attribute defines the control URL
         - better subprocess management by preforking child processes
+          (thanks to Eric Cholet)
         - a children handles only one request at a time, for better
-          performance (this means we only to HTTP/1.0 for now)
+          performance (this means we only do HTTP/1.0 for now)
         - correctly handle the Proxy-Connection and Connection headers
 
 0.02  Thu Oct 24 23:45:08 CEST 2002
