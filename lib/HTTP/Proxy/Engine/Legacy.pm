@@ -5,10 +5,7 @@ use HTTP::Proxy;
 
 our @ISA = qw( HTTP::Proxy::Engine );
 our %defaults = (
-    start_servers          => 4,
-    max_clients            => 12,
-    min_spare_servers      => 1,
-    max_spare_servers      => 12,
+    max_clients => 12,
 );
 
 __PACKAGE__->make_accessors( qw( kids select ), keys %defaults );
