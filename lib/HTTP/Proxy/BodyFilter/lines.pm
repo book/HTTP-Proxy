@@ -46,7 +46,7 @@ filter has a behaviour so similar to modifying $/ that it also knows
 about "paragraph mode" and "record mode".
 
 Note that the "slurp" mode is not supported. Please use
-HTTP::Proxy::BodyFilter::store to enable the generic store and forward
+HTTP::Proxy::BodyFilter::complete to enable the generic store and forward
 filter mechanism.
 
 =cut
@@ -102,7 +102,7 @@ Philippe "BooK" Bruhat, E<lt>book@cpan.orgE<gt>.
 
 =head1 COPYRIGHT
 
-Copyright 2003-2004, Philippe Bruhat
+Copyright 2003-2005, Philippe Bruhat
 
 =head1 LICENSE
 
