@@ -19,17 +19,20 @@ my $proxy = HTTP::Proxy->new(
     maxconn  => 2,
 );
 
+# prepare the proxy and server
 $proxy->init;
 $proxy->agent->proxy( http => "" );
 $proxy->push_filter( response => $filter );
 my $url = $proxy->url;
+
+my $server = server_start();
+my $serverurl = $server->url;
 
 # fork the proxy
 my @pids;
 push @pids, fork_proxy($proxy);
 
 # fork the HTTP server
-my $server = server_start();
 my $pid = fork;
 die "Unable to fork web server" if not defined $pid;
 
@@ -46,13 +49,13 @@ push @pids, $pid;
 # for GET requests
 my $ua = LWP::UserAgent->new();
 $ua->proxy( http => $url );
-my $response = $ua->request( HTTP::Request->new( GET => $server->url ) );
+my $response = $ua->request( HTTP::Request->new( GET => $serverurl ) );
 is( $response->header( "X-Foo" ), "Bar", "Proxy applied the transformation" );
 
 # for HEAD requests
 $ua = LWP::UserAgent->new();
 $ua->proxy( http => $url );
-$response = $ua->request( HTTP::Request->new( HEAD => $server->url ) );
+$response = $ua->request( HTTP::Request->new( HEAD => $serverurl ) );
 is( $response->header( "X-Foo" ), "Bar", "Proxy applied the transformation" );
 
 # wait for kids
