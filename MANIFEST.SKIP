@@ -16,3 +16,6 @@ CVS/.*
 ~$
 ^TODO$
 ^.cvsignore$
+^Build$
+^cover_db/
+^_build/
