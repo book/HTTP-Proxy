@@ -1,4 +1,6 @@
-README files for the HTTP::Proxy tests
+README file for the HTTP::Proxy tests
+
+* Helper modules
 
 HTTP::Proxy can test itself without using the network,
 thanks to the HTTP::Daemon module.
@@ -11,6 +13,51 @@ localhost tests work as follows:
    a certain number of simple requests
  - a HTTP::Proxy is created and forked
  - a LWP::UserAgent is created and connects to the proxy
- - once every child is reaped, tests are run on the 
-   log files
+ - each of those process can run its own tests independantly,
+   thanks to Test::More
+
+The t/Utils.pm files (use t::Utils in some test files) exports 4 functions:
+ - server_start
+   starts a new HTTP::Daemon
+ - server_next
+   returns the next response from the server (accepts a coderef)
+ - fork_proxy
+   fork a proxy server passed as an argument
+ - web_ok
+   test if the actual WWW is available for testing
+
+* Test categories
+
+The tests are prefixed with a number, which indicates several categories:
+
+0x - Basic tests
+     t/00basic.t        - use HTTP::Proxy works
+     t/01pod.t          - the POD is correct
+     t/05new.t          - the HTTP::Proxy constructor
+
+1x - Minimal functionnality tests
+     t/10init.t         - the proxy initialisation
+     t/15accessors.t    - the proxy accessors
+     t/17fstack.t       - the internal HTTP::Proxy::FilterStack object
+
+2x - Network protocols test
+     t/20dummy.t        - tests against a dummy web server
+     t/20keepalive.t    - test the keep-alive connections
+     t/22http.t         - test actual HTTP servers
+
+3x - (Reserved for future use)
+
+4x - Filter-related functions
+     t/40push_filters.t - the push_filter method
+
+5x - Internal header filters
+     t/50standard.t
+     t/51simple.t
+     t/52log.t
+
+6x - Internal body filters
+     t/61simple.t
+     t/62log.t
+     t/64lines.t
+     t/65store.t
 
