@@ -2,6 +2,26 @@ package HTTP::Proxy::HeaderFilter;
 
 use Carp;
 
+sub new {
+    my $class = shift;
+    my $self = bless {}, $class;
+    $self->init(@_) if $self->can('init');
+    return $self;
+}
+
+sub filter {
+    croak "HTTP::Proxy::HeaderFilter cannot be used as a filter";
+}
+
+sub proxy {
+    my ( $self, $new ) = @_;
+    return $new ? $self->{_hphf_proxy} = $new : $self->{_hphf_proxy};
+}
+
+1;
+
+__END__
+
 =head1 NAME
 
 HTTP::Proxy::HeaderFilter - A base class for HTTP message header filters
@@ -27,19 +47,15 @@ HTTP::Proxy::HeaderFilter - A base class for HTTP message header filters
 The HTTP::Proxy::HeaderFilter class is used to create filters for
 HTTP request/response headers.
 
-=cut
-
-sub new {
-    my $class = shift;
-    my $self = bless {}, $class;
-    $self->init(@_) if $self->can('init');
-    return $self;
-}
-
 =head2 Creating a HeaderFilter
 
-A HeaderFilter is just a derived class that implements the filter()
-method. See the example in L<SYNOPSIS>.
+A HeaderFilter is just a derived class that implements some methods
+called by the proxy. Of all the methods presented below, only
+C<filter()> B<must> be defined in the derived class.
+
+=over 4
+
+=item filter()
 
 The signature of the filter() method is the following:
 
@@ -60,6 +76,20 @@ lifetime.
 
 A HTTP::Proxy::HeaderFilter object is a blessed hash, and the base class
 reserves only hash keys that start with C<_hphf>.
+
+=item new()
+
+The constructor is defined for all subclasses. Initialisation tasks
+(if any) for subclasses should be done in the C<init()> method (see below).
+
+=item init()
+
+This method is called by the C<new()> constructeur to perform all
+initisalisation tasks. It's called once in the filter lifetime.
+
+It receives all the parameters passed to C<new()>.
+
+=back
 
 =head2 Standard HeaderFilters
 
@@ -82,13 +112,7 @@ It is loaded automatically by HTTP::Proxy.
 
 Please read each filter's documentation for more details about their use.
 
-=cut
-
-sub filter {
-    croak "HTTP::Proxy::HeaderFilter cannot be used as a filter";
-}
-
-=head1 AVAILABLE METHODS
+=head1 USEFUL METHODS FOR SUBCLASSES
 
 Some methods are available to filters, so that they can eventually use
 the little knowledge they might have of HTTP::Proxy's internals. They
@@ -100,13 +124,6 @@ mostly are accessors.
 
 Gets a reference to the HTTP::Proxy objects that owns the filter.
 This gives access to some of the proxy methods.
-
-=cut
-
-sub proxy {
-    my ( $self, $new ) = @_;
-    return $new ? $self->{_hphf_proxy} = $new : $self->{_hphf_proxy};
-}
 
 =back
 
@@ -129,4 +146,3 @@ the same terms as Perl itself.
 
 =cut
 
-1;
