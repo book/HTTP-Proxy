@@ -1,5 +1,11 @@
 Revision history for Perl extension HTTP::Proxy
 
+0.05  Tue Feb  4 00:47:23 CET 2003
+        - explicitely refuse CONNECT
+        - better support for TRACE method
+        - support the Via: Header (a MUST in RFC 2616)
+        - filters, but this needs more work
+
 0.04  Sat Nov 30 12:19:22 CET 2002
         - accept connection from other hosts
         - better ftp support (no test yet)
