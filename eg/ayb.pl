@@ -5,7 +5,7 @@ use HTML::Parser;
 use strict;
 
 # the proxy
-my $proxy = HTTP::Proxy->new( host => '0.0.0.0' );
+my $proxy = HTTP::Proxy->new();
 $proxy->logmask( shift || NONE );
 
 # all your base...
