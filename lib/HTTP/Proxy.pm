@@ -331,9 +331,10 @@ sub init {
     $self->agent->protocols_allowed( [qw( http https ftp gopher )] );
 
     # standard filters
-    $self->{headers}{request} = $self->{headers}{response} =
-      [ [ sub { 1 }, \&_proxy_headers_filter ] ];
-    $self->{body}{request} = $self->{body}{response} = [];
+    $self->{headers}{request}  = [ [ sub { 1 }, \&_proxy_headers_filter ] ];
+    $self->{headers}{response} = [ [ sub { 1 }, \&_proxy_headers_filter ] ];
+    $self->{body}{request}  = [];
+    $self->{body}{response} = [];
 
     return;
 }
@@ -520,6 +521,9 @@ The C<method> and C<scheme> parameters are strings consisting of
 comma-separated values. The C<host> and C<path> parameters are regular
 expressions.
 
+A match routine is compiled by the proxy and used to check if a particular
+request or response must be filtered through a particular filter.
+
 The signature for the "headers" filters is:
 
     sub header_filter { my ( $headers, $message) = @_; ... }
@@ -556,12 +560,17 @@ Here are a few example filters:
     $proxy->push_headers_filter(
         mime    => undef,
         request => sub {
-            $_[0]->remove_header(qw( User-Agent From Refere Cookie ));
+            $_[0]->remove_header(qw( User-Agent From Referer Cookie ));
         },
         response => sub {
             $_[0]->revome_header(qw( Set-Cookie )),;
         },
     );
+
+IMPORTANT: If you use your own LWP::UserAgent, you must install it
+before your calls to push_headers_filter() or push_body_filter(), or
+the match method will make wrong assumptions about the schemes your
+agent supports.
 
 =over 4
 
@@ -588,6 +597,9 @@ sub _push_filter {
     if ( !exists $arg{request} && !exists $arg{response} ) {
         croak "No message type defined for filter";
     }
+
+    # the proxy must be initialised
+    $self->init;
 
     # prepare the variables for the closure
     my ( $mime, $method, $scheme, $host, $path ) =
@@ -723,10 +735,18 @@ sub _proxy_headers_filter {
     }
 }
 
-=item log( $level, $message )
+
+=item log( $level, $prefix, $message )
 
 Adds $message at the end of C<logfh>, if $level is greater than C<verbose>,
 the log() method also prints a timestamp.
+
+The output looks like:
+
+    [Thu Dec  5 12:30:12 2002] $prefix $message
+
+If $message is a multiline string, several log lines will be output,
+each starting with $prefix.
 
 =cut
 
@@ -752,8 +772,11 @@ sub log {
 
 =head1 BUGS
 
-Some connections to the client are never closed.
-(HTTP::Proxy should handle the client and the server connection separately.)
+I've heard that some Unix systems do not support calling accept() in a
+child process when the socket was opened by the parent (especially
+when several child process accept() at the same time).
+
+Expect the prefork system to change.
 
 =head1 TODO
 
