@@ -7,6 +7,19 @@ Technical
 * Finalise the interface for the store and forward mechanism
 * in the push_filter method, host and path are regexp.
   this should be tested and enhanced
+* how do we handle filters for:
+  - CONNECT (i.e. a transparent TCP connection through the proxy)
+  - SSL (a different socket type, but that's about all)
+* Basic_headers : Server and Date:
+* a method to send a response 
+
+Tests
+-----
+
+* tests for Max-Forwards (HeaderFilters::standard)
+* tests for push_filter( query => 'foo' )
+* test the short-circuit system ($self->proxy->response( $res ))
+* test the regex for host and path in push_filter
 
 Features
 --------
@@ -169,6 +182,9 @@ Proxy-Connection: keep-alive
  - specific URLs ?
    => example: http://proxy/https://www.secure.com:443/index.html
    => This kind of stuff requires some content rewriting...
+ - add a filter/handler for the CONNECT method, which would either
+   simply proxy the TCP connection, or do a "man in the middle"-like
+   connection (with Crypt::SSLeay)
 
 * support keep-alive with the client
  - make use of the keep-alive capabilities of LWP::UserAgent
