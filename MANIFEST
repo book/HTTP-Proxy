@@ -18,9 +18,11 @@ eg/rot13.pl
 eg/trim.pl
 lib/HTTP/Proxy.pm
 lib/HTTP/Proxy/BodyFilter.pm
+lib/HTTP/Proxy/BodyFilter/complete.pm
 lib/HTTP/Proxy/BodyFilter/htmlparser.pm
 lib/HTTP/Proxy/BodyFilter/htmltext.pm
 lib/HTTP/Proxy/BodyFilter/lines.pm
+lib/HTTP/Proxy/BodyFilter/save.pm
 lib/HTTP/Proxy/BodyFilter/simple.pm
 lib/HTTP/Proxy/BodyFilter/tags.pm
 lib/HTTP/Proxy/HeaderFilter.pm
