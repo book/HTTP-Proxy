@@ -1,6 +1,19 @@
 Revision history for Perl extension HTTP::Proxy
 
-0.14 Tue Mar 29 11:40:51 CEST 2005
+0.15  Tue Apr  5 21:17:40 CEST 2005
+        [ENHANCEMENTS]
+        - added support for WebDAV methods (requested by Christian Laursen)
+        - The filter selection is based on the original request and response,
+          as it should
+        - improved kwalitee
+        [DEPRECATION]
+        - the start() method is no longer supported in HTTP::Proxy::BodyFilter
+          subclasses. Use begin() instead.
+        [EXAMPLES]
+        - eg/pdf.pl    - save \.pdf files and send a HTML confirmation instead
+                         (idea by Emmanuel Di Prétoro)
+
+0.14  Tue Mar 29 11:40:51 CEST 2005
         [ANNOUNCE]
         - It's been more than a year since last release, which is bad.
           I now plan to release new versions more often, maybe about
@@ -59,7 +72,7 @@ Revision history for Perl extension HTTP::Proxy
         - removed all references to the so-called "store-and-forward"
           mechanism (see HTTP::Proxy::BodyFilter::complete)
 
-0.13 Wed Mar  3 17:36:31 CET 2004
+0.13  Wed Mar  3 17:36:31 CET 2004
         [ENHANCEMENTS]
         - CONNECT support (but only transparently...)
         - the client_headers() method (similar to hop_headers()) give
@@ -78,7 +91,7 @@ Revision history for Perl extension HTTP::Proxy
         [DOCUMENTATION]
         - separate COPYRIGHT and LICENSE sections in all man pages
 
-0.12 Thu Jan 22 23:54:03 CET 2004
+0.12  Thu Jan 22 23:54:03 CET 2004
         [ENHANCEMENTS]
         - send the error message to the client when the Proxy agent dies
           (usually because of a filter error)
