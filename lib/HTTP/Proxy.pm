@@ -11,9 +11,12 @@ use Carp;
 use strict;
 use vars qw( $VERSION $AUTOLOAD );
 
-$VERSION = 0.04;
+$VERSION = 0.05;
 
 my $CRLF = "\015\012";    # "\r\n" is not portable
+
+# Methods we can forward
+my @METHODS = qw( OPTIONS GET HEAD POST PUT DELETE TRACE );
 
 =pod
 
@@ -314,7 +317,8 @@ sub init {
 
     # specific agent config
     $self->agent->requests_redirectable( [] );
-    $self->agent->protocols_allowed(     [qw( http https ftp gopher )] );
+    $self->agent->agent('');    # for TRACE support
+    $self->agent->protocols_allowed( [qw( http https ftp gopher )] );
     return;
 }
 
@@ -361,23 +365,35 @@ sub serve_connections {
     $SIG{INT} = 'IGNORE';    # don't interrupt while we talk to a client
     my $req = $conn->get_request();
 
+    # Got a request?
     unless ( defined $req ) {
         $self->log( 0, "($$) Getting request failed:", $conn->reason );
+        return;
     }
-    $self->log( 1, "($$) Request:", $req->uri );
+    $self->log( 1, "($$) Request:", $req->method . ' ' . $req->uri );
+
+    # can we forward this method?
+    if ( !grep { $_ eq $req->method } @METHODS ) {
+        $response = new HTTP::Response( 501, 'Not Implemented' );
+        $response->content(
+            "Method " . $req->method . " is not supported by this proxy." );
+        goto SEND;
+    }
 
     # can we serve this protocol?
     if ( !$self->agent->is_protocol_supported( my $s = $req->uri->scheme ) ) {
         $response = new HTTP::Response( 501, 'Not Implemented' );
-        $response->content(
-            "Scheme $s is not supported by the proxy's LWP::UserAgent");
-        goto SEND;    # yuck :-)
+        $response->content("Scheme $s is not supported by this proxy.");
+        goto SEND;
     }
 
     # massage the request to pop a response
     # remove th hop-by-hop headers (for now)
-    for ( qw( Connection Keep-Alive TE Trailers Transfer-Encoding Upgrade
-              Proxy-Connection Proxy-Authenticate Proxy-Authorization ) ) {
+    for (
+        qw( Connection Keep-Alive TE Trailers Transfer-Encoding Upgrade
+        Proxy-Connection Proxy-Authenticate Proxy-Authorization )
+      )
+    {
         $req->headers->remove_header($_);
     }
 
@@ -386,7 +402,7 @@ sub serve_connections {
 
   SEND:
 
-    # remove Connection: headers from the response
+    # We do not support keep-alive connection for the moment
     $response->headers->header( Connection => 'close' );
 
     # send the response
@@ -396,7 +412,7 @@ sub serve_connections {
     else {
         $conn->print( $HTTP::Daemon::PROTO, ' ', $response->status_line, $CRLF,
             $response->headers->as_string($CRLF), $CRLF );
-        if ( !$response->content && !$response->is_success ) {
+        if ( !$response->content && $response->is_error ) {
             $response->content( $response->error_as_HTML );
         }
         $conn->print( $response->content );
