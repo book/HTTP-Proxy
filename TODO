@@ -49,6 +49,38 @@ my own roadmaps. :-/
  - Must support the Content-Encoding: gzip headers
  - Accept-Encoding: content-coding tokens are identity, gzip, compress, deflate
    
+* Data flow
+  I guess I'll change the way the responses are handled. The future should
+  look like this :
+  Request:
+   * The client (C) sends a request
+   * The proxy (P) receives the full request (headers+body)
+   * P filters the request headers
+   * P filters the request body
+   * P sends the request to the server (S)
+  Response:
+   * S sends the response to P
+   * P receives the response in chunks
+   * 1st chunk is received
+     - P filters the response headers
+     - P checks if the response body must be filtered too:
+  From now on, there are two cases:
+  1) no filtering required
+   * the response headers are sent
+   * all the following chunk will be sent directly
+     to client as they are received
+  2) filtering
+   * other chunks are received
+     - they are filtered and stored (memory ? file ?)
+   * last chunk
+     - the new content-length is computed
+     - the response headers are sent
+     - the whole body is sent
+  The system could even be more sophisticated by allowing one to
+  indicate that a filter does not change the body size (s/foo/bar/g vs.
+  s/foo/squigglewiggle/g). This way I could still use the callback system
+  to send the data as soon as possible to the client. And case 2) would be
+  used only if one of the filters might change the body size.
 
 * On the fly forwarding
  - handle big responses (>1Mb) with the LWP::UA callback system
