@@ -35,7 +35,7 @@ The eg/ directory holds a few example proxies.
    These proxy do more complicated modifications of HTML pages, and
    require a HTML::Parser object to do so.
 
-   Filter: HTTP::Proxy::BodyFilter::htmlparser;
+   Filter: HTTP::Proxy::BodyFilter::htmlparser
 
  * post.pl
 
@@ -47,4 +47,13 @@ The eg/ directory holds a few example proxies.
    This filter outputs the important information out of GET and POST
    requests: method, URI, cookies, content-type (text/*) and POST
    request parameters.
+
+   Filter: HTTP::Proxy::HeaderFilter::simple
+
+ * adblock.pl
+
+   This is a very simple proxy that block ad sites.
+
+   Filters: HTTP::Proxy::HeaderFilter::simple
+            HTTP::Proxy::BodyFilter::simple
 
