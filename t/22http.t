@@ -4,7 +4,7 @@ use vars qw( @requests );
 # here are all the requests the client will try
 BEGIN {
     @requests = (
-        [ 'http://www.perdu.com/',        200 ],
+        [ 'http://www.mongueurs.net/',    200 ],
         [ 'http://httpd.apache.org/docs', 301 ],
         [ 'http://www.perl.com/testing/', 404 ],
         [ 'http://www.error.zzz/',        500 ],
