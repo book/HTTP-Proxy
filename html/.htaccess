@@ -3,4 +3,6 @@ IndexOptions FancyIndexing
 IndexOptions +NameWidth=*
 IndexOptions +DescriptionWidth=*
 
-AddDescription "CVS Repository snapshot" http-proxy-HEAD.tar.gz
+AddDescription "CVS Repository snapshot"           http-proxy-HEAD.tar.gz
+AddDescription "Tests fail, t/Utils.pm is missing" HTTP-Proxy-0.06.tar.gz
+AddDescription "New filter API"                    HTTP-Proxy-0.10.tar.gz
