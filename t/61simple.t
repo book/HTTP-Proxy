@@ -17,7 +17,7 @@ like( $@, qr/^Parameter to filter must be a CODE reference/, "Need coderef" );
 eval { $filter = HTTP::Proxy::BodyFilter::simple->new( typo => sub { } ); };
 like( $@, qr/Unkown method typo/, "Incorrect method name" );
 
-for (qw( filter filter_file start )) {
+for (qw( filter begin end )) {
     eval {
         $filter = HTTP::Proxy::BodyFilter::simple->new( $_ => sub { } );
     };
