@@ -20,7 +20,7 @@ require Exporter;
 @EXPORT_OK = qw( NONE ERROR STATUS PROCESS SOCKET HEADERS FILTERS CONNECT ALL );
 %EXPORT_TAGS = ( log => [@EXPORT_OK] );    # only one tag
 
-$VERSION = '0.14';
+$VERSION = '0.15';
 
 my $CRLF = "\015\012";                     # "\r\n" is not portable
 
@@ -48,47 +48,6 @@ $RX{token}  = qr/[-!#\$%&'*+.0-9A-Z^_`a-z|~]+/;
 $RX{mime}   = qr($RX{token}/$RX{token});
 $RX{method} = '(?:' . join ( '|', @METHODS ) . ')';
 $RX{method} = qr/$RX{method}/;
-
-=pod
-
-=head1 NAME
-
-HTTP::Proxy - A pure Perl HTTP proxy
-
-=head1 SYNOPSIS
-
-    use HTTP::Proxy;
-
-    # initialisation
-    my $proxy = HTTP::Proxy->new( port => 3128 );
-
-    # alternate initialisation
-    my $proxy = HTTP::Proxy->new;
-    $proxy->port( 3128 ); # the classical accessors are here!
-
-    # you can also use your own UserAgent
-    my $agent = LWP::RobotUA->new;
-    $proxy->agent( $agent );
-
-    # this is a MainLoop-like method
-    $proxy->start;
-
-=head1 DESCRIPTION
-
-This module implements a HTTP proxy, using a HTTP::Daemon to accept
-client connections, and a LWP::UserAgent to ask for the requested pages.
-
-The most interesting feature of this proxy object is its ability to
-filter the HTTP requests and responses through user-defined filters.
-
-=head1 METHODS
-
-=head2 Constructor
-
-The new() method creates a HTTP::Proxy object. All attributes can
-be passed as a parameter to replace the default.
-
-=cut
 
 sub new {
     my $class = shift;
@@ -118,150 +77,6 @@ sub new {
     return $self;
 }
 
-=head2 Accessors and mutators
-
-The HTTP::Proxy has several accessors and mutators.
-
-Called with arguments, the accessor returns the current value.
-Called with a single argument, it sets the current value and
-returns the previous one, in case you want to keep it.
-
-If you call a read-only accessor with a parameter, this parameter
-will be ignored.
-
-The defined accessors are (in alphabetical order):
-
-=over 4
-
-=item agent
-
-The LWP::UserAgent object used internally to connect to remote sites.
-
-=item client_socket (read-only)
-
-The socket currently connected to the client. Mostly useful in filters.
-
-=item client_headers
-
-This attribute holds a reference to the client headers set up by
-LWP::UserAgent
-(C<Client-Aborted>, C<Client-Bad-Header-Line>, C<Client-Date>,
-C<Client-Junk>, C<Client-Peer>, C<Client-Request-Num>,
-C<Client-Response-Num>, C<Client-SSL-Cert-Issuer>,
-C<Client-SSL-Cert-Subject>, C<Client-SSL-Cipher>, C<Client-SSL-Warning>,
-C<Client-Transfer-Encoding>, C<Client-Warning>).
-
-They are removed by the filter HTTP::Proxy::HeaderFilter::standard from
-the request and response objects received by the proxy.
-
-If a filter (such as a SSL certificate verification filter) need to
-access them, it must do it through this accessor.
-
-=item conn (read-only)
-
-The number of connections processed by this HTTP::Proxy instance.
-
-=item daemon
-
-The HTTP::Daemon object used to accept incoming connections.
-(You usually never need this.)
-
-=item hop_headers
-
-This attribute holds a reference to the hop-by-hop headers
-(C<Connection>, C<Keep-Alive>, C<Proxy-Authenticate>, C<Proxy-Authorization>,
-C<TE>, C<Trailers>, C<Transfer-Encoding>, C<Upgrade>).
-
-They are removed by the filter HTTP::Proxy::HeaderFilter::standard from
-the request and response objects received by the proxy.
-
-If a filter (such as a proxy authorisation filter) need to access them,
-it must do it through this accessor.
-
-=item host
-
-The proxy HTTP::Daemon host (default: 'localhost').
-
-This means that by default, the proxy answers only to clients on the
-local machine. You can pass a specific interface address or C<"">/C<undef>
-for any interface.
-
-This default prevents your proxy to be used as an anonymous proxy
-by script kiddies.
-
-=item logfh
-
-A filehandle to a logfile (default: *STDERR).
-
-=item logmask( [$mask] )
-
-Be verbose in the logs (default: NONE).
-
-Here are the various elements that can be added to the mask:
- NONE    - Log only errors
- STATUS  - Requested URL, reponse status and total number
-           of connections processed
- PROCESS - Subprocesses information (fork, wait, etc.)
- SOCKET  - Information about low-level sockets
- HEADERS - Full request and response headers are sent along
- FILTERS - Filter information
- DATA    - Data received by the filters
- CONNECT - Data transmitted by the CONNECT method
- ALL     - Log all of the above
-
-If you only want status and process information, you can use:
-
-    $proxy->logmask( STATUS | PROCESS );
-
-Note that all the logging constants are not exported by default, but 
-by the C<:log> tag. They can also be exported one by one.
-
-=item maxchild
-
-The maximum number of child process the HTTP::Proxy object will spawn
-to handle client requests (default: 16).
-
-If set to 0, the proxy will not fork at all. This can be helpful for
-debugging purpose.
-
-=item maxconn
-
-The maximum number of TCP connections the proxy will accept before
-returning from start(). 0 (the default) means never stop accepting
-connections.
-
-=item maxserve
-
-The maximum number of requests the proxy will serve in a single connection.
-(same as MaxRequestsPerChild in Apache)
-
-=item port
-
-The proxy HTTP::Daemon port (default: 8080).
-
-=item request
-
-The request originaly received by the proxy from the user-agent, which
-will be modified by the request filters.
-
-=item response
-
-The response received from the origin server by the proxy. It is
-normally C<undef> until the proxy actually receives the beginning
-of a response from the origin server.
-
-If one of the request filters sets this attribute, it "short-circuits"
-the request/response scheme, and the proxy will return this response
-(which is NOT filtered through the response filter stacks) instead of
-the expected origin server response. This is useful for caching (though
-Squid does it much better) and proxy authentication, for example.
-
-=item timeout
-
-The timeout used by the internal LWP::UserAgent (default: 60).
-
-=cut
-
 sub timeout {
     my $self = shift;
     my $old  = $self->{timeout};
@@ -272,12 +87,6 @@ sub timeout {
     return $old;
 }
 
-=item url (read-only)
-
-The url where the proxy can be reached.
-
-=cut
-
 sub url {
     my $self = shift;
     if ( not defined $self->daemon ) {
@@ -286,20 +95,6 @@ sub url {
     }
     return $self->daemon->url;
 }
-
-=item via
-
-The content of the Via: header. Setting it to an empty string will
-prevent its addition. (default: $hostname (HTTP::Proxy/$VERSION))
-
-=item x_forwarded_for
-
-If set to a true value, the proxy will send the X-Forwarded-For header.
-(default: true)
-
-=back
-
-=cut
 
 # normal accessors
 for my $attr (
@@ -321,17 +116,6 @@ for my $attr (qw( conn loop client_socket )) {
     no strict 'refs';
     *{"HTTP::Proxy::$attr"} = sub { return $_[0]->{$attr} }
 }
-
-=head2 The start() method
-
-This method works like Tk's C<MainLoop>: you hand over control to the
-HTTP::Proxy object you created and configured.
-
-If C<maxconn> is not zero, start() will return after accepting
-at most that many connections. It will return the total number of
-connexions.
-
-=cut
 
 sub start {
     my $self = shift;
@@ -790,128 +574,6 @@ sub _handle_CONNECT {
     return $last;
 }
 
-=head1 FILTERS
-
-You can alter the way the default HTTP::Proxy works by pluging callbacks
-at different stages of the request/response handling.
-
-When a request is received by the HTTP::Proxy object, it is filtered through
-a standard filter that transform this request accordingly to RFC 2616
-(by adding the Via: header, and a few other transformations).
-
-The response is also filtered in the same manner. There is a total of four
-filter chains: C<request-headers>, C<request-body>, C<reponse-headers> and
-C<response-body>.
-
-You can add your own filters to the default ones with the
-push_filter() method. The method push a filter on the appropriate
-filter stack.
-
-    $proxy->push_filter( response => $filter );
-
-The headers/body category is determined by the type of the filter.
-There are two base classes for filters, which are
-HTTP::Proxy::HeaderFilter and HTTP::Proxy::BodyFilter (the names
-are self-explanatory). See the documentation of those two classes
-to find out how to write your own header or body filters.
-
-The named parameter is used to determine the request/response part.
-
-It is possible to push the same filter on the request and response
-stacks, as in the following example:
-
-    $proxy->push_filter( request => $filter, response => $filter );
-
-If several filters match the message, they will be applied in the order
-they were pushed on their filter stack.
-
-Named parameters can be used to create the match routine. They are: 
-
-    mime   - the MIME type (for a response-body filter)
-    method - the request method
-    scheme - the URI scheme         
-    host   - the URI authority (host:port)
-    path   - the URI path
-    query  - the URI query string
-
-The filters are applied only when all the the parameters match the
-request or the response. All these named parameters have default values,
-which are:
-
-    mime   => 'text/*'
-    method => 'OPTIONS,GET,HEAD,POST,PUT,DELETE,TRACE,CONNECT'
-    scheme => 'http'
-    host   => ''
-    path   => ''
-    query  => ''
-
-The C<mime> parameter is a glob-like string, with a required C</>
-character and a C<*> as a joker. Thus, C<*/*> matches I<all> responses,
-and C<""> those with no C<Content-Type:> header. To match any
-reponse (with or without a C<Content-Type:> header), use C<undef>.
-
-The C<mime> parameter is only meaningful with the C<response-body>
-filter stack. It is ignored if passed to any other filter stack.
-
-The C<method> and C<scheme> parameters are strings consisting of
-comma-separated values. The C<host> and C<path> parameters are regular
-expressions.
-
-A match routine is compiled by the proxy and used to check if a particular
-request or response must be filtered through a particular filter.
-
-It is also possible to push several filters on the same stack with
-the same match subroutine:
-
-    # convert italics to bold
-    $proxy->push_filter(
-        mime     => 'text/html',
-        response => HTTP::Proxy::BodyFilter::tags->new(),
-        response =>
-        HTTP::Proxy::BodyFilter::simple->new( sub { s!(</?)i>!$1b>!ig } )
-    );
-
-For more details regarding the creation of new filters, check the
-HTTP::Proxy::HeaderFilter and HTTP::Proxy::BodyFilter documentation.
-
-Here's an example of subclassing a base filter class:
-
-    # fixes a common typo ;-)
-    # but chances are that this will modify a correct URL
-    {
-        package FilterPerl;
-        use base qw( HTTP::Proxy::BodyFilter );
-
-        sub filter {
-            my ( $self, $dataref, $message, $protocol, $buffer ) = @_;
-            $$dataref =~ s/PERL/Perl/g;
-        }
-    }
-    $proxy->push_filter( response => FilterPerl->new() );
-
-Other examples can be found in the documentation for
-HTTP::Proxy::HeaderFilter, HTTP::Proxy::BodyFilter,
-HTTP::Proxy::HeaderFilter::simple, HTTP::Proxy::BodyFilter::simple.
-
-    # a simple anonymiser
-    # see eg/anonymiser.pl for the complete code
-    $proxy->push_filter(
-        mime    => undef,
-        request => HTTP::Proxy::HeaderFilter::simple->new(
-            sub { $_[0]->remove_header(qw( User-Agent From Referer Cookie )) },
-        ),
-        response => HTTP::Proxy::HeaderFilter::simple->new(
-            sub { $_[0]->remove_header(qw( Set-Cookie )); },
-        )
-    );
-
-IMPORTANT: If you use your own LWP::UserAgent, you must install it
-before your calls to push_filter(), otherwise
-the match method will make wrong assumptions about the schemes your
-agent supports.
-
-=cut
-
 sub push_filter {
     my $self = shift;
     my %arg  = (
@@ -1001,24 +663,6 @@ sub push_filter {
     }
 }
 
-=over 4
-
-=item log( $level, $prefix, $message )
-
-Adds $message at the end of C<logfh>, if $level matches C<logmask>.
-The log() method also prints a timestamp.
-
-The output looks like:
-
-    [Thu Dec  5 12:30:12 2002] ($$) $prefix: $message
-
-where $$ is the current processus pid.
-
-If $message is a multiline string, several log lines will be output,
-each line starting with C<$prefix>.
-
-=cut
-
 sub log {
     my $self  = shift;
     my $level = shift;
@@ -1034,71 +678,6 @@ sub log {
     print $fh "[" . localtime() . "] ($$) $prefix: $_\n" for @lines;
     flock( $fh, LOCK_UN );
 }
-
-=back
-
-=cut
-
-=head1 EXPORTED SYMBOLS
-
-No symbols are exported by default. The C<:log> tag exports all the
-logging constants.
-
-=head1 BUGS
-
-This module does not work under Windows, but I can't see why, and do not
-have a development platform under that system. Patches and explanations
-very welcome.
-
-I guess it is because fork() is not well supported. You can try to use
-the following workaround to prevent forking:
-
-    $proxy->maxchild(0);
-
-=over 4
-
-=item However, David Fishburn says:
-
-This did not work for me under WinXP - ActiveState Perl 5.6, but it DOES        
-work on WinXP ActiveState Perl 5.8. 
-
-=back
-
-=head1 SEE ALSO
-
-L<HTTP::Proxy::BodyFilter>, L<HTTP::Proxy::HeaderFilter>, the examples in eg/.
-
-=head1 AUTHOR
-
-Philippe "BooK" Bruhat, E<lt>book@cpan.orgE<gt>.
-
-The module has its own web page at http://http-proxy.mongueurs.net/
-complete with older versions and repository snapshot.
-
-There are also two mailing-lists: http-proxy@mongueurs.net for general
-discussion about HTTP::Proxy and http-proxy-cvs@mongueurs.net for
-CVS commits.
-
-=head1 THANKS
-
-Many people helped me during the development of this module, either on
-mailing-lists, irc or over a beer in a pub...
-
-So, in no particular order, thanks to the libwww-perl team for such
-a terrific suite of modules, Michael Schwern (tips for testing while
-forking), the Paris.pm folks (forking processes, chunked encoding)
-and my growing user base... C<;-)>
-
-=head1 COPYRIGHT
-
-Copyright 2002-2004, Philippe Bruhat
-
-=head1 LICENSE
-
-This module is free software; you can redistribute it or modify it under
-the same terms as Perl itself.
-
-=cut
 
 #
 # This is an internal class to work more easily with filter stacks
@@ -1239,3 +818,409 @@ sub eod {
 }
 
 1;
+
+__END__
+
+=head1 NAME
+
+HTTP::Proxy - A pure Perl HTTP proxy
+
+=head1 SYNOPSIS
+
+    use HTTP::Proxy;
+
+    # initialisation
+    my $proxy = HTTP::Proxy->new( port => 3128 );
+
+    # alternate initialisation
+    my $proxy = HTTP::Proxy->new;
+    $proxy->port( 3128 ); # the classical accessors are here!
+
+    # you can also use your own UserAgent
+    my $agent = LWP::RobotUA->new;
+    $proxy->agent( $agent );
+
+    # this is a MainLoop-like method
+    $proxy->start;
+
+=head1 DESCRIPTION
+
+This module implements a HTTP proxy, using a HTTP::Daemon to accept
+client connections, and a LWP::UserAgent to ask for the requested pages.
+
+The most interesting feature of this proxy object is its ability to
+filter the HTTP requests and responses through user-defined filters.
+
+=head1 METHODS
+
+=head2 Constructor
+
+The new() method creates a HTTP::Proxy object. All attributes can
+be passed as a parameter to replace the default.
+
+=head2 Accessors and mutators
+
+The HTTP::Proxy has several accessors and mutators.
+
+Called with arguments, the accessor returns the current value.
+Called with a single argument, it sets the current value and
+returns the previous one, in case you want to keep it.
+
+If you call a read-only accessor with a parameter, this parameter
+will be ignored.
+
+The defined accessors are (in alphabetical order):
+
+=over 4
+
+=item agent
+
+The LWP::UserAgent object used internally to connect to remote sites.
+
+=item client_socket (read-only)
+
+The socket currently connected to the client. Mostly useful in filters.
+
+=item client_headers
+
+This attribute holds a reference to the client headers set up by
+LWP::UserAgent
+(C<Client-Aborted>, C<Client-Bad-Header-Line>, C<Client-Date>,
+C<Client-Junk>, C<Client-Peer>, C<Client-Request-Num>,
+C<Client-Response-Num>, C<Client-SSL-Cert-Issuer>,
+C<Client-SSL-Cert-Subject>, C<Client-SSL-Cipher>, C<Client-SSL-Warning>,
+C<Client-Transfer-Encoding>, C<Client-Warning>).
+
+They are removed by the filter HTTP::Proxy::HeaderFilter::standard from
+the request and response objects received by the proxy.
+
+If a filter (such as a SSL certificate verification filter) need to
+access them, it must do it through this accessor.
+
+=item conn (read-only)
+
+The number of connections processed by this HTTP::Proxy instance.
+
+=item daemon
+
+The HTTP::Daemon object used to accept incoming connections.
+(You usually never need this.)
+
+=item hop_headers
+
+This attribute holds a reference to the hop-by-hop headers
+(C<Connection>, C<Keep-Alive>, C<Proxy-Authenticate>, C<Proxy-Authorization>,
+C<TE>, C<Trailers>, C<Transfer-Encoding>, C<Upgrade>).
+
+They are removed by the filter HTTP::Proxy::HeaderFilter::standard from
+the request and response objects received by the proxy.
+
+If a filter (such as a proxy authorisation filter) need to access them,
+it must do it through this accessor.
+
+=item host
+
+The proxy HTTP::Daemon host (default: 'localhost').
+
+This means that by default, the proxy answers only to clients on the
+local machine. You can pass a specific interface address or C<"">/C<undef>
+for any interface.
+
+This default prevents your proxy to be used as an anonymous proxy
+by script kiddies.
+
+=item logfh
+
+A filehandle to a logfile (default: *STDERR).
+
+=item logmask( [$mask] )
+
+Be verbose in the logs (default: NONE).
+
+Here are the various elements that can be added to the mask:
+ NONE    - Log only errors
+ STATUS  - Requested URL, reponse status and total number
+           of connections processed
+ PROCESS - Subprocesses information (fork, wait, etc.)
+ SOCKET  - Information about low-level sockets
+ HEADERS - Full request and response headers are sent along
+ FILTERS - Filter information
+ DATA    - Data received by the filters
+ CONNECT - Data transmitted by the CONNECT method
+ ALL     - Log all of the above
+
+If you only want status and process information, you can use:
+
+    $proxy->logmask( STATUS | PROCESS );
+
+Note that all the logging constants are not exported by default, but 
+by the C<:log> tag. They can also be exported one by one.
+
+=item maxchild
+
+The maximum number of child process the HTTP::Proxy object will spawn
+to handle client requests (default: 16).
+
+If set to 0, the proxy will not fork at all. This can be helpful for
+debugging purpose.
+
+=item maxconn
+
+The maximum number of TCP connections the proxy will accept before
+returning from start(). 0 (the default) means never stop accepting
+connections.
+
+=item maxserve
+
+The maximum number of requests the proxy will serve in a single connection.
+(same as MaxRequestsPerChild in Apache)
+
+=item port
+
+The proxy HTTP::Daemon port (default: 8080).
+
+=item request
+
+The request originaly received by the proxy from the user-agent, which
+will be modified by the request filters.
+
+=item response
+
+The response received from the origin server by the proxy. It is
+normally C<undef> until the proxy actually receives the beginning
+of a response from the origin server.
+
+If one of the request filters sets this attribute, it "short-circuits"
+the request/response scheme, and the proxy will return this response
+(which is NOT filtered through the response filter stacks) instead of
+the expected origin server response. This is useful for caching (though
+Squid does it much better) and proxy authentication, for example.
+
+=item timeout
+
+The timeout used by the internal LWP::UserAgent (default: 60).
+
+=item url (read-only)
+
+The url where the proxy can be reached.
+
+=item via
+
+The content of the Via: header. Setting it to an empty string will
+prevent its addition. (default: $hostname (HTTP::Proxy/$VERSION))
+
+=item x_forwarded_for
+
+If set to a true value, the proxy will send the X-Forwarded-For header.
+(default: true)
+
+=back
+
+=head2 The start() method
+
+This method works like Tk's C<MainLoop>: you hand over control to the
+HTTP::Proxy object you created and configured.
+
+If C<maxconn> is not zero, start() will return after accepting
+at most that many connections. It will return the total number of
+connexions.
+
+=head1 FILTERS
+
+You can alter the way the default HTTP::Proxy works by pluging callbacks
+at different stages of the request/response handling.
+
+When a request is received by the HTTP::Proxy object, it is filtered through
+a standard filter that transform this request accordingly to RFC 2616
+(by adding the Via: header, and a few other transformations).
+
+The response is also filtered in the same manner. There is a total of four
+filter chains: C<request-headers>, C<request-body>, C<reponse-headers> and
+C<response-body>.
+
+You can add your own filters to the default ones with the
+push_filter() method. The method push a filter on the appropriate
+filter stack.
+
+    $proxy->push_filter( response => $filter );
+
+The headers/body category is determined by the type of the filter.
+There are two base classes for filters, which are
+HTTP::Proxy::HeaderFilter and HTTP::Proxy::BodyFilter (the names
+are self-explanatory). See the documentation of those two classes
+to find out how to write your own header or body filters.
+
+The named parameter is used to determine the request/response part.
+
+It is possible to push the same filter on the request and response
+stacks, as in the following example:
+
+    $proxy->push_filter( request => $filter, response => $filter );
+
+If several filters match the message, they will be applied in the order
+they were pushed on their filter stack.
+
+Named parameters can be used to create the match routine. They are: 
+
+    mime   - the MIME type (for a response-body filter)
+    method - the request method
+    scheme - the URI scheme         
+    host   - the URI authority (host:port)
+    path   - the URI path
+    query  - the URI query string
+
+The filters are applied only when all the the parameters match the
+request or the response. All these named parameters have default values,
+which are:
+
+    mime   => 'text/*'
+    method => 'OPTIONS,GET,HEAD,POST,PUT,DELETE,TRACE,CONNECT'
+    scheme => 'http'
+    host   => ''
+    path   => ''
+    query  => ''
+
+The C<mime> parameter is a glob-like string, with a required C</>
+character and a C<*> as a joker. Thus, C<*/*> matches I<all> responses,
+and C<""> those with no C<Content-Type:> header. To match any
+reponse (with or without a C<Content-Type:> header), use C<undef>.
+
+The C<mime> parameter is only meaningful with the C<response-body>
+filter stack. It is ignored if passed to any other filter stack.
+
+The C<method> and C<scheme> parameters are strings consisting of
+comma-separated values. The C<host> and C<path> parameters are regular
+expressions.
+
+A match routine is compiled by the proxy and used to check if a particular
+request or response must be filtered through a particular filter.
+
+It is also possible to push several filters on the same stack with
+the same match subroutine:
+
+    # convert italics to bold
+    $proxy->push_filter(
+        mime     => 'text/html',
+        response => HTTP::Proxy::BodyFilter::tags->new(),
+        response =>
+        HTTP::Proxy::BodyFilter::simple->new( sub { s!(</?)i>!$1b>!ig } )
+    );
+
+For more details regarding the creation of new filters, check the
+HTTP::Proxy::HeaderFilter and HTTP::Proxy::BodyFilter documentation.
+
+Here's an example of subclassing a base filter class:
+
+    # fixes a common typo ;-)
+    # but chances are that this will modify a correct URL
+    {
+        package FilterPerl;
+        use base qw( HTTP::Proxy::BodyFilter );
+
+        sub filter {
+            my ( $self, $dataref, $message, $protocol, $buffer ) = @_;
+            $$dataref =~ s/PERL/Perl/g;
+        }
+    }
+    $proxy->push_filter( response => FilterPerl->new() );
+
+Other examples can be found in the documentation for
+HTTP::Proxy::HeaderFilter, HTTP::Proxy::BodyFilter,
+HTTP::Proxy::HeaderFilter::simple, HTTP::Proxy::BodyFilter::simple.
+
+    # a simple anonymiser
+    # see eg/anonymiser.pl for the complete code
+    $proxy->push_filter(
+        mime    => undef,
+        request => HTTP::Proxy::HeaderFilter::simple->new(
+            sub { $_[0]->remove_header(qw( User-Agent From Referer Cookie )) },
+        ),
+        response => HTTP::Proxy::HeaderFilter::simple->new(
+            sub { $_[0]->remove_header(qw( Set-Cookie )); },
+        )
+    );
+
+IMPORTANT: If you use your own LWP::UserAgent, you must install it
+before your calls to push_filter(), otherwise
+the match method will make wrong assumptions about the schemes your
+agent supports.
+
+=over 4
+
+=item log( $level, $prefix, $message )
+
+Adds $message at the end of C<logfh>, if $level matches C<logmask>.
+The log() method also prints a timestamp.
+
+The output looks like:
+
+    [Thu Dec  5 12:30:12 2002] ($$) $prefix: $message
+
+where $$ is the current processus pid.
+
+If $message is a multiline string, several log lines will be output,
+each line starting with C<$prefix>.
+
+=back
+
+=head1 EXPORTED SYMBOLS
+
+No symbols are exported by default. The C<:log> tag exports all the
+logging constants.
+
+=head1 BUGS
+
+This module does not work under Windows, but I can't see why, and do not
+have a development platform under that system. Patches and explanations
+very welcome.
+
+I guess it is because fork() is not well supported. You can try to use
+the following workaround to prevent forking:
+
+    $proxy->maxchild(0);
+
+=over 4
+
+=item However, David Fishburn says:
+
+This did not work for me under WinXP - ActiveState Perl 5.6, but it DOES        
+work on WinXP ActiveState Perl 5.8. 
+
+=back
+
+=head1 SEE ALSO
+
+L<HTTP::Proxy::BodyFilter>, L<HTTP::Proxy::HeaderFilter>, the examples in eg/.
+
+=head1 AUTHOR
+
+Philippe "BooK" Bruhat, E<lt>book@cpan.orgE<gt>.
+
+The module has its own web page at http://http-proxy.mongueurs.net/
+complete with older versions and repository snapshot.
+
+There are also two mailing-lists: http-proxy@mongueurs.net for general
+discussion about HTTP::Proxy and http-proxy-cvs@mongueurs.net for
+CVS commits.
+
+=head1 THANKS
+
+Many people helped me during the development of this module, either on
+mailing-lists, irc or over a beer in a pub...
+
+So, in no particular order, thanks to the libwww-perl team for such
+a terrific suite of modules, Michael Schwern (tips for testing while
+forking), the Paris.pm folks (forking processes, chunked encoding)
+and my growing user base... C<;-)>
+
+=head1 COPYRIGHT
+
+Copyright 2002-2005, Philippe Bruhat.
+
+=head1 LICENSE
+
+This module is free software; you can redistribute it or modify it under
+the same terms as Perl itself.
+
+=cut
+
