@@ -39,7 +39,7 @@ This code reference is used for the filter() method.
 
 =cut
 
-my $methods = join '|', qw( start filter );
+my $methods = join '|', qw( begin filter );
 $methods = qr/^(?:$methods)$/;
 
 sub init {
@@ -66,7 +66,7 @@ sub init {
 }
 
 # transparently call the actual methods
-sub start       { goto &{ $_[0]{_start} }; }
+sub begin       { goto &{ $_[0]{_begin} }; }
 sub filter      { goto &{ $_[0]{_filter} }; }
 
 sub can {

@@ -6,7 +6,7 @@ use HTTP::Proxy::BodyFilter;
 use vars qw( @ISA );
 @ISA = qw( HTTP::Proxy::BodyFilter );
 
-my $methods = join '|', qw( begin start filter end );
+my $methods = join '|', qw( begin filter end );
 $methods = qr/^(?:$methods)$/;
 
 sub init {
@@ -35,7 +35,6 @@ sub init {
 
 # transparently call the actual methods
 sub begin       { goto &{ $_[0]{_begin} }; }
-sub start       { goto &{ $_[0]{_start} }; } # DEPRECATED
 sub filter      { goto &{ $_[0]{_filter} }; }
 sub end         { goto &{ $_[0]{_end} }; }
 
