@@ -9,7 +9,7 @@ my @requests = qw(
 );
 
 if( $^O eq 'MSWin32' ) {
-    plan skip_all => "This test fails on MSWin32. HTTP::Proxy is usable on Win32 with maxchild => 0"
+    plan skip_all => "This test fails on MSWin32. HTTP::Proxy is usable on Win32 with maxchild => 0";
     exit;
 }
 
