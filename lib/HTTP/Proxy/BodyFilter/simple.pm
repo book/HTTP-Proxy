@@ -70,7 +70,7 @@ See HTTP::Proxy::BodyFilter.pm for more details about the filter_file() method.
 
 =cut
 
-my $methods = join '|', qw( start filter filter_file );
+my $methods = join '|', qw( start filter filter_file end );
 $methods = qr/^(?:$methods)$/;
 
 sub init {
@@ -101,6 +101,7 @@ sub init {
 sub start       { goto &{ $_[0]{_start} }; }
 sub filter      { goto &{ $_[0]{_filter} }; }
 sub filter_file { goto &{ $_[0]{_filter_file} }; }
+sub end         { goto &{ $_[0]{_end} }; }
 
 sub can {
     my ( $self, $method ) = @_;
