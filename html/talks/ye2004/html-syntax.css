@@ -1,0 +1,20 @@
+/* ====================================================================== *
+ * Sample stylesheet for Syntax::Highlight::HTML                          *
+ *                                                                        *
+ * Copyright (C)2004 Sebastien Aperghis-Tramoni, All Rights Reserved.     *
+ *                                                                        *
+ * This file is free software; you can redistribute it and/or modify      *
+ * it under the same terms as Perl itself.                                *
+ * ====================================================================== */
+
+
+.h-decl { color: #336699; font-style: italic; }   /* doctype declaration  */
+.h-pi   { color: #336699;                     }   /* process instruction  */
+.h-com  { color: #338833; font-style: italic; }   /* comment              */
+.h-ab   { color: #000000; font-weight: bold;  }   /* angles as tag delim. */
+.h-tag  { color: #993399; font-weight: bold;  }   /* tag name             */
+.h-attr { color: #000000; font-weight: bold;  }   /* attribute name       */
+.h-attv { color: #333399;                     }   /* attribute value      */
+.h-ent  { color: #cc3333;                     }   /* entity               */
+
+.h-lno  { color: #cccccc; background: #eee;   }   /* line numbers         */

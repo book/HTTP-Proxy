@@ -1,0 +1,107 @@
+/*
+ * CSS Stylesheet for articles.mongueurs.net
+ */
+
+/* Import external stylesheets ================ */
+@import url("html-syntax.css");  /* for HTML syntax highlighting */
+@import url("perltidy.css");     /* for Perl syntax highlighting */
+
+/* Default fonts ============================== */
+body, input, textarea {
+  font-family: "Verdana", sans-serif;
+  font-size: small;
+}
+
+code, kbd, pre, tt, var {
+  font-family: "Monaco", "Courier New", monospace;
+}
+
+code { color: #00A; }
+kbd  { color: #A00; }
+var  { color: #0A0; }
+
+/* Generic styles ============================= */
+.hidden { display: none; }
+.nowrap { white-space: nowrap; }
+
+/* Headers ==================================== */
+h1, h2, h3 {
+  font-family: "Lucida Grande", "Lucida", "Verdana", sans-serif;
+  color: #069;
+}
+
+/*
+p:before {
+    content: "•";
+}
+*/
+
+/* Code blocks ================================ */
+pre {
+  background: #EEE;
+  border: 1px solid #AAA;
+  color: black;
+  padding: 0.25em;
+  white-space: pre;
+}
+
+/* Styles for tables ========================== */
+/* Generic classes */
+table.border {
+  border: solid 1px;
+  border-spacing: 0px;
+}
+table.border td {
+  border: solid 1px;
+  padding: 0.2em;
+}
+
+table.noborder td {
+  border: none;
+  padding: 0.2em 3em 0.2em 0.2em;
+}
+
+table.center {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Styles for links =========================== */
+a {
+  text-decoration: none;
+}
+
+a img {
+  border: none;
+}
+
+a[href]:hover, a[href]:focus {
+  text-decoration: underline;
+  color: #260;
+}
+a[href]:link, a[href]:visited { color: darkblue; }
+a[href]:active {color: red;}
+
+.copyright {
+  font-style: italic;
+  font-size: 50%;
+  color: #999;
+}
+
+.navbar {
+  /* font-weight: bold; */
+  font-size: 75%;
+}
+
+.pagenum {
+  font-size: 50%;
+  color: #999;
+}
+
+/* Styles for printing ======================== */
+@media print {
+  h1, h2, h3, h4, h5, h6 { page-break-after: avoid }
+  body { font-family: "Times New Roman", serif; }
+  p { text-align: justify; }
+}
+
