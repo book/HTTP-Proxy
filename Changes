@@ -1,7 +1,8 @@
 Revision history for Perl extension HTTP::Proxy
 
-0.02  
-        - the system now forks
+0.02  Thu Oct 24 23:45:08 CEST 2002
+        - the system now forks to handle several connections
+        - but needs better test suites
 
 0.01  Tue Oct  1 11:54:07 CEST 2002
         - original version
