@@ -392,17 +392,7 @@ sub serve_connections {
         $conn->print( $HTTP::Daemon::PROTO, ' ', $response->status_line, $CRLF,
             $response->headers->as_string($CRLF), $CRLF );
         if ( !$response->content && !$response->is_success ) {
-            my $code    = $response->code;
-            my $message = $response->message;
-            $response->content( << "EOERR" );
-<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 2.0//EN">
-<HTML><HEAD>
-<TITLE>Error $code</TITLE>
-</HEAD><BODY>
-<H1>Error $code</H1>
-$message<P>
-</BODY></HTML>
-EOERR
+            $response->content( $response->error_as_HTML );
         }
         $conn->print( $response->content );
     }
