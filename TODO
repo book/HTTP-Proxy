@@ -9,7 +9,7 @@ ASAP
  - I suppose this means looking at the Connection: headers
    in both the request and the response
 
-Version 0.04
+Version 0.05
  - Control the proxy via specific URIs
  - Commands are called asking for http://proxy/cmd
    (the host part of the URI should be configurable)
@@ -31,7 +31,7 @@ Version 0.04
    the child can write data to a special file/pipe and kill HUP the
    parent so that it reads the new information
 
-Version 0.05
+Version 0.06
  - insert callbacks/filters in the various stages of the process
    => to modify the client request
    => to modify the server answer
@@ -42,8 +42,28 @@ Version 0.05
    => push_request_filter( \&callback )
    => push_response_filter( 'text/html' => \&callback )
    => other ways to access both stacks?
+ - maybe store them like this:
+   $filters->{scheme}{mime_rx}{authority_rx}{path_rx} = coderef
+   all the *_rx keys would be regexen, so that for a response
+   that matches the scheme and the 3 regex, the code is run
+   => filters are applied one over the other... in which order ?
+   => maybe arrays are better than hashes, since we can at least keep
+      the order in which the filters were pushed, and we still have
+      to match against the whole list
 
-Version 0.06
+   my $filters = $self->filters;
+   # this scheme's filters
+   for my $sc (grep { $req->uri->scheme =~ $_->[0] } @$filters){
+       for my $auth (grep { $req->uri->authority =~ $_->[0] } @$sc) {
+           for my $path (grep { $req->uri->path =~ $_->[0] } @auth {
+              # run all the filters one after the other
+           }
+       }
+   }
+
+
+
+Version 0.07
  - handle big responses (>1Mb) with the LWP::UA callback system
    => short responses are concatenated together in a simple scalar,
       that gets filtered at the end
@@ -52,12 +72,26 @@ Version 0.06
       result in badly filtered data (I don't think we can do anything
       about it...)
 
-Version 0.07
+Version 0.08
  - proxy a https site, so as to filter and record, just as we do for
    http requests.
    => example: http://proxy/https://www.secure.com:443/index.html
    => This kind of stuff requires some content rewriting...
 
+Later...
+ - make use of the keep-alive capabilities of LWP::UserAgent
+   => one subprocess should accept a predefined number of requests
+      (or all of them until it dies)
+ - better handling of broken connection (from the client)
+ - same for FTP? how is FTP handled by LWP::UserAgent?
+   => what kind of data is returned? HTML? how?
+ - support for gopher 
+   gopher://gopher.tc.umn.edu/
+   gopher://marvel.loc.gov/
+ - support for hop by hop headers :
+   => Connection, Keep-Alive, Proxy-Authenticate, Proxy-Authorization, TE,
+      Trailers, Transfer-Encoding, Upgrade
+ - handle big requests (see HTTP::Daemon::get_request documentation)
 
 Better left to other modules
  - Browsing recording in a tree-like structure (thanks to Referer:)
