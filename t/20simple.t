@@ -28,9 +28,6 @@ my @requests = qw(
   ooh.cgi?q=query
 );
 
-# reap the children
-$SIG{CHLD} = sub { wait };
-
 # create a HTTP::Daemon (on an available port)
 my $daemon = HTTP::Daemon->new(
     LocalHost => 'localhost',
@@ -92,6 +89,5 @@ for (@requests) {
     ok( $rep->content =~ quotemeta, "Got what we wanted" );
 }
 
-# make sure the kids are dead
-#sleep 5;
-#for (@pids) { kill $sig_kill, $_ if kill 0, $_ }
+# make sure both kids are dead
+wait for @pids;

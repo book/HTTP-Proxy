@@ -77,6 +77,7 @@ sub new {
 # AUTOLOADed attributes
 my $all_attr = qr/^(?:agent|conn|control_regex|daemon|host|logfh|loop|
                       maxchild|maxconn|port|verbose)$/x;
+
 # read-only attributes
 my $ro_attr = qr/^(?:conn|control_regex|loop)$/;
 
@@ -184,8 +185,7 @@ sub AUTOLOAD {
     my $attr = $1;
 
     # must be one of the registered subs
-    if ( $attr =~ $all_attr)
-    {
+    if ( $attr =~ $all_attr ) {
         no strict 'refs';
         my $rw = 1;
         $rw = 0 if $attr =~ $ro_attr;
@@ -220,40 +220,70 @@ sub start {
 
     my @kids;
     my $reap;
-    $SIG{CHLD} = sub { $reap++ };
+
+    # zombies reaper
+    my $reaper;
+    $reaper = sub {
+        $reap++;
+        $SIG{CHLD} = $reaper;    # for sysV systems
+    };
+    $SIG{CHLD} = $reaper;
+
+    # the main loop
     my $daemon = $self->daemon;
     while ( $self->loop and my $conn = $daemon->accept ) {
+
+        # handle zombies
+        while ($reap) {
+            my $pid = wait;
+            @kids = grep { $_ != $pid } @kids;
+            $self->log( 3, "Reaped child process $pid" );
+            $reap--;
+        }
+
+        # too many children, wait for some to die
+        if ( $self->maxchild && @kids >= $self->maxchild ) {
+            $reap++;
+            next;
+        }
+
         my $child = fork;
         if ( !defined $child ) {
 
             # This could use a Retry-After: header...
-            $conn->send_error( 503, "Proxy cannot fork" );
             $self->log( 0,          "Cannot fork" );
+            $conn->send_error( 503, "Proxy cannot fork" );
             next;
         }
-        if ($child) {    # the parent process
+
+        # the parent process
+        if ($child) {
             $self->{conn}++;    # Cannot use the interface for RO attributes
             $self->log( 3, "Forked child process $child" );
             push @kids, $child;
-
-            # wait if there are more than maxchild kids
-            last if $self->maxconn && $self->conn >= $self->maxconn;
-            while ($reap) {
-                my $pid = wait;
-                $self->log( 3, "Reaped child process $pid" );
-                $reap--;
-            }
         }
-        else {
 
-            # the child process handles the connection
+        # the child process handles the connection
+        else {
             $self->process($conn);
             $conn->close;
             undef $conn;
-            exit;    # let's die!
+            exit;               # let's die!
         }
+
+        # this was the last child we forked
+        last if $self->maxconn && $self->conn >= $self->maxconn;
     }
-    $self->log( 1, "Done " . $self->conn . " connection(s)" );
+
+    # wait for remaining children
+    $self->log( 3, "Remaining kids: @kids" );
+    while (@kids) {
+        my $pid = wait;
+        @kids = grep { $_ != $pid } @kids;
+        $self->log( 3, "Waited for child process $pid" );
+    }
+
+    $self->log( 1, "Processed " . $self->conn . " connection(s)" );
     return $self->conn;
 }
 
@@ -293,8 +323,8 @@ sub _init_daemon {
 sub _init_agent {
     my $self  = shift;
     my $agent = LWP::UserAgent->new(
-        env_proxy             => 1,
-        keep_alive            => 2,
+        env_proxy  => 1,
+        keep_alive => 2,
       )
       or die "Cannot initialize proxy agent: $!";
     $self->agent($agent);
@@ -313,7 +343,7 @@ sub process {
     while ( my $req = $conn->get_request() ) {
         unless ( defined $req ) {
             $self->log( 0, "Getting request failed:", $conn->reason );
-            redo; # does not execute the continue block
+            redo;    # does not execute the continue block
         }
         $self->log( 1, "($$) Request: " . $req->uri );
         $self->log( 5, "($$) Request: " . $req->headers->as_string );
