@@ -37,8 +37,7 @@ $parser->handler(
 
 my $filter = HTTP::Proxy::BodyFilter::htmlparser->new( $parser, rw => 1 );
 
-my $proxy = HTTP::Proxy->new;
-$proxy->logmask( shift || NONE );
+my $proxy = HTTP::Proxy->new(@ARGV);
 $proxy->push_filter( mime => 'text/html', response => $filter );
 $proxy->start;
 

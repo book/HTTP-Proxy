@@ -8,8 +8,7 @@ use HTTP::Proxy::BodyFilter::simple;
 use HTTP::Proxy::BodyFilter::htmltext;
 use strict;
 
-my $proxy = HTTP::Proxy->new();
-$proxy->logmask( shift || NONE );
+my $proxy = HTTP::Proxy->new(@ARGV);
 
 my %noaccent = (
   Agrave => 'A', Aacute => 'A', Acirc  => 'A',  Atilde => 'A',

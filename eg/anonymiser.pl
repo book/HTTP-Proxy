@@ -5,8 +5,7 @@ use HTTP::Proxy::HeaderFilter::simple;
 use strict;
 
 # a very simple proxy
-my $proxy = HTTP::Proxy->new;
-$proxy->logmask( shift || NONE );
+my $proxy = HTTP::Proxy->new( @ARGV );
 
 # the anonymising filter
 $proxy->push_filter(

@@ -4,8 +4,7 @@ use HTTP::Proxy::BodyFilter::lines;
 use HTTP::Proxy::BodyFilter::simple;
 use strict;
 
-my $proxy = HTTP::Proxy->new;
-$proxy->logmask( shift || NONE );
+my $proxy = HTTP::Proxy->new(@ARGV);
 
 # a simple proxy that trims whitespace in HTML
 $proxy->push_filter(

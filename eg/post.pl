@@ -21,8 +21,7 @@ my $filter = HTTP::Proxy::BodyFilter::simple->new(
     }
 );
 
-my $proxy = HTTP::Proxy->new;
-$proxy->logmask( shift || NONE );
+my $proxy = HTTP::Proxy->new(@ARGV);
 $proxy->push_filter( method => 'POST', request => $filter );
 $proxy->start;
 

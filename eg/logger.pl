@@ -49,8 +49,7 @@ sub print_headers {
     }
 }
 
-my $proxy = HTTP::Proxy->new;
-$proxy->logmask( shift || NONE );
+my $proxy = HTTP::Proxy->new( @ARGV );
 $proxy->push_filter( method => 'POST', request => $post_filter );
 $proxy->push_filter( response => $get_filter );
 $proxy->start;

@@ -5,8 +5,7 @@ use HTML::Parser;
 use strict;
 
 # the proxy
-my $proxy = HTTP::Proxy->new();
-$proxy->logmask( shift || NONE );
+my $proxy = HTTP::Proxy->new( @ARGV );
 
 # all your base...
 my @ayb = grep { $_ } split/$/m, << 'AYB';

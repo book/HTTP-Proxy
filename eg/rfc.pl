@@ -1,8 +1,7 @@
 use HTTP::Proxy;
 use HTTP::Proxy::BodyFilter::save;
 
-my $proxy = HTTP::Proxy->new( host=>'0.0.0.0',port => 8080 );
-$proxy->logmask( shift );
+my $proxy = HTTP::Proxy->new(@ARGV);
 
 # save RFC files as we browse them
 $proxy->push_filter(

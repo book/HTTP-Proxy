@@ -1,5 +1,8 @@
 The eg/ directory holds a few example proxies.
 
+All scripts accept HTTP::Proxy constructor key/value pairs on the
+command-line. Example: ./proxy.pl port 3128 host 0.0.0.0
+
  * proxy.pl
 
    A very simple proxy.

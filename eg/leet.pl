@@ -5,8 +5,7 @@ use HTTP::Proxy::BodyFilter::htmltext;
 use strict;
 
 # a very simple proxy
-my $proxy = HTTP::Proxy->new( port => 8080 );
-$proxy->logmask( shift || NONE );
+my $proxy = HTTP::Proxy->new( @ARGV );
 
 my %leet = (
     a   => [qw( 4 /-\ @ )],

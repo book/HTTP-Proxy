@@ -28,8 +28,7 @@ $parser->handler(
 my $filter = HTTP::Proxy::BodyFilter::htmlparser->new( $parser, rw => 1 );
 
 # create and launch the proxy
-my $proxy = HTTP::Proxy->new();
-$proxy->logmask( shift ); # terse logs
+my $proxy = HTTP::Proxy->new(@ARGV);
 $proxy->push_filter( response => $filter, mime => 'text/html' );
 $proxy->start();
 

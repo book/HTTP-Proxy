@@ -5,8 +5,7 @@ use HTTP::Proxy::BodyFilter::simple;
 use HTTP::Proxy::BodyFilter::htmltext;
 use strict;
 
-my $proxy = HTTP::Proxy->new( port => 8080 );
-$proxy->logmask( shift || NONE );
+my $proxy = HTTP::Proxy->new(@ARGV);
 
 $proxy->push_filter(
     mime     => 'text/html',

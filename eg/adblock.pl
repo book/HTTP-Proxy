@@ -17,8 +17,7 @@ my $filter = HTTP::Proxy::HeaderFilter::simple->new( sub {
    $self->proxy->response( $no ) if $message->uri->host =~ /$re/o;
 } );
 
-my $proxy = HTTP::Proxy->new;
-$proxy->logmask( shift || NONE );
+my $proxy = HTTP::Proxy->new( @ARGV );
 $proxy->push_filter( request => $filter );
 $proxy->start;
 

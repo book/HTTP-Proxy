@@ -5,13 +5,13 @@ use MIME::Base64 qw( encode_base64 );
 use strict;
 
 # the encoded user:password pair
+# login:  http
+# passwd: proxy
 my $token = "Basic " . encode_base64( "http:proxy" );
 chomp $token;    # grr
 
 # a very simple proxy that requires authentication
-# login/password: http/proxy
-my $proxy = HTTP::Proxy->new;
-$proxy->logmask( shift || NONE );
+my $proxy = HTTP::Proxy->new(@ARGV);
 
 # the authentication filter
 $proxy->push_filter(
