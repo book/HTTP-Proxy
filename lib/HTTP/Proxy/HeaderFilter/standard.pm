@@ -43,3 +43,27 @@ sub filter {
 }
 
 1;
+
+__END__
+
+=head1 NAME
+
+HTTP::Proxy::HeaderFilter::standard - An internal filter to respect RFC2616
+
+=head1 DESCRIPTION
+
+This is an internal filter used by HTTP::Proxy.
+
+Move along, nothing to see here.
+
+=head1 AUTHOR
+
+Philippe "BooK" Bruhat, E<lt>book@cpan.orgE<gt>.
+
+=head1 COPYRIGHT
+
+This module is free software; you can redistribute it or modify it under
+the same terms as Perl itself.
+
+=cut
+

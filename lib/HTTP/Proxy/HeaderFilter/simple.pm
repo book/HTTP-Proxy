@@ -35,8 +35,6 @@ for header filters:
 
 This code reference is used for the filter() method.
 
-=back
-
 =cut
 
 sub init {
