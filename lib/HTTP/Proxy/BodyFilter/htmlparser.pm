@@ -40,8 +40,10 @@ A read-write filter is declared by passing C<rw =E<gt> 1> to the constructor:
 
 =head2 Creating a HTML::Parser that rewrites pages
 
+To be able to modify files, a filter must rewrite them completely.
 The HTML::Parser object can update a special attribute named C<output>.
-To do so, the handler will have to request the C<self> attribute.
+To do so, the handler will have to request the C<self> attribute
+and update its C<output> key.
 
 Other attributes are made available by this filter to the HTML::Parser
 object:
@@ -55,6 +57,8 @@ A string that will hold the data sent back by the proxy.
 This string will be used as a replacement for the body data only
 if the filter is read-write, that is to say, if it was initialised with
 C<rw =E<gt> 1>.
+
+Data should always be B<appended> to C<$parser-E<gt>{output}>.
 
 =item message
 
