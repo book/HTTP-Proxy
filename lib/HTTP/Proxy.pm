@@ -352,14 +352,15 @@ sub start {
             # single-process proxy (useful for debugging)
             if ( $self->maxchild == 0 ) {
                 $self->maxserve(1);    # do not block simultaneous connections
-                $self->log( PROCESS, "No fork allowed, serving the connection" );
+                $self->log( PROCESS, "PROCESS",
+                            "No fork allowed, serving the connection" );
                 $self->serve_connections($fh->accept);
                 $self->{conn}++;    # read-only attribute
                 next;
             }
 
             if ( @kids >= $self->maxchild ) {
-                $self->log( PROCESS, "Too many child process" );
+                $self->log( ERROR, "PROCESS", "Too many child process" );
                 select( undef, undef, undef, 1 );
                 last;
             }
@@ -369,7 +370,7 @@ sub start {
             my $child = fork;
             if ( !defined $child ) {
                 $conn->close;
-                $self->log( ERROR, "Cannot fork" );
+                $self->log( ERROR, "PROCESS", "Cannot fork" );
                 $self->maxchild( $self->maxchild - 1 )
                   if $self->maxchild > @kids;
                 next;
@@ -378,7 +379,7 @@ sub start {
             # the parent process
             if ($child) {
                 $conn->close;
-                $self->log( PROCESS, "Forked child process $child" );
+                $self->log( PROCESS, "PROCESS", "Forked child process $child" );
                 push @kids, $child;
             }
 
@@ -413,8 +414,8 @@ sub _reap {
         last if $pid == 0 || $pid == -1;    # AS/Win32 returns negative PIDs
         @$kids = grep { $_ != $pid } @$kids;
         $self->{conn}++;    # Cannot use the interface for RO attributes
-        $self->log( PROCESS, "Reaped child process $pid" );
-        $self->log( PROCESS, "Remaining kids: @$kids" );
+        $self->log( PROCESS, "PROCESS", "Reaped child process $pid" );
+        $self->log( PROCESS, "PROCESS", "Remaining kids: @$kids" );
     }
 }
 
