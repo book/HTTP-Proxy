@@ -169,6 +169,13 @@ The HTTP::Daemon object used to accept incoming connections.
 
 The proxy HTTP::Daemon host (default: 'localhost').
 
+This means that by default, the proxy only answer to clients on the
+local machine. You can pass a specific interface address or C<"">/C<undef>
+for any interface.
+
+This default prevents your proxy to be used as an anonymous proxy
+by script kiddies.
+
 =item logfh
 
 A filehandle to a logfile (default: *STDERR).
@@ -394,6 +401,7 @@ sub init {
 sub _init_daemon {
     my $self = shift;
     my %args = (
+        LocalAddr => $self->host,
         LocalPort => $self->port,
         ReuseAddr => 1,
     );
