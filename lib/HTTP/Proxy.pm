@@ -253,6 +253,11 @@ sub url {
     return $self->daemon->url;
 }
 
+=item via ($hostname (HTTP::Proxy/$VERSION))
+
+The content of the Via: header. Setting it to an empty string will
+prevent its addition.
+
 =back
 
 =cut
