@@ -2,6 +2,7 @@ Changes
 MANIFEST
 Makefile.PL
 README
+eg/anonymiser.pl
 eg/proxy.pl
 lib/HTTP/Proxy.pm
 t/00basic.t
