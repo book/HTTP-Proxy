@@ -5,7 +5,10 @@ use HTTP::Proxy;
 # objects
 my $proxy  = HTTP::Proxy->new;
 my $filter = HTTP::Proxy::HeaderFilter::standard->new;
+
+# a few hacks because we aren't actually connected
 $filter->proxy($proxy);
+$proxy->{client_socket} = IO::Socket::INET->new();
 
 # the dummy request
 my $req = HTTP::Request->new( GET => 'http://www.example.com/' );
