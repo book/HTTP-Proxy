@@ -1,4 +1,4 @@
-use Test::More tests => 7;
+use Test::More tests => 9;
 use strict;
 use HTTP::Proxy::BodyFilter::simple;
 
@@ -8,21 +8,25 @@ my ( $filter, $sub );
 eval { $filter = HTTP::Proxy::BodyFilter::simple->new("foo") };
 like( $@, qr/^Single parameter must be a CODE reference/, "Single coderef" );
 
-eval { $filter = HTTP::Proxy::BodyFilter::simple->new( filter => "foo") };
+eval { $filter = HTTP::Proxy::BodyFilter::simple->new( filter => "foo" ) };
 like( $@, qr/^Parameter to filter must be a CODE reference/, "Need coderef" );
 
-eval { $filter = HTTP::Proxy::BodyFilter::simple->new( filter_file => "foo") };
-like( $@, qr/^Parameter to filter_file must be a CODE ref/, "Need coderef" );
-
-eval { $filter = HTTP::Proxy::BodyFilter::simple->new( typo => sub {} ) };
+eval { $filter = HTTP::Proxy::BodyFilter::simple->new( typo => sub { } ); };
 like( $@, qr/Unkown method typo/, "Incorrect method name" );
+
+for (qw( filter filter_file start )) {
+    eval {
+        $filter = HTTP::Proxy::BodyFilter::simple->new( $_ => sub { } );
+    };
+    is( $@, '', "Accept $_" );
+}
 
 $sub = sub {
     my ( $self, $dataref, $message, $protocol, $buffer ) = @_;
     $$dataref =~ s/foo/bar/g;
 };
 
-$filter = HTTP::Proxy::BodyFilter::simple->new($sub),
+$filter = HTTP::Proxy::BodyFilter::simple->new($sub);
 is( $filter->can('filter'), $sub, "filter() runs the correct filter" );
 
 # test the filter

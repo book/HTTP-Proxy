@@ -1,5 +1,5 @@
 ## Please see file perltidy.ERR
-use Test::More tests => 10;
+use Test::More tests => 14;
 use strict;
 use HTTP::Proxy::BodyFilter::tags;
 
@@ -12,7 +12,8 @@ for (
     [ '>',                     '', '>',                     '' ],
     [ '><b>foo',               '', '><b>foo',               '' ],
     [ '><b>foo<i',             '', '><b>foo',               '<i' ],
-
+    [ '><b>foo<i',             undef, '><b>foo<i',               undef ],
+    [ '<!-- b> <b> --> > <>><', '', '<!-- b> <b> --> > <>>', '<'],
     # the following fails because of the implementation of the tags.pm
     # a stronger implementation requires parsing
     # [ 'x<a href="http://foo/>"', '', 'x', '<a href="http://foo/>"' ],
