@@ -72,12 +72,11 @@ See HTTP::Proxy::BodyFilter.pm for more details about the filter_file() method.
 
 sub init {
     my $self = shift;
-    $self->{filter} = \&HTTP::Proxy::BodyFilter::filter;
 
     if ( @_ == 1 ) {
         croak "Single parameter must be a CODE reference"
           unless ref $_[0] eq 'CODE';
-        $self->{filter} = $_[0];
+        $self->{_filter} = $_[0];
     }
     else {
         while (@_) {
@@ -88,19 +87,19 @@ sub init {
               unless ref $code eq 'CODE';
             croak "Unkown method $name" unless $name =~ /^filter(?:_file)$/;
 
-            $self->{$name} = $code;
+            $self->{"_$name"} = $code;
         }
     }
 }
 
 # transparently call the actual methods
-sub filter      { goto &{ $_[0]{filter} }; }
-sub filter_file { goto &{ $_[0]{filter_file} }; }
+sub filter      { goto &{ $_[0]{_filter} }; }
+sub filter_file { goto &{ $_[0]{_filter_file} }; }
 
 sub can {
     my ( $self, $method ) = @_;
-    return $method =~ /^filter(?:_file)$/ ? $self->{$method}
-                                          : UNIVERSAL::can($self, $method);
+    return $method =~ /^filter(?:_file)?$/ ? $self->{"_$method"}
+                                           : UNIVERSAL::can($self, $method);
 }
 
 =head1 AUTHOR
