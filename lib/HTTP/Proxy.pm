@@ -149,6 +149,7 @@ sub start {
     my $self = shift;
 
     $self->init if ( !defined $self->daemon or !defined $self->agent );
+
     my $daemon = $self->daemon;
     while ( my $conn = $daemon->accept ) {
         $self->process($conn);
@@ -160,30 +161,39 @@ sub start {
     return 1;
 }
 
+#
+# init methiods
+#
+
 sub init {
     my $self = shift;
 
-    # init the daemon object
-    if ( !defined $self->daemon ) {
-        my $daemon = HTTP::Daemon->new(
-            LocalHost => $self->host,
-            LocalPort => $self->port,
-            Reuse     => 1,
-          )
-          or die "Cannot initialize proxy daemon: $!";
-        $self->daemon($daemon);
-    }
+    $self->init_daemon if ( !defined $self->agent );
+    $self->init_agent  if ( !defined $self->daemon );
+}
 
-    # init the agent object
-    if ( !defined $self->agent ) {
-        my $cache = LWP::ConnCache->new;
-        my $agent = LWP::UserAgent->new(
-            conn_cache            => $cache,
-            requests_redirectable => [],
-          )
-          or die "Cannot initialize proxy agent: $!";
-        $self->agent($agent);
-    }
+sub init_daemon {
+    my $self = shift;
+    my $daemon = HTTP::Daemon->new(
+        LocalHost => $self->host,
+        LocalPort => $self->port,
+        ReuseAddr => 1,
+      )
+      or die "Cannot initialize proxy daemon: $!";
+    $self->daemon($daemon);
+    return $daemon;
+}
+
+sub init_agent {
+    my $self = shift;
+    my $cache = LWP::ConnCache->new;
+    my $agent = LWP::UserAgent->new(
+        conn_cache            => $cache,
+        requests_redirectable => [],
+      )
+      or die "Cannot initialize proxy agent: $!";
+    $self->agent($agent);
+    return $agent;
 }
 
 =head2 Other methods
