@@ -71,3 +71,8 @@ The tests are prefixed with a number, which indicates several categories:
 7x - Complex filter chains
      t/71rot13.t        - a simple ROT13 filter set
 
+8x - (Reserved for future use)
+
+9x - miscellaneous tests
+     t/90diveintomark.t - test the proxy against a lot of status codes
+

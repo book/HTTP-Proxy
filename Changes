@@ -8,6 +8,8 @@ Revision history for Perl extension HTTP::Proxy
         - do not block simultaneous connections when not forking
         - clean up the filter chain after the body-request filters
         - ensure the filter stack is reinitialised between requests
+        [TESTS]
+        - test the proxy against http://diveintomark.org/tests/client/http/
         [EXAMPLES]
         - eg/post.pl   - outputs the URI and parameters of all POST requests
         - eg/logger.pl - outputs details of GET and POST requests
