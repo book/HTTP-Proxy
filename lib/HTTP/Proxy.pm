@@ -877,15 +877,14 @@ sub push_filter {
         # compute the match sub as a closure
         # for $self, $mime, $method, $scheme, $host, $path
         my $match = sub {
-            if ( defined $mime ) {
-                my $ct = $self->response->content_type || "";
-                return 0 if $ct !~ $mime;
-            }
-            return 0 if $self->{request}->method !~ $method;
-            return 0 if $self->{request}->uri->scheme !~ $scheme;
-            return 0 if $self->{request}->uri->authority !~ $host;
-            return 0 if $self->{request}->uri->path !~ $path;
-            return 0 if ( $self->{request}->uri->query || '') !~ $query;
+            return 0
+              if ( defined $mime )
+              && ( $self->response->content_type || '' ) !~ $mime;
+            return 0 if ( $self->{request}->method || '' ) !~ $method;
+            return 0 if ( $self->{request}->uri->scheme    || '' ) !~ $scheme;
+            return 0 if ( $self->{request}->uri->authority || '' ) !~ $host;
+            return 0 if ( $self->{request}->uri->path      || '' ) !~ $path;
+            return 0 if ( $self->{request}->uri->query     || '' ) !~ $query;
             return 1;    # it's a match
         };
 
