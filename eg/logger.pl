@@ -5,12 +5,16 @@ use HTTP::Proxy::HeaderFilter::simple;
 use HTTP::Proxy::BodyFilter::simple;
 use CGI::Util qw( unescape );
 
+my @srv_hdr = qw( Content-Type Set-Cookie Set-Cookie2 WWW-Authenticate
+                  Location );
+my @clt_hdr = qw( Cookie Cookie2 Referer Referrer Authorization );
+
 # NOTE: Body request filters always receive the request body in one pass
 my $post_filter = HTTP::Proxy::BodyFilter::simple->new(
     sub {
         my ( $self, $dataref, $message, $protocol, $buffer ) = @_;
         print STDOUT $message->method, " ", $message->uri, "\n";
-        print_headers( $message, qw( Cookie Cookie2 ));
+        print_headers( $message, @clt_hdr);
 
         # this is from CGI.pm, method parse_params
         my (@pairs) = split ( /[&;]/, $$dataref );
@@ -29,9 +33,10 @@ my $get_filter = HTTP::Proxy::HeaderFilter::simple->new(
         my $req = $message->request;
         if( $req->method ne 'POST' ) {
             print STDOUT $req->method, " ", $req->uri, "\n";
-            print_headers( $req, qw( Cookie Cookie2 ));
+            print_headers( $req, @clt_hdr);
         }
-        print_headers( $message, qw( Content-Type Set-Cookie Set-Cookie2 ));
+        print STDOUT "    ", $message->status_line, "\n";
+        print_headers( $message, @srv_hdr );
     }
 );
 
