@@ -78,7 +78,7 @@ sub fork_proxy {
 
 # check that the web connection is working
 sub web_ok {
-    my $ua = LWP::UserAgent->new( env_proxy => 1 );
+    my $ua = LWP::UserAgent->new( env_proxy => 1, timeout => 30 );
     my $res =
       $ua->request(
         HTTP::Request->new( GET => 'http://www.google.com/intl/en/' ) );
