@@ -1,0 +1,5 @@
+MANIFEST
+README
+Changes
+t/00basic.t
+lib/HTTP/Proxy.pm
