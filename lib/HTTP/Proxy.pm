@@ -314,8 +314,7 @@ sub init {
 
     # specific agent config
     $self->agent->requests_redirectable( [] );
-    $self->agent->protocols_forbidden(
-        [ @{ $self->agent->protocols_forbidden || [] }, 'mailto', 'file' ] );
+    $self->agent->protocols_allowed(     [qw( http https ftp gopher )] );
     return;
 }
 
@@ -369,21 +368,27 @@ sub process {
         $response = new HTTP::Response( 501, 'Not Implemented' );
         $response->content(
             "Scheme $s is not supported by the proxy's LWP::UserAgent");
-        goto SEND; # yuck :-)
+        goto SEND;    # yuck :-)
     }
 
     # massage the request to pop a response
-    $req->headers->remove_header('Proxy-Connection'); # broken header
+    $req->headers->remove_header('Proxy-Connection');    # broken header
     $self->log( 1, "($$) Request:", $req->uri );
     $self->log( 5, "($$) Request:", $req->headers->as_string );
     $response = $self->agent->simple_request($req);
 
-    SEND:
+  SEND:
+
     # remove Connection: headers from the response
-    $response->headers->header(Connection => 'close' );
+    $response->headers->header( Connection => 'close' );
 
     # send the response
-    $conn->print( $response->as_string );
+    if ( $req->uri->scheme =~ /^(?:ftp|gopher)$/ && $response->is_success ) {
+        $conn->print( $response->content );
+    }
+    else {
+        $conn->print( $response->as_string );
+    }
     $self->log( 1, "($$) Response:", $response->status_line );
     $self->log( 5, "($$) Response:", $response->headers->as_string );
 }
