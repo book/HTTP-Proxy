@@ -118,12 +118,12 @@ sub new {
     return $self;
 }
 
-=head2 Accessors
+=head2 Accessors and mutators
 
-The HTTP::Proxy has several accessors.
+The HTTP::Proxy has several accessors and mutators.
 
 Called with arguments, the accessor returns the current value.
-Called with a single argument, it set the current value and
+Called with a single argument, it sets the current value and
 returns the previous one, in case you want to keep it.
 
 If you call a read-only accessor with a parameter, this parameter
