@@ -6,7 +6,7 @@ WriteMakefile(
     PREREQ_PM    => {
         Test::More     => 0,
         HTTP::Daemon   => 1.25,
-        LWP::UserAgent => 0,
+        LWP::UserAgent => 2,
     },
     ABSTRACT_FROM => 'lib/HTTP/Proxy.pm',
     AUTHOR        => 'Philippe "BooK" Bruhat <book@cpan.org>',
