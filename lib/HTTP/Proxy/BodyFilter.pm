@@ -130,15 +130,9 @@ server will be sent back to your filter in one big piece.
 
 =head2 The store and forward approach
 
-HTTP::Proxy will implement a I<store and forward> mechanism, for those
-filters who needs to have the whole (response) message body to
-work. It's simply enabled by pushing the HTTP::Proxy::BodyFilter::store
-filter on the filter stack.
-
-The interface is not fully defined yet.
-
-In the store and forward mechanism, $headers is I<still> modifiable by
-the filter, and the modified headers will be sent to the client or server.
+HTTP::Proxy implements a I<store and forward> mechanism, for those filters
+which need to have the whole message body to work. It's enabled simply by
+pushing the HTTP::Proxy::BodyFilter::complete filter on the filter stack.
 
 =head2 Standard BodyFilters
 
@@ -169,13 +163,15 @@ Creates a filter from a HTML::Parser object.
 
 This class lets you create a simple body filter from a code reference.
 
-=item store (TODO)
+=item save
 
-This filter stores the page in a temporary file, thus allowing
+Store the message body to a file.
+
+=item complete
+
+This filter stores the whole message body in memory, thus allowing
 some actions to be taken only when the full page has been received
 by the proxy.
-
-The interface is not completely defined yet.
 
 =item tags
 
