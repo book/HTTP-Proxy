@@ -1,20 +1,52 @@
-use Test::More tests => 13;
+use Test::More tests => 26;
 use HTTP::Proxy qw( :log );
 
 my $proxy;
 
 $proxy = HTTP::Proxy->new;
 
-# check defaults
-is( $proxy->logmask, NONE, "Default is no logging" );
-is( $proxy->port, 8080,        "Default port 8080" );
-is( $proxy->host, 'localhost', "Default host localhost" );
-is( $proxy->logfh, *STDERR, "Default logging to STDERR" );
-is( $proxy->timeout, 60, "Default timeout of 60 secs" );
+#
+# default values
+#
 
-# set/get data
-$proxy->port(8888);
-is( $proxy->port, 8888, "Changed port" );
+my %meth = (
+    agent           => undef,
+    chunk           => 4096,
+    daemon          => undef,
+    host            => 'localhost',
+    logfh           => *main::STDERR,
+    maxchild        => 10,
+    maxconn         => 0,
+    maxserve        => 10,
+    port            => 8080,
+    request         => undef,
+    response        => undef,
+    hop_headers     => undef,
+    logmask         => 0,
+    x_forwarded_for => 1,
+    conn            => 0,
+    client_socket   => undef,
+    # control_regex, loop are not used/internal for now
+);
+
+for my $key ( sort keys %meth ) {
+    no strict 'refs';
+    is( $proxy->$key(), $meth{$key}, "$key has the correct default" );
+}
+
+like( $proxy->via(), qr!\(HTTP::Proxy/$HTTP::Proxy::VERSION\)$!,
+      "via has the correct default");
+
+#
+# test generated accessors (they're all the same)
+#
+
+is( $proxy->port(8888), $meth{port}, "Set return the previous value" );
+is( $proxy->port, 8888, "Set works" );
+
+#
+# other accessors
+#
 
 # check the url() method
 $proxy->port(0);
@@ -48,7 +80,7 @@ ok( $proxy->control_regex eq '(?-xism:^http://control(?:/(\w+))?)',
     "New control regex" );
 
 # check the timeout
-$proxy->init;
+$proxy->_init_agent;
 is( $proxy->agent->timeout, 60, "Default agent timeout of 60 secs" );
 is( $proxy->timeout(120), 60, "timeout() returns the old value" );
 is( $proxy->agent->timeout, 120, "New agent timeout value of 120 secs" );
