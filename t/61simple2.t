@@ -1,8 +1,13 @@
-use Test::More tests => 2;
+use Test::More tests => 4;
 use strict;
 use HTTP::Proxy;
 use HTTP::Proxy::BodyFilter::simple;
 use t::Utils;
+
+# test configuration
+my $test = Test::Builder->new;
+$test->use_numbers(0);
+$test->no_ending(1);
 
 # create the filter
 my $sub = sub {
@@ -51,7 +56,11 @@ $sub = sub {
     my ( $self, $dataref, $message, $protocol, $buffer ) = @_;
     $$dataref =~ s/Test/Bar/g;
 };
-$filter = HTTP::Proxy::BodyFilter::simple->new($sub);
+$filter = HTTP::Proxy::BodyFilter::simple->new(
+    filter => $sub,
+    start  => sub { ok( 1, "start() called" ) },
+    end    => sub { ok( 1, "end() called" ) },
+);
 $proxy->push_filter( response => $filter, scheme => 'file', mime => 'text/*' );
 
 # fork the modified proxy
