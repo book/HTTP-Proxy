@@ -1,12 +1,14 @@
 Revision history for Perl extension HTTP::Proxy
 
-0.11  
+0.11  Fri Jan  2 17:02:08 CET 2004
         [ENHANCEMENTS]
         - setting maxchild to 0 prevents forking (Jim Cromie)
         - filters can now match on the query string
         - hop-by-hop headers and Max-Forwards headers are correctly supported
         - new mutators added to HTTP::Proxy: via, hop_headers, request,
           response
+        - filters can now answer in place of the server, which allows
+          for authorisation filters, cache (?) filters, etc.
         - new examples scripts: proxy-auth.pl
         [FIXES]
         - push_filter() now correctly supports several match criteria
