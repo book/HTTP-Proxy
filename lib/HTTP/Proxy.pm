@@ -888,6 +888,8 @@ needed.
 
 This method is called by start() if needed.
 
+=back
+
 =head2 Accessors and mutators
 
 The HTTP::Proxy has several accessors and mutators.
@@ -1071,6 +1073,8 @@ connexions.
 
 This is the internal method used to handle each new TCP connection
 to the proxy.
+
+=back
 
 =head1 FILTERS
 
