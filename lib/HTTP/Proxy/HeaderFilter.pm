@@ -43,10 +43,10 @@ method. See the example in L<SYNOPSIS>.
 
 The signature of the filter() method is the following:
 
-    sub header_filter { my ( $headers, $message) = @_; ... }
+    sub filter { my ( $self, $headers, $message) = @_; ... }
 
-where $headers is a HTTP::Headers object, and $message is either a
-HTTP::Request or a HTTP::Response object.
+where $self is the filter object, $headers is a HTTP::Headers object,
+and $message is either a HTTP::Request or a HTTP::Response object.
 
 The $headers HTTP::Headers object is the one that will be sent to
 the client (if the filter is on the response stack) or origin

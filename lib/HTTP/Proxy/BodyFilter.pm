@@ -43,11 +43,11 @@ method. See the example in L<SYNOPSIS>.
 
 The signature of the filter() method is the following:
 
-    sub filter { my ( $dataref, $message, $protocol ) = @_; ... }
+    sub filter { my ( $self, $dataref, $message, $protocol ) = @_; ... }
 
-where $headers is a HTTP::Headers object, $message is either a
-HTTP::Request or a HTTP::Response object and $dataref is a reference to
-the chunk of body data received.
+where $self is the filter object, $headers is a HTTP::Headers object,
+$message is either a HTTP::Request or a HTTP::Response object and $dataref
+is a reference to the chunk of body data received.
 
 The $headers HTTP::Headers object is the one that was sent to
 the client (if the filter is on the response stack) or origin
@@ -67,7 +67,7 @@ filter_file() method, that is only called when there was a
 HTTP::Proxy::BodyFilter::store filter earlier in the chain.
 Its signature is:
 
-    sub filter_file { my ( $filename, $message, $protocol ) = @_; ... }
+    sub filter_file { my ( $self, $filename, $message, $protocol ) = @_; ... }
 
 If they require to have the whole file, they usually shouldn't implement
 the filter() method. Calling such a filter outside the store and foward
