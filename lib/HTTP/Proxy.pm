@@ -510,6 +510,8 @@ sub serve_connections {
     my ( $self, $conn ) = @_;
     my $response;
     $self->{client_socket} = $conn;  # read-only
+    $self->log( SOCKET, "($$) New connection from " . $conn->peerhost
+                      . ":" . $conn->peerport );
 
     my ( $last, $served ) = ( 0, 0 );
     while ( my $req = $conn->get_request() ) {
@@ -658,7 +660,8 @@ sub serve_connections {
             $conn->print( $response->content );
         }
 
-        last if $last || $served >= $self->maxserve;
+        $self->log( SOCKET, "($$) Connection closed by the proxy" ), last
+          if $last || $served >= $self->maxserve;
     }
     $self->log( SOCKET, "($$) Connection closed by the client" )
       if !$last
