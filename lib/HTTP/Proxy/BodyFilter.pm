@@ -43,17 +43,33 @@ method. See the example in L<SYNOPSIS>.
 
 The signature of the filter() method is the following:
 
-    sub filter { my ( $self, $dataref, $message, $protocol ) = @_; ... }
+    sub filter {
+        my ( $self, $dataref, $message, $protocol, $buffer ) = @_;
+        ...
+    }
 
-where $self is the filter object, $headers is a HTTP::Headers object,
-$message is either a HTTP::Request or a HTTP::Response object and $dataref
-is a reference to the chunk of body data received.
+where $self is the filter object, $dataref is a reference to the chunk
+of body data received, $headers is a reference to  HTTP::Headers object,
+$message is a reference to either a HTTP::Request or a HTTP::Response
+object, and $protocol is a reference to the LWP::Protocol protocol object.
 
-The $headers HTTP::Headers object is the one that was sent to
-the client (if the filter is on the response stack) or origin
-server (if the filter is on the request stack). Modifying it in
-the filter() method is useless, since the headers have already been
-sent.
+Note that this subroutine signature looks a lot like that of the call-
+backs of LWP::UserAgent (except that $message is either a HTTP::Request
+or a HTTP::Response object).
+
+$buffer is a reference to a buffer where some of the unprocessed data
+can be stored for the next time the filter will be called (see L<Using
+a buffer to store data for a later use> for details). Thanks to the
+built-in HTTP::Proxy::BodyFilter::* filters, this is rarely needed.
+
+The $headers HTTP::Headers object is the one that was sent to the client
+(if the filter is on the response stack) or origin server (if the filter
+is on the request stack). Modifying it in the filter() method is useless,
+since the headers have already been sent.
+
+=head2 Using a buffer to store data for a later use
+
+FIXME
 
 =head2 The store and forward approach
 
@@ -84,7 +100,7 @@ The following BodyFilters are included in the HTTP::Proxy distribution:
 
 =over 4
 
-=item line
+=item lines
 
 This filter makes sure that the next filter in the filter chain will
 only receive complete lines. The "chunks" of data received by the
