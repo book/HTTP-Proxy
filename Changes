@@ -1,5 +1,13 @@
 Revision history for Perl extension HTTP::Proxy
 
+0.11  
+        - setting maxchild to 0 prevents forking (Jim Cromie)
+        - filters can match now on the query string
+        - hop-by-hop headers now correctly supported
+        - new mutators added to HTTP::Proxy: via, hop_headers, request,
+          response
+        - new examples scripts: proxy-auth.pl
+
 0.10  Wed Nov 19 01:36:59 CET 2003
 
         *** MAJOR INTERFACE CHANGES ***
@@ -58,7 +66,7 @@ Revision history for Perl extension HTTP::Proxy
         - put some of the test functions in a test module (t::Utils)
 
 0.05  Tue Feb  4 00:47:23 CET 2003
-        - explicitely refuse CONNECT
+        - explicitly refuse CONNECT
         - better support for TRACE method
         - support the Via: Header (a MUST in RFC 2616)
         - filters, but this needs more work
