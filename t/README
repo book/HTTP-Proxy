@@ -62,6 +62,8 @@ The tests are prefixed with a number, which indicates several categories:
      t/64lines.t        - HTTP::Proxy::BodyFilter::lines
      t/64tags.t         - HTTP::Proxy::BodyFilter::tags
      t/65store.t        - HTTP::Proxy::BodyFilter::store
+     t/66htmlparser.t   - HTTP::Proxy::BodyFilter::htmlparser
 
 7x - Complex filter chains
+     t/71rot13.t        - a simple ROT13 filter set
 
