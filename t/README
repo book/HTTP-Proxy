@@ -44,6 +44,8 @@ The tests are prefixed with a number, which indicates several categories:
      t/20dummy.t        - tests against a dummy web server
      t/20keepalive.t    - test the keep-alive connections
      t/22http.t         - test actual HTTP servers
+     t/23connect.t      - test CONNECT to a ssh server
+     t/23https.t        - test CONNECT for SSL
 
 3x - (Reserved for future use)
 
@@ -56,16 +58,13 @@ The tests are prefixed with a number, which indicates several categories:
      t/50via.t          - check the Via: headers
      t/51simple.t       - HTTP::Proxy::HeaderFilter::simple
      t/51simple2.t      - HTTP::Proxy::HeaderFilter::simple with a real proxy
-     #t/52log.t          - HTTP::Proxy::HeaderFilter::log
 
 6x - Internal body filters
      t/61simple.t       - HTTP::Proxy::BodyFilter::simple
      t/61simple2.t      - HTTP::Proxy::BodyFilter::simple with a real proxy
-     #t/62log.t          - HTTP::Proxy::BodyFilter::log
      t/64htmltext.t     - HTTP::Proxy::BodyFilter::htmltext
      t/64lines.t        - HTTP::Proxy::BodyFilter::lines
      t/64tags.t         - HTTP::Proxy::BodyFilter::tags
-     t/65store.t        - HTTP::Proxy::BodyFilter::store
      t/66htmlparser.t   - HTTP::Proxy::BodyFilter::htmlparser
 
 7x - Complex filter chains
