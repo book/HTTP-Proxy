@@ -1,0 +1,33 @@
+The eg/ directory holds a few example proxies.
+
+ * proxy.pl
+
+   A very simple proxy.
+
+   Filter: none
+
+ * anonymiser.pl
+
+   A simple anonymizing proxy, similar in functionnality to the one
+   shown by Randal L. Schwartz in his WebTechniques #11 column.
+   http://www.stonehenge.com/merlyn/WebTechniques/col11.html
+
+   Filter: HTTP::Proxy::HeaderFilter::simple
+
+ * leet.pl
+ * rot13.pl
+ * rainbow.pl
+
+   These filters do simple modifications of all HTML pages.
+
+   Filters: HTTP::Proxy::BodyFilter::tags
+            HTTP::Proxy::BodyFilter::simple
+            HTTP::Proxy::BodyFilter::htmltext
+
+ * outline.pl
+
+   These proxy do more complicated modifications of HTML pages, and
+   require a HTML::Parser object to do so.
+
+   Filter: HTTP::Proxy::BodyFilter::htmlparser;
+
