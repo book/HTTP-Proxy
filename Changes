@@ -1,5 +1,10 @@
 Revision history for Perl extension HTTP::Proxy
 
+0.14
+        [EXAMPLES]
+        - Changed all the examples so that they can take HTTP::Proxy::new()
+          parameters on the command-line
+
 0.13 Wed Mar  3 17:36:31 CET 2004
         [ENHANCEMENTS]
         - CONNECT support (but only transparently...)
