@@ -413,8 +413,8 @@ sub serve_connections {
 
     # massage the request
     $self->request($req);
-    $self->filter_headers('request');
-    $self->filter_body('request');
+    $self->_filter_headers('request');
+    $self->_filter_body('request');
     $self->log( 5, "($$) Request:", $req->headers->as_string );
 
     # pop a response
@@ -427,7 +427,7 @@ sub serve_connections {
             # first time, filter the headers
             if ( !$sent ) {
                 $self->response($response);
-                $self->filter_headers('response');
+                $self->_filter_headers('response');
                 $self->log( 1, "($$) Response:", $response->status_line );
                 $self->log( 5, "($$) Response:",
                     $response->headers->as_string );
@@ -441,18 +441,16 @@ sub serve_connections {
             # filter and send the data
             $self->log( 6, "($$) Filter:",
                 "got " . length($data) . " bytes of body data" );
-            $self->filter_body( 'response', \$data, $proto );
+            $self->_filter_body( 'response', \$data, $proto );
             $conn->print($data);
         },
         $self->chunk
     );
 
-    # only success (2xx) responses are filtered
-    if ( !$response->is_success ) {
+    # only success (2xx) responses are filtered through callbacks
+    if ( !$sent ) {
         $self->response($response);
-        $self->filter_headers('response');
-        $self->log( 1, "($$) Response:", $response->status_line );
-        $self->log( 5, "($$) Response:", $response->headers->as_string );
+        $self->_filter_headers('response');
     }
 
     # what about X-Died and X-Content-Range?
@@ -560,7 +558,7 @@ Here are a few example filters:
 
     # fixes a common typo ;-)
     # but chances are that this will modify a correct URL
-    $proxy->push_body_filter( response => sub { $$_[0] =~ s/PERL/Perl/g } );
+    $proxy->push_body_filter( response => sub { ${$_[0]} =~ s/PERL/Perl/g } );
 
     # mess up trace requests
     $proxy->push_headers_filter(
@@ -623,20 +621,23 @@ sub _push_filter {
     if ( defined $mime && $mime ne '' ) {
         $mime =~ m!/! or croak "Invalid MIME type definition: $mime";
         $mime =~ s/\*/$RX{token}/;    #turn it into a regex
-        $mime = qr/^$mime/;
+        $mime = qr/^$mime(?:$|\s*;?)/;
     }
 
     my @method = split /\s*,\s*/, $method;
     for (@method) { croak "Invalid method: $_" if !/$RX{method}/ }
-    $method = @method ? '' : '(?:' . join ( '|', @method ) . ')';
-    $method = qr/$method/;
+    $method = @method ? '(?:' . join ( '|', @method ) . ')' : '';
+    $method = qr/^$method$/;
 
     my @scheme = split /\s*,\s*/, $scheme;
     for (@scheme) {
         croak "Unsupported scheme" if !$self->agent->is_protocol_supported($_);
     }
-    $scheme = @scheme ? '' : '(?:' . join ( '|', @scheme ) . ')';
+    $scheme = @scheme ? '(?:' . join ( '|', @scheme ) . ')' : '';
     $scheme = qr/$scheme/;
+
+    $host ||= '.*';
+    $path ||= '.*';
 
     # push the filter and its match method on the correct stack
     for my $message ( grep { exists $arg{$_} } qw( request response ) ) {
@@ -650,10 +651,11 @@ sub _push_filter {
         # compute the match sub as a closure
         # for $self, $mime, $method, $scheme, $host, $path
         my $match = sub {
-            return 0
-              if ( defined $mime
-                && $self->{response}->headers->header('Content-Type') !~
-                $mime );
+            if ( defined $mime ) {
+                return 0
+                  if $self->{response}->headers->header('Content-Type') !~
+                  $mime;
+            }
             return 0 if $self->{request}->method !~ $method;
             return 0 if $self->{request}->uri->scheme !~ $scheme;
             return 0 if $self->{request}->uri->authority !~ $host;
@@ -676,13 +678,24 @@ sub push_headers_filter { _push_filter( @_, part => 'headers' ); }
 
 sub push_body_filter { _push_filter( @_, part => 'body' ); }
 
-# the very simple filter_* methods
+# the very simple _filter_* methods
+#
+# $self->_filter_headers( 'response' );
+# @filters = $self->_filter_select( response => 'body' )
+# $self->_filter_body_with( \@filters, 'response', \$data, $proto )
 
-# filter_headers( $type )
+# _filter_select( $msg => $type )
+#
+sub _filter_select {
+    my ( $self, $mesg, $type ) = @_;
+    return map { $- > [1] } grep { $_->[0]->() } @{ $self->{$type}{$mesg} };
+}
+
+# _filter_headers( $type )
 #
 # type is either 'request' or 'response'
 
-sub filter_headers {
+sub _filter_headers {
     my ( $self, $type ) = ( shift, shift );
 
     # argument checking
@@ -697,25 +710,38 @@ sub filter_headers {
     }
 }
 
-# filter_body( $type, $dataref, $proto )
+# _filter_body( $type, $dataref, $proto )
 #
 # type is either 'request' or 'response'
 # $dataref is a scalar ref to the data (\$data)
 # $proto is a HTTP::Protocol object
 
-sub filter_body {
+sub _filter_body {
     my ( $self, $type, $dataref, $proto ) = @_;
 
     # argument checking
     croak "Bad filter type: $type" if $type !~ /^re(?:quest|sponse)$/;
-
-    my $message = $self->{$type};
-    my $headers = $message->headers;
+    return unless defined $dataref;
 
     # filter the body
     for ( @{ $self->{body}{$type} } ) {
-        $_->[1]->( $dataref, $message, $proto ) if $_->[0]->();
+        $_->[1]->( $dataref, $self->{$type}, $proto ) if $_->[0]->();
     }
+}
+
+# _filter_body_with( \@filters, $type, $dataref, $proto )
+#
+# Same as _filter_body, except that the filter list is passed
+# as a reference, rather than computed each time
+
+sub _filter_body_with {
+    my ( $self, $filters, $type, $dataref, $proto ) = @_;
+
+    # argument checking
+    croak "Bad filter type: $type" if $type !~ /^re(?:quest|sponse)$/;
+
+    # filter the body
+    $_->( $dataref, $self->{$type}, $proto ) for @$filters;
 }
 
 # standard proxy header filter (RFC 2616)
@@ -743,13 +769,15 @@ sub _proxy_headers_filter {
 
         # hop-by-hop headers(for now)
         qw( Connection Keep-Alive TE Trailers Transfer-Encoding Upgrade
-        Proxy-Connection Proxy-Authenticate Proxy-Authorization )
+        Proxy-Connection Proxy-Authenticate Proxy-Authorization ),
+
+        # no encoding accepted (gzip, compress, deflate)
+        qw( Accept-Encoding ),
       )
     {
         $message->headers->remove_header($_);
     }
 }
-
 
 =item log( $level, $prefix, $message )
 
