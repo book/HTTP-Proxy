@@ -536,17 +536,17 @@ sub serve_connections {
         # massage the request
         $self->{headers}{request}->filter( $req->headers, $req );
 
-        # CONNECT method is a very special case
-        if( $req->method eq 'CONNECT' ) {
-            $last = $self->_handle_CONNECT($served);
-            return if $last;
-        }
-
         # FIXME I don't know how to get the LWP::Protocol objet...
         # NOTE: the request is always received in one piece
         $self->{body}{request}->filter( $req->content_ref, $req, undef );
         $self->{body}{request}->eod;    # end of data
         $self->log( HEADERS, "($$) Request:", $req->headers->as_string );
+
+        # CONNECT method is a very special case
+        if( ! defined $self->response and $req->method eq 'CONNECT' ) {
+            $last = $self->_handle_CONNECT($served);
+            return if $last;
+        }
 
         # the header filters created a response,
         # we won't contact the origin server
