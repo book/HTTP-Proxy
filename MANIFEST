@@ -5,7 +5,9 @@ README
 eg/README
 eg/anonymiser.pl
 eg/leet.pl
+eg/logger.pl
 eg/outline.pl
+eg/post.pl
 eg/proxy-auth.pl
 eg/proxy.pl
 eg/rainbow.pl
