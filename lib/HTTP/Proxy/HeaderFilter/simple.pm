@@ -31,18 +31,15 @@ The constructor is called with a single code reference.
 The code reference must conform to the standard filter() signature
 for header filters:
 
-    sub filter { my ( $headers, $message) = @_; ... }
+    sub filter { my ( $self, $headers, $message) = @_; ... }
 
 This code reference is used for the filter() method.
 
 =cut
 
 sub init {
-    my $self = shift;
-    $self->{filter} = \&HTTP::Proxy::HeaderFilter::filter;
-
-    croak "Parameter must be a CODE reference" unless ref $_[0] eq 'CODE';
-    $self->{filter} = $_[0];
+    croak "Parameter must be a CODE reference" unless ref $_[1] eq 'CODE';
+    $_[0]->{filter} = $_[1];
 }
 
 # transparently call the actual filter() method
