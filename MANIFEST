@@ -9,6 +9,9 @@ t/05new.t
 t/10init.t
 t/15accessors.t
 t/20dummy.t
+t/20keepalive.t
+t/21headers.t
 t/22http.t
 t/40push_filters.t
 t/README
+t/Utils.pm
