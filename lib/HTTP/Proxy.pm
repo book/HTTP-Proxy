@@ -790,7 +790,7 @@ sub push_filter {
             return 0 if $self->{request}->uri->scheme !~ $scheme;
             return 0 if $self->{request}->uri->authority !~ $host;
             return 0 if $self->{request}->uri->path !~ $path;
-            return 0 if $self->{request}->uri->query !~ $query;
+            return 0 if ( $self->{request}->uri->query || '') !~ $query;
             return 1;    # it's a match
         };
 
