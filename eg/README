@@ -37,3 +37,8 @@ The eg/ directory holds a few example proxies.
 
    Filter: HTTP::Proxy::BodyFilter::htmlparser;
 
+ * post.pl
+
+   This filter outputs the request URI and the form parameters of
+   all POST requests.
+
