@@ -1,5 +1,13 @@
 Revision history for Perl extension HTTP::Proxy
 
+0.08  Thu Mar 13 01:41:42 CET 2003
+        - cleaned up support for filters
+        - added support for "buffering" filters
+          and a new HTTP::Proxy::FilterStack class
+        - added an anonymiser script (eg/anonymiser.pl)
+        - the tests won't break if a local proxy is configured
+        - the interfaces are very likely to change soon
+
 0.07  Tue Feb 18 22:30:43 CET 2003
         - the proxy now supports persistent connexions (Yay!)
         - and tests to check for it
