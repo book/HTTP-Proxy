@@ -1,20 +1,21 @@
 use strict;
-use vars qw( @requests );
-
-# here are all the requests the client will try
-BEGIN {
-    @requests = (
-        [ 'www.mongueurs.net', '/',         200 ],
-        [ 'httpd.apache.org',  '/docs',     301 ],
-        [ 'www.google.com',    '/testing/', 404 ],
-        [ 'www.error.zzz',     '/',         500 ],
-    );
-}
-
 use Test::More;
 use t::Utils;
 use LWP::UserAgent;
 use HTTP::Proxy;
+
+# here are all the requests the client will try
+my @requests = (
+    [ 'www.mongueurs.net', '/',         200 ],
+    [ 'httpd.apache.org',  '/docs',     301 ],
+    [ 'www.google.com',    '/testing/', 404 ],
+    [ 'www.error.zzz',     '/',         500 ],
+);
+
+if( $^O eq 'MSWin32' ) {
+    plan skip_all => "This test fails on MSWin32. HTTP::Proxy is usable on Win32 with maxchild => 0";
+    exit;
+}
 
 # we skip the tests if the network is not available
 my $web_ok = web_ok();
