@@ -3,9 +3,8 @@ package HTTP::Proxy;
 use HTTP::Daemon;
 use LWP::UserAgent;
 use LWP::ConnCache;
-use CGI;
 use Fcntl ':flock';    # import LOCK_* constants
-use POSIX;
+use POSIX ();
 use Sys::Hostname;
 use Carp;
 
