@@ -599,9 +599,12 @@ The named parameter is used to determine the request/response part.
 It is possible to push the same filter on the request and response
 stacks, as in the following example:
 
-    $proxy->push_filter( request => $coderef, response => $coderef );
+    $proxy->push_filter( request => $filter, response => $filter );
 
-Named parameters can be added. They are:
+If several filters match the message, they will be applied in the order
+they were pushed on their filter stack.
+
+Named parameters can be used to create the match routine. They are: 
 
     mime   - the MIME type (for a response-body filter)
     method - the request method
@@ -634,10 +637,21 @@ expressions.
 A match routine is compiled by the proxy and used to check if a particular
 request or response must be filtered through a particular filter.
 
+It is also possible to push several filters on the same stack with
+the same match subroutine:
+
+    # convert italics to bold
+    $proxy->push_filter(
+        mime     => 'text/html',
+        response => HTTP::Proxy::BodyFilter::tags->new(),
+        response =>
+        HTTP::Proxy::BodyFilter::simple->new( sub { s!(</?)i>!$1b>!ig } )
+    );
+
 For more details regarding the creation of new filters, check the
 HTTP::Proxy::HeaderFilter and HTTP::Proxy::BodyFilter documentation.
 
-Here's an example:
+Here's an example of subclassing a base filter class:
 
     # fixes a common typo ;-)
     # but chances are that this will modify a correct URL
@@ -646,7 +660,7 @@ Here's an example:
         use base qw( HTTP::Proxy::BodyFilter );
 
         sub filter {
-            my ( $dataref, $message, $protocol ) = @_;
+	    my ( $self, $dataref, $message, $protocol, $buffer ) = @_;
             $$dataref =~ s/PERL/Perl/g;
         }
     }
@@ -657,6 +671,7 @@ HTTP::Proxy::HeaderFilter, HTTP::Proxy::BodyFilter,
 HTTP::Proxy::HeaderFilter::simple, HTTP::Proxy::BodyFilter::simple.
 
     # a simple anonymiser
+    # see eg/anonymiser.pl for the complete code
     $proxy->push_filter(
         mime    => undef,
         request => HTTP::Proxy::HeaderFilter::simple->new(
@@ -668,11 +683,9 @@ HTTP::Proxy::HeaderFilter::simple, HTTP::Proxy::BodyFilter::simple.
     );
 
 IMPORTANT: If you use your own LWP::UserAgent, you must install it
-before your calls to push_headers_filter() or push_body_filter(), or
+before your calls to push_filter(), otherwise
 the match method will make wrong assumptions about the schemes your
 agent supports.
-
-=over 4
 
 =cut
 
@@ -761,6 +774,8 @@ sub push_filter {
         $self->{$stack}{$message}->push( [ $match, $filter ] );
     }
 }
+
+=over 4
 
 =item log( $level, $prefix, $message )
 
