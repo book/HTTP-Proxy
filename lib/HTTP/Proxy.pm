@@ -5,10 +5,10 @@ use HTTP::Date qw(time2str);
 use LWP::UserAgent;
 use LWP::ConnCache;
 use Fcntl ':flock';         # import LOCK_* constants
-use POSIX ":sys_wait_h";    # WNOHANG
 use IO::Select;
 use Sys::Hostname;          # hostname()
 use Carp;
+use HTTP::Proxy::Engine;
 
 use strict;
 use vars qw( $VERSION $AUTOLOAD @METHODS
@@ -20,7 +20,7 @@ require Exporter;
 @EXPORT_OK = qw( NONE ERROR STATUS PROCESS SOCKET HEADERS FILTERS CONNECT ALL );
 %EXPORT_TAGS = ( log => [@EXPORT_OK] );    # only one tag
 
-$VERSION = '0.15';
+$VERSION = '0.16';
 
 my $CRLF = "\015\012";                     # "\r\n" is not portable
 
@@ -53,29 +53,37 @@ $RX{method} = '(?:' . join ( '|', @METHODS ) . ')';
 $RX{method} = qr/$RX{method}/;
 
 sub new {
-    my $class = shift;
+    my $class  = shift;
+    my %params = @_;
 
     # some defaults
-    my $self = {
+    my %defaults = (
         agent    => undef,
         chunk    => 4096,
         daemon   => undef,
         host     => 'localhost',
         logfh    => *STDERR,
         logmask  => NONE,
-        maxchild => 10,
-        maxconn  => 0,
-        maxserve => 10,
+        #maxchild => 10,
+        #maxconn  => 0,
+        max_connections => 0,
+        #maxserve => 10,
+        max_requests_per_child => 10,
         port     => 8080,
         timeout  => 60,
         via      => hostname() . " (HTTP::Proxy/$VERSION)",
         x_forwarded_for => 1,
-        @_,
-    };
+    );
 
     # non modifiable defaults
-    %$self = ( %$self, conn => 0, loop => 1 );
-    bless $self, $class;
+    my $self = bless { conn => 0, loop => 1 }, $class;
+
+    # get attributes
+    $self->{$_} = exists $params{$_} ? delete( $params{$_} ) : $defaults{$_}
+      for keys %defaults;
+
+    # choose an engine with the remaining parameters
+    $self->{engine} = HTTP::Proxy::Engine->new( %params, proxy => $self );
 
     return $self;
 }
@@ -100,9 +108,11 @@ sub url {
 }
 
 # normal accessors
-for my $attr (
-    qw( agent chunk daemon host logfh maxchild maxconn maxserve port
-    request response hop_headers logmask via x_forwarded_for client_headers )
+for my $attr ( qw(
+    agent chunk daemon host logfh port request response hop_headers
+    logmask via x_forwarded_for client_headers engine
+    max_connections max_requests_per_child
+    )
   )
 {
     no strict 'refs';
@@ -117,96 +127,30 @@ for my $attr (
 # read-only accessors
 for my $attr (qw( conn loop client_socket )) {
     no strict 'refs';
-    *{"HTTP::Proxy::$attr"} = sub { return $_[0]->{$attr} }
+    *{"HTTP::Proxy::$attr"} = sub { $_[0]{$attr} }
 }
+
+sub new_connection { ++$_[0]{conn} }
 
 sub start {
     my $self = shift;
-    my @kids;
 
-    # some initialisation
     $self->init;
     $SIG{INT} = $SIG{KILL} = sub { $self->{loop} = 0 };
 
     # the main loop
-    my $select = IO::Select->new( $self->daemon );
-    while ( $self->loop ) {
-
-        # check for new connections
-        my @ready = $select->can_read(1);
-        for my $fh (@ready) {    # there's only one, anyway
-
-            # single-process proxy (useful for debugging)
-            if ( $self->maxchild == 0 ) {
-                $self->maxserve(1);    # do not block simultaneous connections
-                $self->log( PROCESS, "PROCESS",
-                            "No fork allowed, serving the connection" );
-                $self->serve_connections($fh->accept);
-                $self->{conn}++;    # read-only attribute
-                next;
-            }
-
-            if ( @kids >= $self->maxchild ) {
-                $self->log( ERROR, "PROCESS",
-                            "Too many child process, serving the connection" );
-                $self->serve_connections($fh->accept);
-                $self->{conn}++;    # read-only attribute
-                next;
-            }
-
-            # accept the new connection
-            my $conn  = $fh->accept;
-            my $child = fork;
-            if ( !defined $child ) {
-                $conn->close;
-                $self->log( ERROR, "PROCESS", "Cannot fork" );
-                $self->maxchild( $self->maxchild - 1 )
-                  if $self->maxchild > @kids;
-                next;
-            }
-
-            # the parent process
-            if ($child) {
-                $conn->close;
-                $self->log( PROCESS, "PROCESS", "Forked child process $child" );
-                push @kids, $child;
-            }
-
-            # the child process handles the whole connection
-            else {
-                $SIG{INT} = 'DEFAULT';
-                $self->serve_connections($conn);
-                $fh->close;
-                exit;    # let's die!
-            }
-        }
-
-        # handle zombies
-        $self->_reap( \@kids ) if @kids;
-
-        # this was the last child we forked
-        last if $self->maxconn && $self->conn >= $self->maxconn;
+    my $engine = $self->engine;
+    $engine->start if $engine->can('start');
+    while( $self->loop ) {
+        $engine->run;
+        last if $self->max_connections && $self->conn >= $self->max_connections;
     }
+    $engine->stop if $engine->can('stop');
 
-    # wait for remaining children
-    kill INT => @kids;
-    $self->_reap( \@kids ) while @kids;
+    $self->log( STATUS, "STATUS",
+        "Processed " . $self->conn . " connection(s)" );
 
-    $self->log( STATUS, "STATUS", "Processed " . $self->conn . " connection(s)" );
     return $self->conn;
-}
-
-# private reaper sub
-sub _reap {
-    my ( $self, $kids ) = @_;
-    while (1) {
-        my $pid = waitpid( -1, &WNOHANG );
-        last if $pid == 0 || $pid == -1;    # AS/Win32 returns negative PIDs
-        @$kids = grep { $_ != $pid } @$kids;
-        $self->{conn}++;    # Cannot use the interface for RO attributes
-        $self->log( PROCESS, "PROCESS", "Reaped child process $pid" );
-        $self->log( PROCESS, "PROCESS", "Remaining kids: @$kids" );
-    }
 }
 
 # semi-private init method
@@ -456,11 +400,11 @@ sub serve_connections {
              and $response->is_success;
 
         $self->log( SOCKET, "SOCKET", "Connection closed by the proxy" ), last
-          if $last || $served >= $self->maxserve;
+          if $last || $served >= $self->max_requests_per_child;
     }
     $self->log( SOCKET, "SOCKET", "Connection closed by the client" )
       if !$last
-      and $served < $self->maxserve;
+      and $served < $self->max_requests_per_child;
     $self->log( PROCESS, "PROCESS", "Served $served requests" );
     $conn->close;
 }
@@ -503,7 +447,7 @@ sub _send_response_headers {
                 $chunked++;
                 $response->push_header( "Transfer-Encoding" => "chunked" );
                 $response->push_header( "Connection"        => "close" )
-                  if $served >= $self->maxserve;
+                  if $served >= $self->max_requests_per_child;
             }
             else {
                 $last++;
@@ -878,8 +822,11 @@ filter the HTTP requests and responses through user-defined filters.
 
 =item new()
 
-The new() method creates a HTTP::Proxy object. All attributes can
-be passed as a parameter to replace the default.
+The new() method creates a new HTTP::Proxy object. All attributes can
+be passed as parameters to replace the default.
+
+Parameters that are not HTTP::Proxy attribute will be ignored and
+passed to the HTTP::Proxy::Engine object.
 
 =item init()
 
@@ -942,6 +889,10 @@ The number of connections processed by this HTTP::Proxy instance.
 The HTTP::Daemon object used to accept incoming connections.
 (You usually never need this.)
 
+=item engine
+
+The HTTP::Proxy::Engine object that manages the child processes.
+
 =item hop_headers
 
 This attribute holds a reference to the hop-by-hop headers
@@ -996,7 +947,10 @@ by the C<:log> tag. They can also be exported one by one.
 
 Internal. False when the main loop is about to be broken.
 
+=item max_clients
 =item maxchild
+
+FIXME
 
 The maximum number of child process the HTTP::Proxy object will spawn
 to handle client requests (default: 16).
@@ -1004,16 +958,22 @@ to handle client requests (default: 16).
 If set to 0, the proxy will not fork at all. This can be helpful for
 debugging purpose.
 
+=item max_connections
 =item maxconn
 
 The maximum number of TCP connections the proxy will accept before
 returning from start(). 0 (the default) means never stop accepting
 connections.
 
+C<maxconn> is deprecated.
+
+=item max_requests_per_child
 =item maxserve
 
 The maximum number of requests the proxy will serve in a single connection.
 (same as MaxRequestsPerChild in Apache)
+
+C<maxserve> is deprecated.
 
 =item port
 
@@ -1216,6 +1176,11 @@ where $$ is the current processus pid.
 If $message is a multiline string, several log lines will be output,
 each line starting with C<$prefix>.
 
+=item new_connection()
+
+Increase the proxy's TCP connections counter. Only used by
+HTTP::Proxy::Engine objects.
+
 =back
 
 =head1 EXPORTED SYMBOLS
@@ -1225,6 +1190,7 @@ logging constants.
 
 =head1 BUGS
 
+FIXME 
 This module does not work under Windows, but I can't see why, and do not
 have a development platform under that system. Patches and explanations
 very welcome.
@@ -1245,7 +1211,8 @@ work on WinXP ActiveState Perl 5.8.
 
 =head1 SEE ALSO
 
-L<HTTP::Proxy::BodyFilter>, L<HTTP::Proxy::HeaderFilter>, the examples in eg/.
+L<HTTP::Proxy::Engine>, L<HTTP::Proxy::BodyFilter>,
+L<HTTP::Proxy::HeaderFilter>, the examples in eg/.
 
 =head1 AUTHOR
 
