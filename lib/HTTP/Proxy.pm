@@ -682,13 +682,15 @@ sub push_filter {
         scheme => 'http',
         host   => '',
         path   => '',
-        @_
     );
 
-    # argument checking
-    if ( !exists $arg{request} && !exists $arg{response} ) {
-        croak "No message type defined for filter";
+    # parse parameters
+    for( my $i = 0; $i < @_ ; $i += 2 ) {
+        next if $_[$i] !~ /^(mime|method|scheme|host|path)$/;
+        $arg{$_[$i]} = $_[$i+1];
+        splice @_, $i, 2;
     }
+    croak "Odd number of arguments" if @_ % 2;
 
     # the proxy must be initialised
     $self->init;
@@ -710,7 +712,8 @@ sub push_filter {
 
     my @scheme = split /\s*,\s*/, $scheme;
     for (@scheme) {
-        croak "Unsupported scheme" if !$self->agent->is_protocol_supported($_);
+        croak "Unsupported scheme: $_"
+          if !$self->agent->is_protocol_supported($_);
     }
     $scheme = @scheme ? '(?:' . join ( '|', @scheme ) . ')' : '';
     $scheme = qr/$scheme/;
@@ -719,15 +722,19 @@ sub push_filter {
     $path ||= '.*';
 
     # push the filter and its match method on the correct stack
-    for my $message ( grep { exists $arg{$_} } qw( request response ) ) {
+    while(@_) {
+        my ($message, $filter ) = (shift, shift);
+        croak "'$message' is not a filter stack"
+          unless $message =~ /^(request|response)$/;
+        
         croak "Not a Filter reference for filter queue $message"
-          unless ref( $arg{$message} )
-          && ( $arg{$message}->isa('HTTP::Proxy::HeaderFilter')
-            || $arg{$message}->isa('HTTP::Proxy::BodyFilter') );
+          unless ref( $filter )
+          && ( $filter->isa('HTTP::Proxy::HeaderFilter')
+            || $filter->isa('HTTP::Proxy::BodyFilter') );
 
         my $stack;
-        $stack = 'headers' if $arg{$message}->isa('HTTP::Proxy::HeaderFilter');
-        $stack = 'body'    if $arg{$message}->isa('HTTP::Proxy::BodyFilter');
+        $stack = 'headers' if $filter->isa('HTTP::Proxy::HeaderFilter');
+        $stack = 'body'    if $filter->isa('HTTP::Proxy::BodyFilter');
 
         # MIME can only match on reponse
         my $mime = $mime;
@@ -749,7 +756,7 @@ sub push_filter {
         };
 
         # push it on the corresponding FilterStack
-        $self->{ $stack }{$message}->push( [ $match, $arg{$message} ] );
+        $self->{$stack}{$message}->push( [ $match, $filter ] );
     }
 }
 
@@ -905,8 +912,8 @@ sub filter {
 
         # create the buffers
         if ( $self->{body} ) {
-            CORE::push @{ $self->{buffers} },
-              eval q(\"") for @{ $self->{current} };
+            $self->{buffers} = [ ( "" ) x @{ $self->{current} } ];
+            $self->{buffers} = [ \( @{ $self->{buffers} } ) ];
         }
     }
 
