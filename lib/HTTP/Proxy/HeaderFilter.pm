@@ -65,10 +65,6 @@ The following HeaderFilters are included in the HTTP::Proxy distribution:
 
 =over 4
 
-=item log
-
-This filter allows logging based on the HTTP message headers.
-
 =item standard
 
 This is the filter that provides standard headers handling for HTTP::Proxy.
