@@ -34,7 +34,9 @@ t/50hopbyhop.t
 t/50standard.t
 t/50via.t
 t/51simple.t
+t/51simple2.t
 t/61simple.t
+t/61simple2.t
 t/64htmltext.t
 t/64lines.t
 t/64tags.t
@@ -42,3 +44,4 @@ t/66htmlparser.t
 t/71rot13.t
 t/README
 t/Utils.pm
+t/test.html
