@@ -1,5 +1,5 @@
 use strict;
-use Test::More tests => 10;
+use Test::More tests => 12;
 use LWP::UserAgent;
 use HTTP::Proxy;
 use t::Utils;    # some helper functions for the server
@@ -118,6 +118,7 @@ close $sock or diag "close: $!";
 # X-Forwarded-For (test in the server)
 $req = HTTP::Request->new( HEAD => $server->url . "x-forwarded-for" );
 $res = $ua->simple_request($req);
+is( $res->header( 'X-Forwarded-For' ), undef, "No X-Forwarded-For sent back" );
 
 # yet another proxy
 $proxy = HTTP::Proxy->new( port => 0, maxconn => 1, x_forwarded_for => 0 );
@@ -129,6 +130,7 @@ push @pids, fork_proxy($proxy);
 $ua->proxy( http => $proxy->url );
 $req = HTTP::Request->new( HEAD => $server->url . "x-forwarded-for" );
 $res = $ua->simple_request($req);
+is( $res->header( 'X-Forwarded-For' ), undef, "No X-Forwarded-For sent back" );
 
 # make sure both kids are dead
 wait for @pids;

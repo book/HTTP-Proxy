@@ -27,7 +27,7 @@ sub filter {
     # the X-Forwarded-For header
     $headers->push_header(
         X_Forwarded_For => $self->proxy->client_socket->peerhost )
-      if $self->proxy->x_forwarded_for;
+      if $message->isa( 'HTTP::Request' ) && $self->proxy->x_forwarded_for;
 
     # make a list of hop-by-hop headers
     my %h2h = %hopbyhop;
