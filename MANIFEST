@@ -36,6 +36,7 @@ t/20dummy.t
 t/20keepalive.t
 t/22http.t
 t/23connect.t
+t/23https.t
 t/40push_filters.t
 t/41filters.t
 t/50hopbyhop.t
