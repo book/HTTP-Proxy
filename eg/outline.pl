@@ -21,6 +21,7 @@ $parser->handler(
 $parser->handler(
     end => sub {
         my ( $self, $tag, $text ) = @_;
+        $self->{print} = 1 if $tag eq 'body';
         $self->{output} .= $text if $self->{print};
         $self->{print} = 0 if $tag =~ /^h\d/;
     },
