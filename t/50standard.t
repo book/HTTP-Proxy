@@ -53,7 +53,7 @@ is( scalar @server, 1, "A single Server: header for GET request" );
 # for HEAD requests
 $req = HTTP::Request->new( HEAD => $server->url . "headers-head" );
 $res = $ua->simple_request($req);
-my @date = $res->headers->header('Date');
+@date = $res->headers->header('Date');
 is( scalar @date, 1, "A single Date: header for HEAD request" );
 my @server = $res->headers->header('Server');
 is( scalar @server, 1, "A single Server: header for HEAD request" );
@@ -62,7 +62,7 @@ is( scalar @server, 1, "A single Server: header for HEAD request" );
 $ua->proxy( file => $proxy->url );
 $req = HTTP::Request->new( GET => "file:///etc/passwd" );
 $res = $ua->simple_request($req);
-my @date = $res->headers->header('Date');
+@date = $res->headers->header('Date');
 is( scalar @date, 1, "A single Date: header for direct proxy response" );
 my @server = $res->headers->header('Server');
 is( scalar @server, 1, "A single Server: header for direct proxy response" );
