@@ -8,10 +8,19 @@ Things are listed by big features, since I seem to be unable to follow
 my own roadmaps. :-/
 
 * Windows support
- - It seems that having the parent process listen and the child processes
-   accept() on the socket only work correctly under linux
- - I'll have to change the way client connections are accepted in the
-   next version
+  - the proxy breaks horribly under windows
+
+* RFC support
+  - Max-Forwards header
+  - Answer to TRACE and OPTIONS request
+  - support for chunked encoding
+    => it's already in HTTP::Daemon, but the send_response
+       require to have either the whole content (not practical
+       for a proxy) or a callback (but we can't use both LWP::UA
+       and HTTP::Daemon callback systems at the same time
+       (some code will be cut and pasted)
+    => should also use the send_redirect and send_error methods
+       when possible
 
 * Proxy Control
  - Control the proxy via specific URIs
@@ -36,6 +45,17 @@ my own roadmaps. :-/
    parent so that it reads the new information
  => control system probably means having a HTTP::Proxy::Control module...
 
+* Special response handlers
+ - must be able to break after processing a request and compute
+   a specific response (other than the current fecth and filter)
+ - must support: standard proxyied request, OPTIONS, TRACE, userdefined
+ - these methods have the following prototype: method($req, ...)
+ - they will be pushed by response_handler( GET => sub {} )
+   (default: PROXY, OPTIONS, TRACE)
+ => this can be useful if one want to create a caching proxy
+    (though that might be complicated)
+   
+
 * Filters
  - filters cause several problems: the biggest being that, if they
    change the data size, they should update the Content-Lenght header
@@ -43,12 +63,22 @@ my own roadmaps. :-/
    determined from the headers, there is no need to go through the
    whole list of filters each time.
  - unfiltered response body should be send on the fly, while response
-   that are to be filtered should be held in custody until fully
-   received and modified. Once the whole response is ready, the
-   filter can update the Content-Length: header.
+   that are to be filtered should be either filtered and sent
+   (if one can determine that all the filters are isometric), or
+   sent in a HTTP/1.0 fashion (Connection: close, and no
+   Content-Length). Another solution is to support chunked transfer-coding
+   with the client.
  - Must support the Content-Encoding: gzip headers
  - Accept-Encoding: content-coding tokens are identity, gzip, compress, deflate
  - add some "standard" filters, like a "recorder" for building web bots
+ - we could add filter factories as modules (HTTP::Proxy::Filter::*)
+   this could give some reflection capabilities to the system
+   (like: naming the filters, giving the parameters used to create them
+   and so on)
+ - draft for a HTTP::Proxy::Filter class
+   => name, args, description, code, buffer
+   my $filter = HTTP::Proxy::Filter->new( code => $coderef, name =>...)
+   or subclasses like: HTTP::Proxy::Filter::substitute->( LHS => qr//, RHS=>)
    
 * Data flow
   I guess I'll change the way the responses are handled. The future should
@@ -58,30 +88,22 @@ my own roadmaps. :-/
    * The proxy (P) receives the full request (headers+body)
    * P filters the request headers
    * P filters the request body
-   * P sends the request to the server (S)
+   * P runs the correct handler to get a response
+     (this usually involves contacting a server, but not always)
   Response:
-   * S sends the response to P
-   * P receives the response in chunks
+   * P receives the response in chunks (often)
    * 1st chunk is received
      - P filters the response headers
-     - P checks if the response body must be filtered too:
-  From now on, there are two cases:
-  1) no filtering required
-   * the response headers are sent
-   * all the following chunk will be sent directly
-     to client as they are received
-  2) filtering
-   * other chunks are received
-     - they are filtered and stored (memory ? file ?)
-   * last chunk
-     - the new content-length is computed
-     - the response headers are sent
-     - the whole body is sent
+     - P computes the filter chain to run against each chunk
+   * other chunks are passed to the filter chain
+   * if any of the buffers used by the filters is not empty
+     before-last chunk is sent with the remaining data
+   * last chunk is sent (always empty)
+
   The system could even be more sophisticated by allowing one to
   indicate that a filter does not change the body size (s/foo/bar/g vs.
-  s/foo/squigglewiggle/g). This way I could still use the callback system
-  to send the data as soon as possible to the client. And case 2) would be
-  used only if one of the filters might change the body size.
+  s/foo/squigglewiggle/g). This way a Content-Length could be sent
+  with the other headers.
 
 * On the fly forwarding
  - handle big responses (>1Mb) with the LWP::UA callback system
@@ -105,7 +127,7 @@ my own roadmaps. :-/
 * https and CONNECT support
  - proxy a https site, so as to filter and record, just as we do for
    http requests.
- - specifi URLs ?
+ - specific URLs ?
    => example: http://proxy/https://www.secure.com:443/index.html
    => This kind of stuff requires some content rewriting...
 
@@ -132,7 +154,6 @@ Better left to other modules
    => maybe that should be left to a WWW::Mechanize::Builder module
  - become a POE component (OK, maybe that's another project)
    => POE::Component::?::?
-
 
 Useful documentation:
 
