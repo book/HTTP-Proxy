@@ -64,7 +64,7 @@ sub filter {
             redo SCAN if $self->{js};    # ignore protected
             {
                 local $_ = $1;
-                $self->{_filter}();
+                $self->{_filter}->();
                 substr( $$dataref, $pos, length($1), $_ );
                 pos($$dataref) = $pos + length($_);
             }
