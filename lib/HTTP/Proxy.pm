@@ -6,6 +6,7 @@ use LWP::ConnCache;
 use Fcntl ':flock';         # import LOCK_* constants
 use POSIX ":sys_wait_h";    # WNOHANG
 use IO::Select;
+use Sys::Hostname;          # hostname()
 use Carp;
 
 use strict;
@@ -103,6 +104,7 @@ sub new {
         maxserve => 10,
         port     => 8080,
         timeout  => 60,
+        via      => hostname() . " (HTTP::Proxy/$HTTP::Proxy::VERSION)",
         @_,
     };
 
@@ -258,7 +260,7 @@ sub url {
 # normal accessors
 for my $attr (
     qw( agent chunk daemon host logfh maxchild maxconn maxserve port
-    request response logmask )
+    request response logmask via )
   )
 {
     no strict 'refs';
@@ -384,6 +386,7 @@ sub init {
 
     # the same standard filter is used to handle headers
     my $std = HTTP::Proxy::HeaderFilter::standard->new();
+    $std->proxy( $self );
     $self->{headers}{request}->push(  [ sub { 1 }, $std ] );
     $self->{headers}{response}->push( [ sub { 1 }, $std ] );
 
@@ -784,6 +787,7 @@ sub push_filter {
 
         # push it on the corresponding FilterStack
         $self->{$stack}{$message}->push( [ $match, $filter ] );
+        $filter->proxy( $self );
     }
 }
 

@@ -28,7 +28,9 @@ t/20dummy.t
 t/20keepalive.t
 t/22http.t
 t/40push_filters.t
+t/41filters.t
 t/50standard.t
+t/50via.t
 t/51simple.t
 t/61simple.t
 t/64htmltext.t

@@ -2,10 +2,7 @@ package HTTP::Proxy::HeaderFilter::standard;
 
 use strict;
 use HTTP::Proxy;
-use Sys::Hostname;
 use base qw( HTTP::Proxy::HeaderFilter );
-
-my $VIA = " " . hostname() . " (HTTP::Proxy/$HTTP::Proxy::VERSION)";
 
 # standard proxy header filter (RFC 2616)
 sub filter {
@@ -13,16 +10,16 @@ sub filter {
 
     # the Via: header
     my $via = $message->protocol() || '';
-    if ( $via =~ s!HTTP/!! ) {
-        $via .= $VIA;
-        $message->headers->header(
+    if ( $self->proxy->via and $via =~ s!HTTP/!! ) {
+        $via .= " " . $self->proxy->via;
+        $headers->header(
             Via => join ', ',
             $message->headers->header('Via') || (), $via
         );
     }
 
     # remove some headers
-    for (
+    $headers->remove_header($_) for (
 
         # LWP::UserAgent Client-* headers
         qw( Client-Aborted Client-Bad-Header-Line Client-Date Client-Junk
@@ -37,9 +34,6 @@ sub filter {
         # no encoding accepted (gzip, compress, deflate)
         qw( Accept-Encoding ),
       )
-    {
-        $message->headers->remove_header($_);
-    }
 }
 
 1;
