@@ -106,6 +106,7 @@ sub new {
         port     => 8080,
         timeout  => 60,
         via      => hostname() . " (HTTP::Proxy/$VERSION)",
+        x_forwarded_for => 1,
         @_,
     };
 
@@ -137,6 +138,10 @@ The defined accessors are (in alphabetical order):
 =item agent
 
 The LWP::UserAgent object used internally to connect to remote sites.
+
+=item client_socket (read-only)
+
+The socket currently connected to the client. Mostly useful in filters.
 
 =item conn (read-only)
 
@@ -286,10 +291,15 @@ sub url {
     return $self->daemon->url;
 }
 
-=item via ($hostname (HTTP::Proxy/$VERSION))
+=item via
 
 The content of the Via: header. Setting it to an empty string will
-prevent its addition.
+prevent its addition. (default: $hostname (HTTP::Proxy/$VERSION))
+
+=item x_forwarded_for
+
+If set to a true value, the proxy will send the X-Forwarded-For header.
+(default: true)
 
 =back
 
@@ -298,7 +308,7 @@ prevent its addition.
 # normal accessors
 for my $attr (
     qw( agent chunk daemon host logfh maxchild maxconn maxserve port
-    request response hop_headers logmask via )
+    request response hop_headers logmask via x_forwarded_for )
   )
 {
     no strict 'refs';
@@ -311,7 +321,7 @@ for my $attr (
 }
 
 # read-only accessors
-for my $attr (qw( conn control_regex loop )) {
+for my $attr (qw( conn control_regex loop client_socket )) {
     no strict 'refs';
     *{"HTTP::Proxy::$attr"} = sub { return $_[0]->{$attr} }
 }
@@ -482,6 +492,7 @@ sub _init_agent {
 sub serve_connections {
     my ( $self, $conn ) = @_;
     my $response;
+    $self->{client_socket} = $conn;  # read-only
 
     my ( $last, $served ) = ( 0, 0 );
     while ( my $req = $conn->get_request() ) {
