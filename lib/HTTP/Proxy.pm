@@ -6,6 +6,7 @@ use LWP::ConnCache;
 use CGI;
 use Fcntl ':flock';    # import LOCK_* constants
 use POSIX;
+use Sys::Hostname;
 use Carp;
 
 use strict;
@@ -396,6 +397,12 @@ sub serve_connections {
     {
         $req->headers->remove_header($_);
     }
+
+    # the Via: header
+    my $http = $req->protocol();
+    $http =~ s!HTTP/!!;
+    $req->headers->push_header(
+        Via => "$http " . hostname() . " (HTTP::Proxy/$VERSION)" );
 
     $self->log( 5, "($$) Request:", $req->headers->as_string );
     $response = $self->agent->simple_request($req);
