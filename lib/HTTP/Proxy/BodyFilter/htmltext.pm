@@ -51,18 +51,23 @@ sub filter {
           && do { $self->{js} = 1; redo SCAN; };
         $$dataref =~ /\G<\s*\/\s*(?:script|style)[^>]*>/cgi    # unprotect
           && do { $self->{js} = 0; redo SCAN; };
-        $$dataref =~ /\G<!--/cg                 && redo SCAN;   # comment
-        $$dataref =~ /\G>/cg                    && redo SCAN;   # lost >
-        $$dataref =~ /\G(?=(<[^\s\/%!a-z]))/cgi && goto TEXT;   # lost < in text
-        $$dataref =~ /\G(?:<[^>]*>)+/cg         && redo SCAN;   # tags
-        $$dataref =~ /\G(?:&[^\s;]*;?)+/cg      && redo SCAN;   # entities
-        $$dataref =~ /\G([^<>&]+)/cg            && do {         # text
+        # comments are considered as text
+        # if you want comments as comments,
+        # use HTTP::Proxy::BodyFilter::htmlparser
+        $$dataref =~ /\G<!--/cg                  && redo SCAN;  # comment
+        $$dataref =~ /\G>/cg                     && redo SCAN;  # lost >
+        $$dataref =~ /\G(?=(<[^\s\/?%!a-z]))/cgi && goto TEXT;  # < in text
+        $$dataref =~ /\G(?:<[^>]*>)+/cg          && redo SCAN;  # tags
+        $$dataref =~ /\G(?:&[^\s;]*;?)+/cg       && redo SCAN;  # entities
+        $$dataref =~ /\G([^<>&]+)/cg             && do {        # text
           TEXT:
             redo SCAN if $self->{js};    # ignore protected
-            local $_ = $1;
-            $self->{_filter}();
-            substr( $$dataref, $pos, length($1), $_ );
-            pos($$dataref) = $pos + length $1;
+            {
+                local $_ = $1;
+                $self->{_filter}();
+                substr( $$dataref, $pos, length($1), $_ );
+                pos($$dataref) = $pos + length($_);
+            }
             redo SCAN;
         };
     }
