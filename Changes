@@ -4,11 +4,18 @@ Revision history for Perl extension HTTP::Proxy
         [ENHANCEMENTS]
         - send the error message to the client when the Proxy agent dies
           (usually because of a filter error)
+        - the proxy now sends a X-Forwarded-For header by default
+          (and the proxy method x_forwarded_for can toggle this)
+        - the proxy method client_socket() gives access to the socket
+          connected to the current client (the example in Changes for 0.10
+          was wrong: one can get the IP address of the connected agent from
+          inside a filter with $self->proxy->client_socket->peerhost)
         [FIXES]
         - do not block simultaneous connections when not forking
         - clean up the filter chain after the body-request filters
         - ensure the filter stack is reinitialised between requests
         [TESTS]
+        - tests for X-Forwarded-For
         - test the proxy against http://diveintomark.org/tests/client/http/
         [EXAMPLES]
         - eg/post.pl   - outputs the URI and parameters of all POST requests
