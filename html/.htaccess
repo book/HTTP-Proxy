@@ -1,0 +1,6 @@
+Options +Indexes
+IndexOptions FancyIndexing
+IndexOptions +NameWidth=*
+IndexOptions +DescriptionWidth=*
+
+AddDescription "CVS Repository snapshot" http-proxy-HEAD.tar.gz

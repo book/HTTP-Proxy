@@ -1,0 +1,21 @@
+BODY, .normal, .menu {
+    font-family: Verdana, Arial, Helvetica, Geneva, sans-serif;
+    background: white;
+    color: black
+}
+CODE, PRE {
+    font-family: "Lucida Console", monospace
+}
+PRE {font-family: "Lucida Console", monospace}
+HR {color: #bbbbbb}
+H1, H2, H3, H4, H5, H6 {font-family: Verdana, Arial, Helvetica, Geneva, sans-serif}
+
+A:link    { color: blue   }
+A:visited { color: purple }
+A:active  { color: red    }
+
+.menu {font-size: 75%}
+
+.new {color: #ee3333; font-variant: small-caps; font-weight: bold}
+.upd {color: #33cc66; font-variant: small-caps; font-weight: bold}
+
