@@ -1,5 +1,13 @@
 TODO
-----
+====
+
+Technical
+---------
+
+* Finalise the interface for the store and forward mechanism
+
+Features
+--------
 
 Here are all the features I plan to add to HTTP::Proxy, in the form of a
 roadmap.
