@@ -18,7 +18,7 @@ require Exporter;
 @EXPORT_OK = qw( NONE ERROR STATUS PROCESS CONNECT HEADERS FILTER ALL );
 %EXPORT_TAGS = ( log => [@EXPORT_OK] );    # only one tag
 
-$VERSION = '0.10';
+$VERSION = '0.11';
 
 my $CRLF = "\015\012";                     # "\r\n" is not portable
 
@@ -690,7 +690,7 @@ HTTP::Proxy::HeaderFilter::simple, HTTP::Proxy::BodyFilter::simple.
             sub { $_[0]->remove_header(qw( User-Agent From Referer Cookie )) },
         ),
         response => HTTP::Proxy::HeaderFilter::simple->new(
-            sub { $_[0]->revome_header(qw( Set-Cookie )); },
+            sub { $_[0]->remove_header(qw( Set-Cookie )); },
         )
     );
 
