@@ -96,7 +96,6 @@ sub new {
     my $self = {
         agent    => undef,
         chunk    => 4096,
-        control  => 'proxy',
         daemon   => undef,
         host     => 'localhost',
         logfh    => *STDERR,
@@ -114,9 +113,6 @@ sub new {
     # non modifiable defaults
     %$self = ( %$self, conn => 0, loop => 1 );
     bless $self, $class;
-
-    # ugly way to set control_regex
-    $self->control( $self->control );
 
     return $self;
 }
@@ -163,27 +159,6 @@ access them, it must do it through this accessor.
 =item conn (read-only)
 
 The number of connections processed by this HTTP::Proxy instance.
-
-=item control
-
-The default hostname for controlling the proxy (see L<CONTROL>).
-The default is "C<proxy>", which corresponds to the URL
-http://proxy/, where port is the listening port of the proxy).
-
-=cut
-
-sub control {
-    my $self = shift;
-    my $old  = $self->{control};
-    if (@_) {
-        my $control = shift;
-        $self->{control}       = $control;
-        $self->{control_regex} = qr!^http://$control(?:/(\w+))?!;
-    }
-    return $old;
-}
-
-# control_regex is private
 
 =item daemon
 
@@ -338,7 +313,7 @@ for my $attr (
 }
 
 # read-only accessors
-for my $attr (qw( conn control_regex loop client_socket )) {
+for my $attr (qw( conn loop client_socket )) {
     no strict 'refs';
     *{"HTTP::Proxy::$attr"} = sub { return $_[0]->{$attr} }
 }
