@@ -32,10 +32,12 @@ sub filter {
     # make a list of hop-by-hop headers
     my %h2h = %hopbyhop;
     my $hop = HTTP::Headers->new();
+    my $client = HTTP::Headers->new();
     $h2h{ $_->[0] } = 1
       for map { split_header_words($_) } $headers->header('Connection');
 
     # hop-by-hop headers are set aside
+    # as well as LWP::UserAgent Client-* headers
     $headers->scan(
         sub {
             my ( $k, $v ) = @_;
@@ -43,12 +45,17 @@ sub filter {
                 $hop->push_header( $k => $v );
                 $headers->remove_header($k);
             }
+            if( $k =~ /^Client-/ ) {
+                $client->push_header( $k => $v );
+                $headers->remove_header($k);
+            }
         }
     );
 
-    # set the hop-by-hop headers in the proxy
+    # set the hop-by-hop and client  headers in the proxy
     # only the end-to-end headers are left in the message
     $self->proxy->hop_headers($hop);
+    $self->proxy->client_headers($client);
 
     # handle Max-Forwards
     if ( $message->isa('HTTP::Request')
@@ -81,15 +88,10 @@ sub filter {
     # remove some headers
     $headers->remove_header($_) for (
 
-        # LWP::UserAgent Client-* headers
-        qw( Client-Aborted Client-Bad-Header-Line Client-Date Client-Junk
-        Client-Peer Client-Request-Num Client-Response-Num
-        Client-SSL-Cert-Issuer Client-SSL-Cert-Subject Client-SSL-Cipher
-        Client-SSL-Warning Client-Transfer-Encoding Client-Warning ),
-
         # no encoding accepted (gzip, compress, deflate)
         qw( Accept-Encoding ),
     );
+
 }
 
 1;

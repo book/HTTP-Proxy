@@ -1,7 +1,8 @@
 use strict;
-use Test::More tests => 12;
+use Test::More tests => 13;
 use LWP::UserAgent;
 use HTTP::Proxy;
+use HTTP::Proxy::HeaderFilter::simple;
 use t::Utils;    # some helper functions for the server
 
 my $test = Test::Builder->new;
@@ -124,6 +125,9 @@ is( $res->header( 'X-Forwarded-For' ), undef, "No X-Forwarded-For sent back" );
 $proxy = HTTP::Proxy->new( port => 0, maxconn => 1, x_forwarded_for => 0 );
 $proxy->init;    # required to access the url later
 $proxy->agent->no_proxy( URI->new( $server->url )->host );
+$proxy->push_filter( response => HTTP::Proxy::HeaderFilter::simple->new(
+    sub { is( $_[0]->proxy->client_headers->header("Client-Response-Num"), 1,
+          "Client headers" ); } ) );
 push @pids, fork_proxy($proxy);
 
 # X-Forwarded-For (test in the server)

@@ -34,8 +34,8 @@ use constant STATUS  => 1;
 use constant PROCESS => 2;
 use constant CONNECT => 4;
 use constant HEADERS => 8;
-use constant SSL     => 16;
-use constant FILTER  => 32;
+use constant FILTER  => 16;
+use constant SSL     => 32;
 use constant ALL     => 63;
 
 # Methods we can forward
@@ -144,6 +144,22 @@ The LWP::UserAgent object used internally to connect to remote sites.
 
 The socket currently connected to the client. Mostly useful in filters.
 
+=item client_headers
+
+This attribute holds a reference to the client headers set up by
+LWP::UserAgent
+(C<Client-Aborted>, C<Client-Bad-Header-Line>, C<Client-Date>,
+C<Client-Junk>, C<Client-Peer>, C<Client-Request-Num>,
+C<Client-Response-Num>, C<Client-SSL-Cert-Issuer>,
+C<Client-SSL-Cert-Subject>, C<Client-SSL-Cipher>, C<Client-SSL-Warning>,
+C<Client-Transfer-Encoding>, C<Client-Warning>).
+
+They are removed by the filter HTTP::Proxy::HeaderFilter::standard from
+the request and response objects received by the proxy.
+
+If a filter (such as a SSL certificate verification filter) need to
+access them, it must do it through this accessor.
+
 =item conn (read-only)
 
 The number of connections processed by this HTTP::Proxy instance.
@@ -184,7 +200,7 @@ They are removed by the filter HTTP::Proxy::HeaderFilter::standard from
 the request and response objects received by the proxy.
 
 If a filter (such as a proxy authorisation filter) need to access them,
-it must do it though this accessor.
+it must do it through this accessor.
 
 =item host
 
@@ -309,7 +325,7 @@ If set to a true value, the proxy will send the X-Forwarded-For header.
 # normal accessors
 for my $attr (
     qw( agent chunk daemon host logfh maxchild maxconn maxserve port
-    request response hop_headers logmask via x_forwarded_for )
+    request response hop_headers logmask via x_forwarded_for client_headers )
   )
 {
     no strict 'refs';
