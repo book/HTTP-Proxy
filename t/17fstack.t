@@ -13,15 +13,15 @@ my $bf  = [ sub { 1 }, HTTP::Proxy::BodyFilter->new() ];
 $stack = HTTP::Proxy::FilterStack->new();
 
 # all, push
-is( scalar $stack->all, 0, "FilterStack is empty" );
+is_deeply( [ $stack->all ], [], "FilterStack is empty" );
 $stack->push($hf);
-is( scalar $stack->all, 1, "FilterStack has one element" );
-$stack->push($hf, $hf);
-is( scalar $stack->all, 3, "FilterStack has three elements" );
+is_deeply( [ $stack->all ], [ $hf ], "FilterStack has one element" );
+$stack->push($hf2, $hf);
+is_deeply( [ $stack->all ], [ $hf, $hf2, $hf ], "FilterStack has three elements" );
 
 # insert
 $stack->insert(1, $hf2);
-is_deeply( [ $stack->all ], [ $hf, $hf2, $hf, $hf ], "FilterStack is correct");
+is_deeply( [ $stack->all ], [ $hf, $hf2, $hf2, $hf ], "FilterStack is correct");
 
 # remove
 my $elem = $stack->remove(1);
