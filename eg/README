@@ -30,10 +30,16 @@ The eg/ directory holds a few example proxies.
             HTTP::Proxy::BodyFilter::simple
             HTTP::Proxy::BodyFilter::htmltext
 
+ * bork.pl
+
+   This ffiltir elsu duis simpli mudiffixeshuns uff ell HTML pegis.
+   Bork bork bork ! 
+
  * outline.pl
+ * ayb.pl
 
    These proxy do more complicated modifications of HTML pages, and
-   require a HTML::Parser object to do so.
+   require a HTML::Parser object to do so. All you tag are belong to us.
 
    Filter: HTTP::Proxy::BodyFilter::htmlparser
 
