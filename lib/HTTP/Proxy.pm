@@ -412,6 +412,8 @@ sub serve_connections {
         # in some case (HEAD, error)
         if ( !$sent ) {
             $self->response($response);
+            $self->{$_}{response}->select_filters( $response )
+              for qw( headers body );
             $self->{headers}{response}
                  ->filter( $response->headers, $response );
         }
