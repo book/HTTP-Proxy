@@ -10,6 +10,10 @@ ASAP
    in both the request and the response
 
 Version 0.03
+ - check what the HTTP protocol says about HTTP/1.0 proxy answering
+   HTTP/1.1 client
+
+Version 0.04
  - Control the proxy via specific URIs
  - Commands are called asking for http://proxy/cmd
    (the host part of the URI should be configurable)
@@ -27,8 +31,11 @@ Version 0.03
  - how do subclassed HTTP::Proxy modules handle this?
  - can someone add his own commands by modifying either the class or
    the instance dispatch table?
+ - the parent process preforks children, when a control URL is requested
+   the child can write data to a special file/pipe and kill HUP the
+   parent so that it reads the new information
 
-Version 0.04
+Version 0.05
  - insert callbacks/filters in the various stages of the process
    => to modify the client request
    => to modify the server answer
@@ -40,7 +47,7 @@ Version 0.04
    => push_response_filter( 'text/html' => \&callback )
    => other ways to access both stacks?
 
-Version 0.05
+Version 0.06
  - handle big responses (>1Mb) with the LWP::UA callback system
    => short responses are concatenated together in a simple scalar,
       that gets filtered at the end
@@ -49,10 +56,11 @@ Version 0.05
       result in badly filtered data (I don't think we can do anything
       about it...)
 
-Version 0.06
+Version 0.07
  - proxy a https site, so as to filter and record, just as we do for
    http requests.
    => example: http://proxy/https://www.secure.com:443/index.html
+   => This kind of stuff requires some content rewriting...
 
 
 Better left to other modules
@@ -67,3 +75,4 @@ Useful documentation:
 http://www.stonehenge.com/merlyn/WebTechniques/col11.html
 http://www.foad.org/~abigail/Perl/proxy.pl
 http://rgarciasuarez.free.fr/perl/biscuit
+http://www.jmarshall.com/tools/cgiproxy/
