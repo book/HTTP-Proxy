@@ -97,11 +97,15 @@ sub begin {
 
     # create the directory
     my $dir = File::Spec->catdir( (File::Spec->splitpath($file))[ 0, 1 ] );
-    eval { mkpath( $dir ) };
-    if ($@) {
-        $self->proxy->log( HTTP::Proxy::ERROR, "HTBF::save",
-                          "Unable to create directory $dir" );
-        return;
+    if( ! -e $dir ) {
+        eval { mkpath( $dir ) };
+        if ($@) {
+            $self->proxy->log( HTTP::Proxy::ERROR, "HTBF::save",
+                              "Unable to create directory $dir" );
+            return;
+        }
+        $self->proxy->log( HTTP::Proxy::FILTERS, "HTBF::save",
+                           "Created directory $dir" );
     }
 
     # open and lock the file
