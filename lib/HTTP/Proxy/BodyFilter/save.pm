@@ -346,7 +346,7 @@ options:
 
 Philippe "BooK" Bruhat, E<lt>book@cpan.orgE<gt>.
 
-=head1 THANKS
+=head1 ACKNOWLEDGMENTS
 
 Thanks to Mat Proud for asking how to store all pages which go through
 the proxy to disk, without any processing. The further discussion we
@@ -355,15 +355,17 @@ had led to the writing of this class.
 Wget(1) provided the inspiration for many of the file naming options.
 
 Thanks to Nicolas Chuche for telling me about C<O_EXCL>.
+
 Thanks to Rafaël Garcia-Suarez and David Rigaudiere for their help on
 irc while coding the nasty begin() method. C<;-)>
+
 Thanks to Howard Jones for the inspiration and initial patch for the
 C<filename> option. Lucas Gonze provided a patch to make C<status>
 actually work.
 
 =head1 COPYRIGHT
 
-Copyright 2004, Philippe Bruhat
+Copyright 2004-2005, Philippe Bruhat
 
 =head1 LICENSE
 
