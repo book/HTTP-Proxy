@@ -2,10 +2,11 @@ package t::Utils;
 
 use strict;
 use Exporter ();
+use IO::Socket::INET;
 use vars qw( @ISA @EXPORT @EXPORT_OK );
 
 @ISA       = qw( Exporter );
-@EXPORT    = qw( &server_start &server_next &fork_proxy &web_ok );
+@EXPORT    = qw( &server_start &server_next &fork_proxy &web_ok &bare_request );
 @EXPORT_OK = @EXPORT;
 
 use HTTP::Daemon;
@@ -84,6 +85,29 @@ sub web_ok {
       $ua->request(
         HTTP::Request->new( GET => shift||'http://www.google.com/intl/en/' ) );
     return $res->is_success;
+}
+
+# send a simple request without LWP::UA
+# bare_request($url, $headers, $proxy)
+sub bare_request {
+    my ($url, $headers, $proxy) = @_;
+
+    # connect directly to the proxy
+    $proxy->url() =~ /:(\d+)/;
+    my $sock = IO::Socket::INET->new(
+        PeerAddr => 'localhost',
+        PeerPort => $1,
+        Proto    => 'tcp'
+      ) or do { warn "Can't connect to the proxy"; return ""; };
+    
+    # send the request
+    print $sock "GET $url HTTP/1.0\015\012",
+                $headers->as_string( "\015\012" ), "\015\012";
+    my $content = join "", <$sock>;
+
+    # close the connection to the proxy
+    close $sock or warn "close: $!";
+    return $content;
 }
 
 package HTTP::Proxy;

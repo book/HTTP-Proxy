@@ -16,15 +16,20 @@ localhost tests work as follows:
  - each of those process can run its own tests independantly,
    thanks to Test::More
 
-The t/Utils.pm files (use t::Utils in some test files) exports 4 functions:
- - server_start
+The t/Utils.pm files (use t::Utils in some test files) exports
+several functions:
+ - server_start()
    starts a new HTTP::Daemon
- - server_next
+ - server_next( [ \&answer ] )
    returns the next response from the server (accepts a coderef)
- - fork_proxy
-   fork a proxy server passed as an argument
- - web_ok
+ - fork_proxy( $proxy, [ \&end ] )
+   fork a proxy server passed as an argument, with an optionnel
+   subroutine to run at the end
+ - web_ok()
    test if the actual WWW is available for testing
+ - bare_request( $url, $headers, $proxy )
+   send a simple request through the proxy without LWP::UA
+   return a string containing the full response
 
 * Test categories
 
@@ -44,6 +49,7 @@ The tests are prefixed with a number, which indicates several categories:
      t/20dummy.t        - tests against a dummy web server
      t/20keepalive.t    - test the keep-alive connections
      t/22http.t         - test actual HTTP servers
+     t/22transparent.t  - test transparent proxying
      t/23connect.t      - test CONNECT to a ssh server
      t/23https.t        - test CONNECT for SSL
 
