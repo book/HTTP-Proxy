@@ -35,7 +35,7 @@ $proxy->push_filter(
             my ( $self, $dataref, $message, $protocol, $buffer ) = @_;
             $$dataref = $saved++ ? "" 
               : sprintf '<p>Saving PDF file. Go <a href="%s">back</a></p>',
-                        $self->proxy->request->headers->header('referer');
+                        $message->request->header('referer');
         }
     ),
     # change the response Content-Type
