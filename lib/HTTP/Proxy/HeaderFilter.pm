@@ -54,6 +54,10 @@ server (if the filter is on the request stack). If $headers is
 modified by the filter, the modified headers will be sent to the
 client or server.
 
+The init() method (if it exists) is called by the new() constructeur
+to perform all initisalisation tasks. It's called once in the filter
+lifetime.
+
 A HTTP::Proxy::HeaderFilter object is a blessed hash, and the base class
 reserves only hash keys that start with C<_hphf>.
 

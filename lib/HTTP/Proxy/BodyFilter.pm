@@ -72,6 +72,37 @@ filters that follows, until the data reaches its recipient.
 A HTTP::Proxy::BodyFilter object is a blessed hash, and the base class
 reserves only hash keys that start with C<_hpbf>.
 
+=head2 Filter customisation
+
+Three methods can be added to a BodyFilter to enhance customisation:
+
+=over 4
+
+=item init()
+
+This method is called by the new() constructeur to perform all
+initisalisation tasks.  It's called once in the filter lifetime.
+
+=item start()
+
+Some filters might require initialisation before they are able to handle
+the data. If a start() method is defined in your subclass, the proxy
+will call it before sending data to the filter() method.
+
+It's called once per HTTP message handled by the filter, before data
+processing starts.
+
+=item end()
+
+Some filters might require finalisation after they are finished handling
+the data. If a end() method is defined in your subclass, the proxy
+will call it after it has finished sending data to the filter() method.
+
+It's called once per HTTP message handled by the filter, after all data
+processing is done.
+
+=back
+
 =head2 Using a buffer to store data for a later use
 
 Some filters cannot handle arbitrary data: for example a filter that

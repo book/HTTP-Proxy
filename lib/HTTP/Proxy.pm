@@ -20,7 +20,7 @@ require Exporter;
 @EXPORT_OK = qw( NONE ERROR STATUS PROCESS SOCKET HEADERS FILTER CONNECT ALL );
 %EXPORT_TAGS = ( log => [@EXPORT_OK] );    # only one tag
 
-$VERSION = '0.13';
+$VERSION = '0.14';
 
 my $CRLF = "\015\012";                     # "\r\n" is not portable
 
@@ -1192,6 +1192,9 @@ sub filter_last {
         $_->filter( $data, $message, $protocol, undef );
     }
 
+    # call the cleanup routine if needed
+    for ( @{ $self->{current} } ) { $_->end if $_->can('end'); }
+    
     # clean up the mess for next time
     $self->eod;
 }
