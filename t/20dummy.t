@@ -39,7 +39,8 @@ if ( $pid == 0 ) {
     my $answer = sub {
         my $req  = shift;
         my $data = shift;
-        ok( $req->uri =~ quotemeta, "The daemon got what it expected" );
+        my $re = quotemeta $data;
+        like( $req->uri, qr/$re/, "The daemon got what it expected" );
         return HTTP::Response->new(
             200, 'OK',
             HTTP::Headers->new( 'Content-Type' => 'text/plain' ),
@@ -60,8 +61,8 @@ push @pids, $pid;    # remember the kid
 fork_proxy(
     $proxy,
     sub {
-        is( $proxy->conn, @requests,
-            "The proxy served the correct number of requests" );
+        is( $proxy->conn, scalar @requests,
+            "The proxy served the correct number of connections" );
     }
 );
 
@@ -76,7 +77,8 @@ for (@requests) {
     my $req = HTTP::Request->new( GET => $server->url . $_ );
     my $rep = $ua->simple_request($req);
     ok( $rep->is_success, "Got an answer (@{[$rep->status_line]})" );
-    ok( $rep->content =~ quotemeta, "The client got what it expected" );
+    my $re = quotemeta;
+    like( $rep->content, qr/$re/, "The client got what it expected" );
 }
 
 # make sure both kids are dead
