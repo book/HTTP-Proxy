@@ -3,17 +3,18 @@ package HTTP::Proxy;
 use HTTP::Daemon;
 use LWP::UserAgent;
 use LWP::ConnCache;
-use Fcntl ':flock';    # import LOCK_* constants
-use POSIX ();
+use Fcntl ':flock';         # import LOCK_* constants
+use POSIX ":sys_wait_h";    # WNOHANG
 use Sys::Hostname;
+use IO::Select;
 use Carp;
 
 use strict;
 use vars qw( $VERSION $AUTOLOAD );
 
-$VERSION = 0.05;
+$VERSION = 0.06;
 
-my $CRLF = "\015\012";    # "\r\n" is not portable
+my $CRLF = "\015\012";      # "\r\n" is not portable
 
 # Methods we can forward
 my @METHODS = qw( OPTIONS GET HEAD POST PUT DELETE TRACE );
@@ -242,8 +243,8 @@ sub start {
     $self->init;
 
     my @kids;
-    my $reap;
-    my $hupped;
+    my $reap   = 0;
+    my $hupped = 0;
 
     # zombies reaper
     my $reaper;
@@ -253,16 +254,25 @@ sub start {
     };
     $SIG{CHLD} = $reaper;
     $SIG{HUP}  = sub { $hupped++ };
+    $SIG{INT}  = $SIG{KILL} = sub { $self->{loop} = 0 };
 
     # the main loop
-    my $daemon = $self->daemon;
+    my $select = IO::Select->new( $self->daemon );
     while ( $self->loop ) {
 
-        # prefork children process
-        for ( 1 .. $self->maxchild - @kids ) {
+        # check for new connections
+        my @ready = $select->can_read(0.01);
+        for my $fh (@ready) {    # there's only one, anyway
+            if( @kids >= $self->maxchild ) {
+                $self->log( 3, "Too many child process" );
+                last;
+            }
 
+            # accept the new connection
+            my $conn  = $fh->accept;
             my $child = fork;
             if ( !defined $child ) {
+                $conn->close;
                 $self->log( 0, "Cannot fork" );
                 $self->maxchild( $self->maxchild - 1 ) if $self->maxchild > 1;
                 next;
@@ -270,27 +280,25 @@ sub start {
 
             # the parent process
             if ($child) {
-                $self->log( 3, "Preforked child process $child" );
+                $self->log( 3, "Forked child process $child" );
                 push @kids, $child;
             }
 
             # the child process handles the whole connection
             else {
-                $self->serve_connections($daemon);
+                $self->serve_connections($conn);
                 exit;    # let's die!
             }
         }
 
-        # wait for a signal
-        POSIX::pause();
-
         # handle zombies
-        while ($reap) {
-            my $pid = wait;
-            @kids = grep { $_ != $pid } @kids;
-            $self->{conn}++;    # Cannot use the interface for RO attributes
-            $self->log( 3, "Reaped child process $pid" );
-            $reap--;
+        if ($reap) {
+            while ( ( my $pid = waitpid( -1, WNOHANG ) ) > 0 ) {
+                @kids = grep { $_ != $pid } @kids;
+                $self->{conn}++;    # Cannot use the interface for RO attributes
+                $self->log( 3, "Reaped child process $pid" );
+            }
+            $reap = 0;
         }
 
         # did a child send us information?
@@ -381,10 +389,9 @@ sub _init_agent {
 # incoming connections.
 
 sub serve_connections {
-    my ( $self, $daemon ) = @_;
+    my ( $self, $conn ) = @_;
     my $response;
 
-    my $conn = $daemon->accept;
     $SIG{INT} = 'IGNORE';    # don't interrupt while we talk to a client
     my $req = $conn->get_request();
 
@@ -814,18 +821,14 @@ sub log {
 
 =head1 BUGS
 
-I've heard that some Unix systems do not support calling accept() in a
-child process when the socket was opened by the parent (especially
-when several child process accept() at the same time).
-
-It looks like it's the case under Windows.
-Expect the prefork system to change soon.
+This is still beta software, expect some interfaces to change as
+I receive feedback from users.
 
 =head1 TODO
 
-* support Windows systems
+* correctly handle the Content-Length
 
-* Provide an interface for logging.
+* Provide a better interface for logging.
 
 * Provide control over the proxy through special URLs
 
@@ -836,10 +839,10 @@ Philippe "BooK" Bruhat, E<lt>book@cpan.orgE<gt>.
 =head1 THANKS
 
 Many people helped me during the development of this module, either on
-mailing-lists, irc, or over a beer in a pub...
+mailing-lists, irc or over a beer in a pub...
 
 So, in no particular order, thanks to Michael Schwern (testing while forking),
-Eric 'echo' Cholet (preforked processes).
+the Paris.pm folks (forking processes) and my growing user base... C<;-)>
 
 =head1 COPYRIGHT
 
