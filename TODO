@@ -9,10 +9,6 @@ ASAP
  - I suppose this means looking at the Connection: headers
    in both the request and the response
 
-Version 0.03
- - check what the HTTP protocol says about HTTP/1.0 proxy answering
-   HTTP/1.1 client
-
 Version 0.04
  - Control the proxy via specific URIs
  - Commands are called asking for http://proxy/cmd

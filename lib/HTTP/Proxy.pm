@@ -373,16 +373,16 @@ sub process {
     }
 
     # massage the request to pop a response
-    $req->headers->remove_header('Proxy-Connection');
+    $req->headers->remove_header('Proxy-Connection'); # broken header
     $self->log( 1, "($$) Request:", $req->uri );
     $self->log( 5, "($$) Request:", $req->headers->as_string );
     $response = $self->agent->simple_request($req);
 
+    SEND:
     # remove Connection: headers from the response
-    $response->headers->remove_header('Connection');
+    $response->headers->header(Connection => 'close' );
 
     # send the response
-    SEND:
     $conn->print( $response->as_string );
     $self->log( 1, "($$) Response:", $response->status_line );
     $self->log( 5, "($$) Response:", $response->headers->as_string );
