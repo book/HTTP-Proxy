@@ -65,6 +65,7 @@ sub fork_proxy {
     die "Unable to fork proxy" if not defined $pid;
 
     if ( $pid == 0 ) {
+        $0 .= " (proxy)";
 
         # this is the http proxy
         $proxy->start;
