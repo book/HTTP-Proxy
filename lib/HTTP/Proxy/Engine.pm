@@ -8,7 +8,7 @@ my %engines = (
 );
 
 # required accessors
-__PACKAGE__->make_accessors( qw( proxy ));
+__PACKAGE__->make_accessors( qw( max_clients ));
 
 sub new {
     my $class  = shift;
@@ -45,6 +45,8 @@ sub run {
     my $class = ref $self;
     croak "$class doesn't define a run() method";
 }
+
+sub proxy { $_[0]{proxy} }
 
 # class method
 sub make_accessors {
@@ -147,6 +149,14 @@ subclasses:
 =item proxy()
 
 Return the HTTP::Proxy object that runs the engine.
+
+=item max_clients()
+
+Get or set the maximum number of TCP clients, that is to say
+the maximum number of forked child process.
+
+Some engines may understand a value of C<0> as I<do not fork at all>.
+This is what HTTP::Proxy::Engine::Legacy does.
 
 =item make_accessors( @names )
 
