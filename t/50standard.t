@@ -1,5 +1,5 @@
 use strict;
-use Test::More tests => 9;
+use Test::More tests => 10;
 use LWP::UserAgent;
 use HTTP::Proxy;
 use t::Utils;    # some helper functions for the server
