@@ -351,7 +351,7 @@ sub start {
     while ( $self->loop ) {
 
         # check for new connections
-        my @ready = $select->can_read(0.01);
+        my @ready = $select->can_read(1);
         for my $fh (@ready) {    # there's only one, anyway
 
             # single-process proxy (useful for debugging)
