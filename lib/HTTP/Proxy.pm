@@ -69,8 +69,11 @@ HTTP::Proxy - A pure Perl HTTP proxy
 
 =head1 DESCRIPTION
 
-This module implements a HTTP Proxy, using a HTTP::Daemon to accept
+This module implements a HTTP proxy, using a HTTP::Daemon to accept
 client connections, and a LWP::UserAgent to ask for the requested pages.
+
+The most interesting feature of this proxy object is its hability to
+filter the HTTP requests and responses through user-defined filters.
 
 =head1 METHODS
 
@@ -363,12 +366,14 @@ sub init {
     $self->agent->protocols_allowed( [qw( http https ftp gopher )] );
 
     # standard header filters
-    $self->{headers}{request}  = [ [ sub { 1 }, \&_proxy_headers_filter ] ];
-    $self->{headers}{response} = [ [ sub { 1 }, \&_proxy_headers_filter ] ];
+    $self->{headers}{request}  = HTTP::Proxy::FilterStack->new;
+    $self->{headers}{response} = HTTP::Proxy::FilterStack->new;
+    $self->{headers}{request}->push(  [ sub { 1 }, \&_proxy_headers_filter ] );
+    $self->{headers}{response}->push( [ sub { 1 }, \&_proxy_headers_filter ] );
 
-    # standard bodyfilters
-    $self->{body}{request}  = [];
-    $self->{body}{response} = [];
+    # standard body filters
+    $self->{body}{request}  = HTTP::Proxy::FilterStack->new;
+    $self->{body}{response} = HTTP::Proxy::FilterStack->new(1);
 
     return;
 }
@@ -386,8 +391,12 @@ sub _init_daemon {
     delete $args{LocalPort} unless $self->port;    # 0 means autoselect
     my $daemon = HTTP::Daemon->new(%args)
       or die "Cannot initialize proxy daemon: $!";
-    $daemon->product_tokens('');
     $self->daemon($daemon);
+
+    # remove the product tokens
+    local $^W = 0;
+    *HTTP::Daemon::product_tokens = sub {};
+
     return $daemon;
 }
 
@@ -439,8 +448,10 @@ sub serve_connections {
 
         # massage the request
         $self->request($req);
-        $self->_filter_headers('request');
-        $self->_filter_body('request');
+        $self->{headers}{request}->filter( $req->headers, $req );
+
+        # FIXME I don't know how to get the LWP::Protocol objet...
+        $self->{body}{request}->filter( $req->content_ref, $req, undef );
         $self->log( HEADERS, "($$) Request:", $req->headers->as_string );
 
         # pop a response
@@ -453,7 +464,8 @@ sub serve_connections {
                 # first time, filter the headers
                 if ( !$sent ) {
                     $self->response($response);
-                    $self->_filter_headers('response');
+                    $self->{headers}{response}
+                      ->filter( $response->headers, $response );
 
                     # this is adapted from HTTP::Daemon
                     if ( $conn->antique_client ) { $last++ }
@@ -493,7 +505,7 @@ sub serve_connections {
                 # filter and send the data
                 $self->log( FILTER, "($$) Filter:",
                     "got " . length($data) . " bytes of body data" );
-                $self->_filter_body( 'response', \$data, $proto );
+                $self->{body}{response}->filter( \$data, $response, $proto );
                 if ($chunked) {
                     printf $conn "%x%s%s%s", length($data), $CRLF, $data, $CRLF;
                 }
@@ -504,6 +516,19 @@ sub serve_connections {
             $self->chunk
         );
 
+        # do a last pass, in case there was something left in the buffers
+        my $data = ""; # FIXME $protocol is undef here too
+        $self->{body}{response}->filter_last( \$data, $response, undef );
+        if ( length $data ) {
+            if ($chunked) {
+                printf $conn "%x%s%s%s", length($data), $CRLF, $data, $CRLF;
+            }
+            else {
+                print $conn $data;
+            }
+        }
+
+        # last chunk
         print $conn "0$CRLF$CRLF" if $chunked;    # no trailers either
 
         # what about X-Died and X-Content-Range?
@@ -513,7 +538,7 @@ sub serve_connections {
         # responses that weren't filtered through callbacks
         if ( !$sent ) {
             $self->response($response);
-            $self->_filter_headers('response');
+            $self->{headers}{response}->filter( $response->headers, $response );
             $conn->send_response($response);
         }
 
@@ -535,7 +560,7 @@ sub serve_connections {
     $conn->close;
 }
 
-=head2 Callbacks
+=head2 Filters
 
 You can alter the way the default HTTP::Proxy works by pluging callbacks
 at different stages of the request/response handling.
@@ -721,7 +746,9 @@ sub _push_filter {
             return 0 if $self->{request}->uri->path !~ $path;
             return 1;    # it's a match
         };
-        push @{ $self->{ $arg{part} }{$message} }, [ $match, $arg{$message} ];
+
+        # push it on the corresponding FilterStack
+        $self->{ $arg{part} }{$message}->push( [ $match, $arg{$message} ] );
     }
 }
 
@@ -736,72 +763,6 @@ sub push_headers_filter { _push_filter( @_, part => 'headers' ); }
 =cut
 
 sub push_body_filter { _push_filter( @_, part => 'body' ); }
-
-# the very simple _filter_* methods
-#
-# $self->_filter_headers( 'response' );
-# @filters = $self->_filter_select( response => 'body' )
-# $self->_filter_body_with( \@filters, 'response', \$data, $proto )
-
-# _filter_select( $msg => $type )
-#
-sub _filter_select {
-    my ( $self, $mesg, $type ) = @_;
-    return map { $- > [1] } grep { $_->[0]->() } @{ $self->{$type}{$mesg} };
-}
-
-# _filter_headers( $type )
-#
-# type is either 'request' or 'response'
-
-sub _filter_headers {
-    my ( $self, $type ) = ( shift, shift );
-
-    # argument checking
-    croak "Bad filter type: $type" if $type !~ /^re(?:quest|sponse)$/;
-
-    my $message = $self->{$type};
-    my $headers = $message->headers;
-
-    # filter the headers
-    for ( @{ $self->{headers}{$type} } ) {
-        $_->[1]->( $headers, $message ) if $_->[0]->();
-    }
-}
-
-# _filter_body( $type, $dataref, $proto )
-#
-# type is either 'request' or 'response'
-# $dataref is a scalar ref to the data (\$data)
-# $proto is a HTTP::Protocol object
-
-sub _filter_body {
-    my ( $self, $type, $dataref, $proto ) = @_;
-
-    # argument checking
-    croak "Bad filter type: $type" if $type !~ /^re(?:quest|sponse)$/;
-    return unless defined $dataref;
-
-    # filter the body
-    for ( @{ $self->{body}{$type} } ) {
-        $_->[1]->( $dataref, $self->{$type}, $proto ) if $_->[0]->();
-    }
-}
-
-# _filter_body_with( \@filters, $type, $dataref, $proto )
-#
-# Same as _filter_body, except that the filter list is passed
-# as a reference, rather than computed each time
-
-sub _filter_body_with {
-    my ( $self, $filters, $type, $dataref, $proto ) = @_;
-
-    # argument checking
-    croak "Bad filter type: $type" if $type !~ /^re(?:quest|sponse)$/;
-
-    # filter the body
-    $_->( $dataref, $self->{$type}, $proto ) for @$filters;
-}
 
 # standard proxy header filter (RFC 2616)
 sub _proxy_headers_filter {
@@ -883,6 +844,8 @@ This does not work under Windows, but I can't see why, and do not have
 a development platform under that system. Patches and explanations
 very welcome.
 
+The Date: header is duplicated.
+
 This is still beta software, expect some interfaces to change as
 I receive feedback from users.
 
@@ -909,5 +872,96 @@ This module is free software; you can redistribute it or modify it under
 the same terms as Perl itself.
 
 =cut
+
+#
+# This is an internal class to work more easily with filter stacks
+#
+package HTTP::Proxy::FilterStack;
+
+#
+# new( $isbody )
+# $isbody is true only for response-body filters stack
+sub new {
+    my $class = shift;
+    my $self  = {
+        body    => shift || 0,
+        filters => [],
+        buffers => [],
+    };
+    return bless $self, $class;
+}
+
+#
+# insert( $index, $matchsub, $filtersub )
+#
+sub insert {
+    my ( $self, $idx ) = ( shift, shift );
+    splice @{ $self->{filters} }, $idx, 0, @_;
+}
+
+#
+# remove( $index )
+#
+sub remove {
+    my ( $self, $idx ) = @_;
+    splice @{ $self->{filters} }, $idx, 1;
+}
+
+# some simple stuff
+sub push {
+    my $self = shift;
+    push @{ $self->{filters} }, @_;
+}
+
+#
+# the actual filtering is done here
+#
+sub filter {
+    my $self = shift;
+
+    # first time we're called
+    if ( not exists $self->{current} ) {
+
+        # select the filters that match
+        $self->{current} =
+          [ map { $_->[1] } grep { $_->[0]->() } @{ $self->{filters} } ];
+
+        # create the buffers
+        if ( $self->{body} ) {
+            CORE::push @{ $self->{buffers} },
+              eval q(\"") for @{ $self->{current} };
+        }
+    }
+
+    # pass the data through the filter
+    if ( $self->{body} ) {
+        my $i = 0;
+        my ( $data, $message, $protocol ) = @_;
+        for ( @{ $self->{current} } ) {
+            $$data = ${ $self->{buffers}[$i] } . $$data;
+            $_->( $data, $message, $protocol, $self->{buffers}[ $i++ ] );
+        }
+    }
+    else { $_->(@_) for @{ $self->{current} }; }
+}
+
+#
+# filter what remains in the buffers
+#
+sub filter_last {
+    my $self = shift;
+    return unless $self->{body};    # sanity check
+
+    my $i = 0;
+    my ( $data, $message, $protocol ) = @_;
+    for ( @{ $self->{current} } ) {
+        $$data = ${ $self->{buffers}[ $i++ ] } . $$data;
+        $_->( $data, $message, $protocol, undef );
+    }
+
+    # clean up the mess for next time
+    $self->{buffers} = [];
+    $self->{current} = [];
+}
 
 1;
