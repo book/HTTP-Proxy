@@ -528,6 +528,7 @@ sub serve_connections {
 
         # the header filters created a response,
         # we won't contact the origin server
+        # FIXME should the response header and body be filtered?
         goto SEND if defined $self->response;
 
         # pop a response
@@ -576,6 +577,14 @@ sub serve_connections {
         # last chunk
         print $conn "0$CRLF$CRLF" if $chunked;    # no trailers either
         $self->response($response);
+
+        # the callback is not called by LWP::UA->request
+        # in some case (HEAD, error)
+        if ( !$sent ) {
+            $self->response($response);
+            $self->{headers}{response}
+                 ->filter( $response->headers, $response );
+        }
 
         # what about X-Died and X-Content-Range?
 
@@ -840,7 +849,7 @@ sub push_filter {
         my ($message, $filter ) = (shift, shift);
         croak "'$message' is not a filter stack"
           unless $message =~ /^(request|response)$/;
-        
+
         croak "Not a Filter reference for filter queue $message"
           unless ref( $filter )
           && ( $filter->isa('HTTP::Proxy::HeaderFilter')

@@ -1,19 +1,23 @@
 Revision history for Perl extension HTTP::Proxy
 
 0.11  
-        [FEATURES]
+        [ENHANCEMENTS]
         - setting maxchild to 0 prevents forking (Jim Cromie)
         - filters can now match on the query string
         - hop-by-hop headers and Max-Forwards headers are correctly supported
         - new mutators added to HTTP::Proxy: via, hop_headers, request,
           response
         - new examples scripts: proxy-auth.pl
-        [PATCHES]
+        [FIXES]
         - push_filter() now correctly supports several match criteria
         [TESTS]
         - all the Via: header tests are now in t/50via.t
-        - check for duplicate Date: and Server: for several request types
-        - check response body filters with an actual proxy (t/61simple2.t)
+        - t/50standard.t now checks headers for several request types
+        - new tests:
+          + t/51simple2.t - check response header filters with an actual proxy
+          + t/61simple2.t - check response body filters with an actual proxy
+        [INTERNALS]
+        - new method _send_response_headers
 
 0.10  Wed Nov 19 01:36:59 CET 2003
 

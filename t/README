@@ -55,6 +55,7 @@ The tests are prefixed with a number, which indicates several categories:
      t/50standard.t     - check other headers removal
      t/50via.t          - check the Via: headers
      t/51simple.t       - HTTP::Proxy::HeaderFilter::simple
+     t/51simple2.t      - HTTP::Proxy::HeaderFilter::simple with a real proxy
      #t/52log.t          - HTTP::Proxy::HeaderFilter::log
 
 6x - Internal body filters
