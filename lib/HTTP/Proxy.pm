@@ -16,21 +16,22 @@ use vars qw( $VERSION $AUTOLOAD
 require Exporter;
 @ISA    = qw(Exporter);
 @EXPORT = ();               # no export by default
-@EXPORT_OK   = qw( NONE ERROR STATUS PROCESS HEADERS FILTER ALL );
-%EXPORT_TAGS = ( log => [@EXPORT_OK] );                           # only one tag
+@EXPORT_OK = qw( NONE ERROR STATUS PROCESS CONNECT HEADERS FILTER ALL );
+%EXPORT_TAGS = ( log => [@EXPORT_OK] );    # only one tag
 
 $VERSION = 0.07;
 
-my $CRLF = "\015\012";    # "\r\n" is not portable
+my $CRLF = "\015\012";                     # "\r\n" is not portable
 
 # constants used for logging
+use constant ERROR   => -1;
 use constant NONE    => 0;
-use constant ERROR   => 0;
 use constant STATUS  => 1;
 use constant PROCESS => 2;
-use constant HEADERS => 4;
-use constant FILTER  => 8;
-use constant ALL     => 15;
+use constant CONNECT => 4;
+use constant HEADERS => 8;
+use constant FILTER  => 16;
+use constant ALL     => 31;
 
 # Methods we can forward
 my @METHODS = qw( OPTIONS GET HEAD POST PUT DELETE TRACE );
@@ -93,6 +94,7 @@ sub new {
         maxconn  => 0,
         maxserve => 10,
         port     => 8080,
+        timeout  => 60,
         @_,
     };
 
@@ -203,6 +205,22 @@ The maximum number of requests the proxy will serve in a single connection.
 
 The proxy HTTP::Daemon port (default: 8080).
 
+=item timeout
+
+The timeout used by the internal LWP::UserAgent (default: 60).
+
+=cut
+
+sub timeout {
+    my $self = shift;
+    my $old  = $self->{timeout};
+    if (@_) {
+        $self->{timeout} = shift;
+        $self->agent->timeout( $self->{timeout} ) if $self->agent;
+    }
+    return $old;
+}
+
 =item url (read-only)
 
 The url where the proxy can be reached.
@@ -270,6 +288,7 @@ sub start {
         for my $fh (@ready) {    # there's only one, anyway
             if ( @kids >= $self->maxchild ) {
                 $self->log( PROCESS, "Too many child process" );
+                select( undef, undef, undef, 1 );
                 last;
             }
 
@@ -279,7 +298,10 @@ sub start {
             if ( !defined $child ) {
                 $conn->close;
                 $self->log( ERROR, "Cannot fork" );
-                $self->maxchild( $self->maxchild - 1 ) if $self->maxchild > 1;
+                $self->maxchild( $self->maxchild - 1 )
+                  if $self->maxchild > @kids;
+                $self->log( ERROR, "Really cannot fork, abandon" ), last
+                  if $self->maxchild == 0;
                 next;
             }
 
@@ -291,6 +313,7 @@ sub start {
 
             # the child process handles the whole connection
             else {
+                $SIG{INT} = 'DEFAULT';
                 $self->serve_connections($conn);
                 exit;    # let's die!
             }
@@ -363,7 +386,7 @@ sub _init_daemon {
     delete $args{LocalPort} unless $self->port;    # 0 means autoselect
     my $daemon = HTTP::Daemon->new(%args)
       or die "Cannot initialize proxy daemon: $!";
-    $daemon->product_tokens("HTTP-Daemon/$VERSION");
+    $daemon->product_tokens('');
     $self->daemon($daemon);
     return $daemon;
 }
@@ -373,6 +396,8 @@ sub _init_agent {
     my $agent = LWP::UserAgent->new(
         env_proxy  => 1,
         keep_alive => 2,
+        parse_head => 0,
+        timeout    => $self->timeout,
       )
       or die "Cannot initialize proxy agent: $!";
     $self->agent($agent);
@@ -388,7 +413,6 @@ sub serve_connections {
 
     my ( $last, $served ) = ( 0, 0 );
     while ( my $req = $conn->get_request() ) {
-        $SIG{INT} = sub { $last++ }; # don't interrupt while we talk to a client
 
         # Got a request?
         unless ( defined $req ) {
@@ -504,6 +528,9 @@ sub serve_connections {
         $served++;
         last if $last || $served >= $self->maxserve;
     }
+    $self->log( CONNECT, "($$) Connection closed by the client" )
+      if !$last
+      and $served < $self->maxserve;
     $self->log( PROCESS, "($$) Served $served requests" );
     $conn->close;
 }
