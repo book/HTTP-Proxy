@@ -167,6 +167,18 @@ sub control {
 The HTTP::Daemon object used to accept incoming connections.
 (You usually never need this.)
 
+=item hop_headers
+
+This attribute holds a reference to the hop-by-hop headers
+(C<Connection>, C<Keep-Alive>, C<Proxy-Authenticate>, C<Proxy-Authorization>,
+C<TE>, C<Trailers>, C<Transfer-Encoding>, C<Upgrade>).
+
+They are removed by the filter HTTP::Proxy::HeaderFilter::standard from
+the request and response objects received by the proxy.
+
+If a filter (such as a proxy authorisation filter) need to access them,
+it must do it though this accessor.
+
 =item host
 
 The proxy HTTP::Daemon host (default: 'localhost').
@@ -282,7 +294,7 @@ prevent its addition.
 # normal accessors
 for my $attr (
     qw( agent chunk daemon host logfh maxchild maxconn maxserve port
-    request response logmask via )
+    request response hop_headers logmask via )
   )
 {
     no strict 'refs';
@@ -595,7 +607,7 @@ sub serve_connections {
         # responses that weren't filtered through callbacks
         # FIXME make sure there is no content to filter
         if ( !$sent ) {
-            $self->{headers}{response}->filter( $response->headers, $response );
+            #$self->{headers}{response}->filter( $response->headers, $response );
             $conn->send_response($response);
         }
 

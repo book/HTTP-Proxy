@@ -2,7 +2,13 @@ package HTTP::Proxy::HeaderFilter::standard;
 
 use strict;
 use HTTP::Proxy;
+use HTTP::Headers::Util qw( split_header_words );
 use base qw( HTTP::Proxy::HeaderFilter );
+
+# known hop-by-hop headers
+my %hopbyhop = map { $_ => 1 }
+  qw( Connection Keep-Alive Proxy-Authenticate Proxy-Authorization
+      TE Trailers Transfer-Encoding Upgrade Proxy-Connection Public );
 
 # standard proxy header filter (RFC 2616)
 sub filter {
@@ -18,6 +24,29 @@ sub filter {
         );
     }
 
+    # make a list of hop-by-hop headers
+    my %h2h = %hopbyhop;
+    my $hop = HTTP::Headers->new();
+    $h2h{ $_->[0] } = 1
+      for map { split_header_words($_) } $headers->header('Connection');
+
+    # hop-by-hop headers are set aside
+    $headers->scan(
+        sub {
+            my ( $k, $v ) = @_;
+            if ( $h2h{$k} ) {
+                $hop->push_header( $k => $v );
+                $headers->remove_header($k);
+            }
+        }
+    );
+
+    # set the hop-by-hop headers in the proxy
+    # only the end-to-end headers are left in the message
+    $self->proxy->hop_headers($hop);
+
+    # FIXME handle Max-Forwards
+
     # remove some headers
     $headers->remove_header($_) for (
 
@@ -27,13 +56,9 @@ sub filter {
         Client-SSL-Cert-Issuer Client-SSL-Cert-Subject Client-SSL-Cipher
         Client-SSL-Warning Client-Transfer-Encoding Client-Warning ),
 
-        # hop-by-hop headers (for now)
-        qw( Connection Keep-Alive TE Trailers Transfer-Encoding Upgrade
-        Proxy-Connection Proxy-Authenticate Proxy-Authorization Public ),
-
         # no encoding accepted (gzip, compress, deflate)
         qw( Accept-Encoding ),
-      )
+    );
 }
 
 1;
@@ -53,6 +78,9 @@ Move along, nothing to see here.
 =head1 AUTHOR
 
 Philippe "BooK" Bruhat, E<lt>book@cpan.orgE<gt>.
+
+Thanks to Gisle Aas, for directions regarding the handling of the
+hop-by-hop headers.
 
 =head1 COPYRIGHT
 
