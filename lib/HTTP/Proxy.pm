@@ -773,8 +773,7 @@ sub select_filters {
         for ( @{ $self->{current} } ) {
             if    ( $_->can('begin') ) { $_->begin( $message ); }
             elsif ( $_->can('start') ) {
-                $_->proxy->log( HTTP::Proxy::ERROR, "DEPRECATION", "The start() filter method is *deprecated* and will go away in 0.15!\nStart s/start/begin/g in your filters!" );
-                $_->start( $_[1] );
+                $_->proxy->log( HTTP::Proxy::ERROR, "DEPRECATION", "The start() filter method is *deprecated* and disappeared in 0.15!\nUse begin() in your filters instead!" );
             }
         }
     }
