@@ -222,6 +222,23 @@ The maximum number of requests the proxy will serve in a single connection.
 
 The proxy HTTP::Daemon port (default: 8080).
 
+=item request
+
+The request originaly received by the proxy from the user-agent, which
+will be modified by the request filters.
+
+=item response
+
+The response received from the origin server by the proxy. It is
+normally C<undef> until the proxy actually receives the beginning
+of a response from the origin server.
+
+If one of the request filters sets this attribute, it "short-circuits"
+the request/response scheme, and the proxy will return this response
+(which is NOT filtered through the response filter stacks) instead of
+the expected origin server response. This is useful for caching (though
+Squid does it much better) and proxy authentication, for example.
+
 =item timeout
 
 The timeout used by the internal LWP::UserAgent (default: 60).
@@ -446,6 +463,10 @@ sub serve_connections {
 
         $served++;
 
+        # initialisation
+        $self->request($req);
+        $self->response(undef);
+
         # Got a request?
         unless ( defined $req ) {
             $self->log( ERROR, "($$) Getting request failed:", $conn->reason );
@@ -458,6 +479,7 @@ sub serve_connections {
             $response = new HTTP::Response( 501, 'Not Implemented' );
             $response->content(
                 "Method " . $req->method . " is not supported by this proxy." );
+            $self->response($response);
             goto SEND;
         }
 
@@ -466,16 +488,20 @@ sub serve_connections {
         {
             $response = new HTTP::Response( 501, 'Not Implemented' );
             $response->content("Scheme $s is not supported by this proxy.");
+            $self->response($response);
             goto SEND;
         }
 
         # massage the request
-        $self->request($req);
         $self->{headers}{request}->filter( $req->headers, $req );
 
         # FIXME I don't know how to get the LWP::Protocol objet...
         $self->{body}{request}->filter( $req->content_ref, $req, undef );
         $self->log( HEADERS, "($$) Request:", $req->headers->as_string );
+
+        # the header filters created a response,
+        # we won't contact the origin server
+        goto SEND if defined $self->response;
 
         # pop a response
         my ( $sent, $chunked ) = ( 0, 0 );
@@ -486,7 +512,6 @@ sub serve_connections {
 
                 # first time, filter the headers
                 if ( !$sent ) {
-                    $self->response($response);
                     $self->{headers}{response}
                       ->filter( $response->headers, $response );
                     $response->remove_header("Content-Length");
@@ -559,15 +584,17 @@ sub serve_connections {
 
         # last chunk
         print $conn "0$CRLF$CRLF" if $chunked;    # no trailers either
+        $self->response($response);
 
         # what about X-Died and X-Content-Range?
 
       SEND:
 
+        $response = $self->response ;
+
         # responses that weren't filtered through callbacks
         # FIXME make sure there is no content to filter
         if ( !$sent ) {
-            $self->response($response);
             $self->{headers}{response}->filter( $response->headers, $response );
             $conn->send_response($response);
         }
@@ -783,7 +810,7 @@ sub push_filter {
         my $match = sub {
             if ( defined $mime ) {
                 return 0
-                  if $self->{response}->headers->header('Content-Type') !~
+                  if $self->response->headers->header('Content-Type') !~
                   $mime;
             }
             return 0 if $self->{request}->method !~ $method;
