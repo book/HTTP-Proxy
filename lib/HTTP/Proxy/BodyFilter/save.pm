@@ -155,8 +155,8 @@ other template-related options (C<no_host>, C<no_dirs>, C<cut_dirs>
 and C<prefix>) are ignored.
 
 The C<filename> option expects a reference to a subroutine. The subroutine
-will receive the request URI object, and must return a string which is
-the path of the file to be created (an absolute path is recommended,
+will receive the HTTP::Message object and must return a string which
+is the path of the file to be created (an absolute path is recommended,
 but a relative path is accepted).
 
 Returning C<""> or C<undef> will prevent the creation of the file.
@@ -226,7 +226,7 @@ sub start {
     my $file = '';
     if( defined $self->{_hpbf_save_filename} ) {
         # use the user-provided callback
-        $file = &{ $self->{_hpbf_save_filename} }->($uri);
+        $file = &{ $self->{_hpbf_save_filename} }->($message);
         unless ( defined $file and $file ne '' ) {
             $self->proxy->log( HTTP::Proxy::FILTERS, "HTBF::save",
                                "Filter will not save $uri" );
