@@ -5,10 +5,11 @@ use Exporter ();
 use vars qw( @ISA @EXPORT @EXPORT_OK );
 
 @ISA       = qw( Exporter );
-@EXPORT    = qw( &server_start &server_next &fork_proxy );
+@EXPORT    = qw( &server_start &server_next &fork_proxy &web_ok );
 @EXPORT_OK = @EXPORT;
 
 use HTTP::Daemon;
+use LWP::UserAgent;
 
 # start a simple server
 sub server_start {
@@ -73,4 +74,13 @@ sub fork_proxy {
 
     # back to the parent
     return $pid;
+}
+
+# check that the web connection is working
+sub web_ok {
+    my $ua = LWP::UserAgent->new( env_proxy => 1 );
+    my $res =
+      $ua->request(
+        HTTP::Request->new( GET => 'http://www.google.com/intl/en/' ) );
+    return $res->is_success;
 }
