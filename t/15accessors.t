@@ -1,14 +1,14 @@
 use Test::More tests => 9;
-use HTTP::Proxy;
+use HTTP::Proxy qw( :log );
 
 my $proxy;
 
 $proxy = HTTP::Proxy->new;
 
 # check defaults
-is( $proxy->verbose, 0,           "Default is no logging" );
-is( $proxy->port,    8080,        "Default port 8080" );
-is( $proxy->host,    'localhost', "Default host localhost" );
+is( $proxy->logmask, NONE, "Default is no logging" );
+is( $proxy->port, 8080,        "Default port 8080" );
+is( $proxy->host, 'localhost', "Default host localhost" );
 is( $proxy->logfh, *STDERR, "Default logging to STDERR" );
 
 # set/get data
@@ -21,6 +21,7 @@ $proxy->port(0);
 # this spits a (normal) warning, but we clean it away
 {
     local *OLDERR;
+
     # swap errputs
     open OLDERR, ">&STDERR" or die "Could not duplicate STDERR: $!";
     close STDERR;

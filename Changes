@@ -3,6 +3,8 @@ Revision history for Perl extension HTTP::Proxy
 0.06
         - better forking system and better reaping of zombies
           (thanks to David Landgren and Stéphane Payrard)
+        - replaced verbose() by logmask(), so as to fine-tune
+          the logging system
 
 0.05  Tue Feb  4 00:47:23 CET 2003
         - explicitely refuse CONNECT

@@ -10,11 +10,27 @@ use IO::Select;
 use Carp;
 
 use strict;
-use vars qw( $VERSION $AUTOLOAD );
+use vars qw( $VERSION $AUTOLOAD
+             @ISA  @EXPORT @EXPORT_OK %EXPORT_TAGS );
+
+require Exporter;
+@ISA = qw(Exporter);
+@EXPORT = ();  # no export by default
+@EXPORT_OK = qw( NONE ERROR STATUS PROCESS HEADERS FILTER ALL );
+%EXPORT_TAGS = ( log => [ @EXPORT_OK ] ); # only one tag
 
 $VERSION = 0.06;
 
 my $CRLF = "\015\012";      # "\r\n" is not portable
+
+# constants used for logging
+use constant NONE    => 0;
+use constant ERROR   => 0;
+use constant STATUS  => 1;
+use constant PROCESS => 2;
+use constant HEADERS => 4;
+use constant FILTER  => 8;
+use constant ALL     => 15;
 
 # Methods we can forward
 my @METHODS = qw( OPTIONS GET HEAD POST PUT DELETE TRACE );
@@ -71,11 +87,11 @@ sub new {
         control  => 'proxy',
         daemon   => undef,
         host     => 'localhost',
+        logfh    => *STDERR,
+        logmask  => NONE,
         maxchild => 10,
         maxconn  => 0,
-        logfh    => *STDERR,
         port     => 8080,
-        verbose  => 0,
         @_,
     };
 
@@ -92,7 +108,7 @@ sub new {
 # AUTOLOADed attributes
 my $all_attr = qr/^(?:agent|chunk|conn|control_regex|daemon|host|logfh|
                       loop|maxchild|maxconn|port|request|response|
-                      verbose)$/x;
+                      logmask)$/x;
 
 # read-only attributes
 my $ro_attr = qr/^(?:conn|control_regex|loop)$/;
@@ -154,6 +170,26 @@ The proxy HTTP::Daemon host (default: 'localhost').
 
 A filehandle to a logfile (default: *STDERR).
 
+=item logmask( [$mask] )
+
+Be verbose in the logs (default: NONE).
+
+Here are the various elements that can be added to the mask:
+ NONE    - Log only errors
+ STATUS  - Requested URL, reponse status and total number
+           of connections processed
+ PROCESS - Subprocesses information (fork, wait, etc.)
+ HEADERS - Full request and response headers are sent along
+ FILTER  - Filter information
+ ALL     - Log all of the above
+
+If you only want status and process information, you can use:
+
+    $proxy->logmask( STATUS | PROCESS );
+
+Note that all the logging constants are not exported by default, but 
+by the C<:log> tag. They can also be exported one by one.
+
 =item maxchild
 
 The maximum number of child process the HTTP::Proxy object will spawn
@@ -182,18 +218,6 @@ sub url {
     }
     return $self->daemon->url;
 }
-
-=item verbose
-
-Be verbose in the logs (default: 0).
-
-Here are the various log levels:
- 0 - All errors
- 1 - Requested URL, reponse status and total number of connections processed
- 2 -
- 3 - Subprocesses information (fork, wait, etc.)
- 4 -
- 5 - Full request and response headers are sent along
 
 =back
 
@@ -264,7 +288,7 @@ sub start {
         my @ready = $select->can_read(0.01);
         for my $fh (@ready) {    # there's only one, anyway
             if( @kids >= $self->maxchild ) {
-                $self->log( 3, "Too many child process" );
+                $self->log( PROCESS, "Too many child process" );
                 last;
             }
 
@@ -273,14 +297,14 @@ sub start {
             my $child = fork;
             if ( !defined $child ) {
                 $conn->close;
-                $self->log( 0, "Cannot fork" );
+                $self->log( ERROR, "Cannot fork" );
                 $self->maxchild( $self->maxchild - 1 ) if $self->maxchild > 1;
                 next;
             }
 
             # the parent process
             if ($child) {
-                $self->log( 3, "Forked child process $child" );
+                $self->log( PROCESS, "Forked child process $child" );
                 push @kids, $child;
             }
 
@@ -296,7 +320,7 @@ sub start {
             while ( ( my $pid = waitpid( -1, WNOHANG ) ) > 0 ) {
                 @kids = grep { $_ != $pid } @kids;
                 $self->{conn}++;    # Cannot use the interface for RO attributes
-                $self->log( 3, "Reaped child process $pid" );
+                $self->log( PROCESS, "Reaped child process $pid" );
             }
             $reap = 0;
         }
@@ -312,16 +336,16 @@ sub start {
     }
 
     # wait for remaining children
-    $self->log( 3, "Remaining kids: @kids" );
+    $self->log( PROCESS, "Remaining kids: @kids" );
     kill INT => @kids;
 
     while (@kids) {
         my $pid = wait;
         @kids = grep { $_ != $pid } @kids;
-        $self->log( 3, "Waited for child process $pid" );
+        $self->log( PROCESS, "Waited for child process $pid" );
     }
 
-    $self->log( 1, "Processed " . $self->conn . " connection(s)" );
+    $self->log( STATUS, "Processed " . $self->conn . " connection(s)" );
     return $self->conn;
 }
 
@@ -397,10 +421,10 @@ sub serve_connections {
 
     # Got a request?
     unless ( defined $req ) {
-        $self->log( 0, "($$) Getting request failed:", $conn->reason );
+        $self->log( ERROR, "($$) Getting request failed:", $conn->reason );
         return;
     }
-    $self->log( 1, "($$) Request:", $req->method . ' ' . $req->uri );
+    $self->log( STATUS, "($$) Request:", $req->method . ' ' . $req->uri );
 
     # can we forward this method?
     if ( !grep { $_ eq $req->method } @METHODS ) {
@@ -421,7 +445,7 @@ sub serve_connections {
     $self->request($req);
     $self->_filter_headers('request');
     $self->_filter_body('request');
-    $self->log( 5, "($$) Request:", $req->headers->as_string );
+    $self->log( HEADERS, "($$) Request:", $req->headers->as_string );
 
     # pop a response
     my ( $sent, $buf ) = ( 0, '' );
@@ -434,8 +458,8 @@ sub serve_connections {
             if ( !$sent ) {
                 $self->response($response);
                 $self->_filter_headers('response');
-                $self->log( 1, "($$) Response:", $response->status_line );
-                $self->log( 5, "($$) Response:",
+                $self->log( STATUS, "($$) Response:", $response->status_line );
+                $self->log( HEADERS, "($$) Response:",
                     $response->headers->as_string );
 
                 # send the headers
@@ -445,7 +469,7 @@ sub serve_connections {
             }
 
             # filter and send the data
-            $self->log( 6, "($$) Filter:",
+            $self->log( FILTER, "($$) Filter:",
                 "got " . length($data) . " bytes of body data" );
             $self->_filter_body( 'response', \$data, $proto );
             $conn->print($data);
@@ -477,8 +501,8 @@ sub serve_connections {
         }
         $conn->print( $response->content );
     }
-    $self->log( 1, "($$) Response:", $response->status_line );
-    $self->log( 5, "($$) Response:", $response->headers->as_string );
+    $self->log( STATUS, "($$) Response:", $response->status_line );
+    $self->log( HEADERS, "($$) Response:", $response->headers->as_string );
     $SIG{INT} = 'DEFAULT';
 }
 
@@ -787,8 +811,8 @@ sub _proxy_headers_filter {
 
 =item log( $level, $prefix, $message )
 
-Adds $message at the end of C<logfh>, if $level is greater than C<verbose>,
-the log() method also prints a timestamp.
+Adds $message at the end of C<logfh>, if $level matches C<logmask>.
+The log() method also prints a timestamp.
 
 The output looks like:
 
@@ -804,7 +828,7 @@ sub log {
     my $level = shift;
     my $fh    = $self->logfh;
 
-    return if $self->verbose < $level;
+    return unless $self->logmask & $level;
 
     my ( $prefix, $msg ) = ( @_, '' );
     my @lines = split /\n/, $msg;
@@ -818,6 +842,11 @@ sub log {
 =back
 
 =cut
+
+=head1 EXPORTED SYMBOLS
+
+No symbols are exported by default. The C<:log> tag exports all the
+logging constants.
 
 =head1 BUGS
 

@@ -1,8 +1,8 @@
 #!/usr/bin/perl -w
-use HTTP::Proxy;
+use HTTP::Proxy qw( :log );
 use strict;
 
 # a very simple proxy
 my $proxy = HTTP::Proxy->new;
-$proxy->verbose( shift || 0 );
+$proxy->logmask( shift || NONE );
 $proxy->start;
