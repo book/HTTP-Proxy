@@ -70,5 +70,9 @@ is( scalar @date, 1, "A single Date: header" );
 my @server = $res->headers->header('Server');
 is( scalar @server, 1, "A single Server: header" );
 
+# check the LWP Client-* headers are removed
+my @client = $res->headers->header('Client-Date');
+is( scalar @client, 0, "No Client-Date: header" );
+
 # make sure both kids are dead
 wait for @pids;
