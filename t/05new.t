@@ -1,4 +1,4 @@
-use Test::More tests => 9;
+use Test::More tests => 10;
 
 use HTTP::Proxy;
 
@@ -26,4 +26,9 @@ is( $proxy->host,    'foo', 'host set by new' );
 # check the accessors
 is( $proxy->verbose(0), 1, 'port accessor' );
 is( $proxy->verbose, 0, 'port changed by accessor' );
+
+# check a read-only accessor
+my $conn = $proxy->conn;
+$proxy->conn($conn + 100);
+is( $proxy->conn, $conn, 'read-only attribute' );
 
