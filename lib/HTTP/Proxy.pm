@@ -915,6 +915,9 @@ sub filter {
             $self->{buffers} = [ ( "" ) x @{ $self->{current} } ];
             $self->{buffers} = [ \( @{ $self->{buffers} } ) ];
         }
+
+        # start the filter if needed
+        for ( @{ $self->{current} } ) { $_->start if $_->can('start'); }
     }
 
     # pass the body data through the filter
@@ -923,6 +926,7 @@ sub filter {
         my ( $data, $message, $protocol ) = @_;
         for ( @{ $self->{current} } ) {
             $$data = ${ $self->{buffers}[$i] } . $$data;
+            ${ $self->{buffers}[ $i ] } = "";
             $_->filter( $data, $message, $protocol, $self->{buffers}[ $i++ ] );
         }
     }
@@ -939,7 +943,8 @@ sub filter_last {
     my $i = 0;
     my ( $data, $message, $protocol ) = @_;
     for ( @{ $self->{current} } ) {
-        $$data = ${ $self->{buffers}[ $i++ ] } . $$data;
+        $$data = ${ $self->{buffers}[ $i ] } . $$data;
+        ${ $self->{buffers}[ $i++ ] } = "";
         $_->filter( $data, $message, $protocol, undef );
     }
 
