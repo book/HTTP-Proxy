@@ -9,7 +9,7 @@ my $proxy = HTTP::Proxy->new();
 $proxy->logmask( shift || NONE );
 
 # all your base...
-my @ayb = split/$/m, << 'AYB';
+my @ayb = grep { $_ } split/$/m, << 'AYB';
 In A.D. 2101
 War was beginning.
 What happen ?
@@ -27,7 +27,7 @@ HA HA HA HA ....
 Take off every 'zig' !!
 You know what you doing.
 Move 'zig'.
-For great justice. 
+For great justice.
 AYB
 
 # the AYB parser
