@@ -48,3 +48,4 @@ t/90diveintomark.t
 t/README
 t/Utils.pm
 t/test.html
+META.yml                                 Module meta-data (added by MakeMaker)
