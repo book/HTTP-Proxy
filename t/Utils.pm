@@ -84,3 +84,23 @@ sub web_ok {
         HTTP::Request->new( GET => 'http://www.google.com/intl/en/' ) );
     return $res->is_success;
 }
+
+package HTTP::Proxy;
+
+# return the requested internal filter stack
+# _filter_stack( body|header, request|response, HTTP::Message )
+sub _filter_stack {
+    my ( $self, $part, $mesg ) = splice( @_, 0, 3 );
+    die "No <$part><$mesg> filter stack"
+      unless $part =~ /^(?:header|body)$/
+      and $mesg =~ /^(?:request|response)$/;
+
+    for (@_) {
+        die "$_ is not a HTTP::Request or HTTP::Response"
+          unless ( ref $_ ) =~ /^HTTP::(Request|Response)$/;
+        $self->{ lc $1 } = $_;
+    }
+    $self->{response}->request( $self->{request} );
+    return $self->{$part}{$mesg};
+}
+
