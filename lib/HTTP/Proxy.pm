@@ -322,6 +322,9 @@ sub start {
 sub init {
     my $self = shift;
 
+    # must be run only once
+    return if $self->{_init}++;
+
     $self->_init_daemon if ( !defined $self->daemon );
     $self->_init_agent  if ( !defined $self->agent );
 
@@ -330,9 +333,16 @@ sub init {
     $self->agent->agent('');    # for TRACE support
     $self->agent->protocols_allowed( [qw( http https ftp gopher )] );
 
-    # standard filters
-    $self->{headers}{request}  = [ [ sub { 1 }, \&_proxy_headers_filter ] ];
-    $self->{headers}{response} = [ [ sub { 1 }, \&_proxy_headers_filter ] ];
+    # standard header filters
+    $self->{headers}{request} = [ [ sub { 1 }, \&_proxy_headers_filter ] ];
+    $self->{headers}{response} = [
+        [ sub { 1 }, \&_proxy_headers_filter ],
+
+        # We do not support keep-alive connections for the moment
+        [ sub { 1 }, sub { $_[0]->header( Connection => 'close' ) } ]
+    ];
+
+    # standard bodyfilters
     $self->{body}{request}  = [];
     $self->{body}{response} = [];
 
@@ -429,22 +439,27 @@ sub serve_connections {
             }
 
             # filter and send the data
-            $self->log( 6, "($$) Filter: got ", length($data),
-                "bytes of data" );
+            $self->log( 6, "($$) Filter:",
+                "got " . length($data) . " bytes of body data" );
             $self->filter_body( 'response', \$data, $proto );
             $conn->print($data);
         },
         $self->chunk
     );
 
+    # only success (2xx) responses are filtered
+    if ( !$response->is_success ) {
+        $self->response($response);
+        $self->filter_headers('response');
+        $self->log( 1, "($$) Response:", $response->status_line );
+        $self->log( 5, "($$) Response:", $response->headers->as_string );
+    }
+
     # what about X-Died and X-Content-Range?
 
     $SIG{INT} = 'DEFAULT', return if $sent;
 
   SEND:
-
-    # We do not support keep-alive connection for the moment
-    $response->headers->header( Connection => 'close' );
 
     # send the response
     if ( $req->uri->scheme =~ /^(?:ftp|gopher)$/ && $response->is_success ) {
@@ -608,7 +623,7 @@ sub _push_filter {
     if ( defined $mime && $mime ne '' ) {
         $mime =~ m!/! or croak "Invalid MIME type definition: $mime";
         $mime =~ s/\*/$RX{token}/;    #turn it into a regex
-        $mime = qr/^$arg{mime}/;
+        $mime = qr/^$mime/;
     }
 
     my @method = split /\s*,\s*/, $method;
@@ -708,7 +723,7 @@ sub _proxy_headers_filter {
     my ( $headers, $message ) = @_;
 
     # the Via: header
-    my $via = $message->protocol();
+    my $via = $message->protocol() || '';
     if ( $via =~ s!HTTP/!! ) {
         $via .= " " . hostname() . " (HTTP::Proxy/$VERSION)";
         $message->headers->header(
