@@ -11,6 +11,7 @@ eg/js.pl
 eg/leet.pl
 eg/logger.pl
 eg/outline.pl
+eg/pdf.pl
 eg/post.pl
 eg/proxy-auth.pl
 eg/proxy.pl
@@ -35,10 +36,11 @@ lib/HTTP/Proxy/HeaderFilter/simple.pm
 lib/HTTP/Proxy/HeaderFilter/standard.pm
 Makefile.PL
 MANIFEST			This list of files
-META.yml			Module meta-data (added by MakeMaker)
+META.yml
 README
 t/00basic.t
 t/01pod.t
+t/02pod-coverage.t
 t/05new.t
 t/10init.t
 t/15accessors.t
