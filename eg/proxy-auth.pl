@@ -1,6 +1,7 @@
 #!/usr/bin/perl -w
 use HTTP::Proxy qw( :log );
 use HTTP::Proxy::HeaderFilter::simple;
+use MIME::Base64 qw( encode_base64 );
 use strict;
 
 # the encoded user:password pair
