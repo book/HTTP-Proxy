@@ -18,7 +18,9 @@ my $proxy = HTTP::Proxy->new(
     maxchild => 0,
     maxconn  => 2,
 );
+
 $proxy->init;
+$proxy->agent->proxy( http => "" );
 $proxy->push_filter( response => $filter );
 my $url = $proxy->url;
 
