@@ -4,12 +4,10 @@ TODO
 Here are all the features I plan to add to HTTP::Proxy, in the form of a
 roadmap.
 
-ASAP
- - better connection handling
- - I suppose this means looking at the Connection: headers
-   in both the request and the response
+Things are listed by big features, since I seem to be unable to follow
+my own roadmaps. :-/
 
-Version 0.05
+* Proxy Control
  - Control the proxy via specific URIs
  - Commands are called asking for http://proxy/cmd
    (the host part of the URI should be configurable)
@@ -30,40 +28,21 @@ Version 0.05
  - the parent process preforks children, when a control URL is requested
    the child can write data to a special file/pipe and kill HUP the
    parent so that it reads the new information
+ => control system probably means having a HTTP::Proxy::Control module...
 
-Version 0.06
- - insert callbacks/filters in the various stages of the process
-   => to modify the client request
-   => to modify the server answer
- - filters depend on MIME type for responses
-   => text/html
-   => text/*
- - these filters should be stackable
-   => push_request_filter( \&callback )
-   => push_response_filter( 'text/html' => \&callback )
-   => other ways to access both stacks?
- - maybe store them like this:
-   $filters->{scheme}{mime_rx}{authority_rx}{path_rx} = coderef
-   all the *_rx keys would be regexen, so that for a response
-   that matches the scheme and the 3 regex, the code is run
-   => filters are applied one over the other... in which order ?
-   => maybe arrays are better than hashes, since we can at least keep
-      the order in which the filters were pushed, and we still have
-      to match against the whole list
+* Filters
+ - filters cause several problems: the biggest being that, if they
+   change the data size, they should update the Content-Lenght header
+ - the filters to apply to a specific request or response can be
+   determined from the headers, there is no need to go through the
+   whole list of filters each time.
+ - unfiltered response body should be send on the fly, while response
+   that are to be filtered should be held in custody until fully
+   received and modified. Once the whole response is ready, the
+   filter can update the Content-Length: header.
+   
 
-   my $filters = $self->filters;
-   # this scheme's filters
-   for my $sc (grep { $req->uri->scheme =~ $_->[0] } @$filters){
-       for my $auth (grep { $req->uri->authority =~ $_->[0] } @$sc) {
-           for my $path (grep { $req->uri->path =~ $_->[0] } @auth {
-              # run all the filters one after the other
-           }
-       }
-   }
-
-
-
-Version 0.07
+* On the fly forwarding
  - handle big responses (>1Mb) with the LWP::UA callback system
    => short responses are concatenated together in a simple scalar,
       that gets filtered at the end
@@ -71,23 +50,36 @@ Version 0.07
       client. Since only chunks of the response are filtered, this can
       result in badly filtered data (I don't think we can do anything
       about it...)
+ - this works, but we *have* a problem with Content-Length:
+ - I suppose there is a problem also with gzip Transfered files, if
+   we forward them as is, we can't filter them (need to think more
+   about that)
 
-Version 0.08
+* record sessions
+ - the logs are not enough
+ - we want to be able to completely store a browsing session, probably
+   as a tree, for example to use them as a base for WWW::Mechanize::Builder
+
+* https and CONNECT support
  - proxy a https site, so as to filter and record, just as we do for
    http requests.
+ - specifi URLs ?
    => example: http://proxy/https://www.secure.com:443/index.html
    => This kind of stuff requires some content rewriting...
 
-Later...
+* support keep-alive with the client
  - make use of the keep-alive capabilities of LWP::UserAgent
    => one subprocess should accept a predefined number of requests
       (or all of them until it dies)
  - better handling of broken connection (from the client)
- - same for FTP? how is FTP handled by LWP::UserAgent?
-   => what kind of data is returned? HTML? how?
+
+* other protocols
+ - support for ftp
  - support for gopher 
    gopher://gopher.tc.umn.edu/
    gopher://marvel.loc.gov/
+
+* special headers
  - support for hop by hop headers :
    => Connection, Keep-Alive, Proxy-Authenticate, Proxy-Authorization, TE,
       Trailers, Transfer-Encoding, Upgrade
