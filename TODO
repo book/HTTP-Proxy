@@ -7,4 +7,15 @@ Here are all the features I plan to add to HTTP::Proxy
    (e.g. http://proxy/start_recording)
  - insert callbacks in the various stages of the process
  - become a POE component
+ - remove forking
+ - proxy a https site
+   http://proxy-https/www.secure.com:80/index.html
+ - commands are prefixed by proxy-xxx
+   * proxy-status => some debug information
+   * proxy-config => live config management (not for forked stuff)
 
+Useful documentation
+
+http://www.stonehenge.com/merlyn/WebTechniques/col11.html
+http://www.foad.org/~abigail/Perl/proxy.pl
+http://rgarciasuarez.free.fr/perl/biscuit
