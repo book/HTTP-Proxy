@@ -19,3 +19,4 @@ CVS/.*
 ^Build$
 ^cover_db/
 ^_build/
+^talks/
