@@ -57,3 +57,10 @@ The eg/ directory holds a few example proxies.
    Filters: HTTP::Proxy::HeaderFilter::simple
             HTTP::Proxy::BodyFilter::simple
 
+ * trim.pl
+
+   A simple proxy that trims lines of HTML text.
+
+   Filters: HTTP::Proxy::BodyFilter::lines
+            HTTP::Proxy::BodyFilter::simple
+
