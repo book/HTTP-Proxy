@@ -175,8 +175,8 @@ sub start {
             # the child process handles the whole connection
             else {
                 $SIG{INT} = 'DEFAULT';
-                $fh->close;
                 $self->serve_connections($conn);
+                $fh->close;
                 exit;    # let's die!
             }
         }
