@@ -3,6 +3,7 @@ package HTTP::Proxy;
 use HTTP::Daemon;
 use LWP::UserAgent;
 use LWP::ConnCache;
+use CGI;
 use Fcntl ':flock';    # import LOCK_* constants
 use Carp;
 
@@ -52,6 +53,7 @@ sub new {
     # some defaults
     my $self = {
         agent    => undef,
+        control  => 'proxy',
         daemon   => undef,
         host     => 'localhost',
         maxchild => 16,
@@ -63,9 +65,20 @@ sub new {
     };
 
     # non modifiable defaults
-    %$self = ( %$self, conn => 0 );
-    return bless $self, $class;
+    %$self = ( %$self, conn => 0, loop => 1 );
+    bless $self, $class;
+
+    # ugly way to set control_regex
+    $self->control( $self->control );
+
+    return $self;
 }
+
+# AUTOLOADed attributes
+my $all_attr = qr/^(?:agent|conn|control_regex|daemon|host|logfh|loop|
+                      maxchild|maxconn|port|verbose)$/x;
+# read-only attributes
+my $ro_attr = qr/^(?:conn|control_regex|loop)$/;
 
 =head2 Accessors
 
@@ -89,6 +102,27 @@ The LWP::UserAgent object used internally to connect to remote sites.
 =item conn (read-only)
 
 The number of connections processed by this HTTP::Proxy instance.
+
+=item control
+
+The default hostname for controlling the proxy (see L<CONTROL>).
+The default is "C<proxy>", which corresponds to the URL
+http://proxy/, where port is the listening port of the proxy).
+
+=cut
+
+sub control {
+    my $self = shift;
+    my $old  = $self->{control};
+    if (@_) {
+        my $control = shift;
+        $self->{control}       = $control;
+        $self->{control_regex} = qr!^http://$control(?:/(\w+))?!;
+    }
+    return $old;
+}
+
+# control_regex is private
 
 =item daemon
 
@@ -150,14 +184,11 @@ sub AUTOLOAD {
     my $attr = $1;
 
     # must be one of the registered subs
-    if (
-        $attr =~ /^(?:agent|daemon|host|maxconn|maxchild
-                      |logfh|port|conn|verbose)$/x
-      )
+    if ( $attr =~ $all_attr)
     {
         no strict 'refs';
         my $rw = 1;
-        $rw = 0 if $attr =~ /^(?:conn)$/;
+        $rw = 0 if $attr =~ $ro_attr;
 
         # create and register the method
         *{$AUTOLOAD} = sub {
@@ -191,7 +222,7 @@ sub start {
     my $reap;
     $SIG{CHLD} = sub { $reap++ };
     my $daemon = $self->daemon;
-    while ( my $conn = $daemon->accept ) {
+    while ( $self->loop and my $conn = $daemon->accept ) {
         my $child = fork;
         if ( !defined $child ) {
 
@@ -226,11 +257,17 @@ sub start {
     return $self->conn;
 }
 
+# semi-private init method
 sub init {
     my $self = shift;
 
     $self->_init_daemon if ( !defined $self->daemon );
     $self->_init_agent  if ( !defined $self->agent );
+
+    # specific agent config
+    $self->agent->requests_redirectable( [] );
+    $self->agent->protocols_forbidden(
+        [ @{ $self->agent->protocols_forbidden || [] }, 'mailto', 'file' ] );
     return;
 }
 
@@ -258,7 +295,6 @@ sub _init_agent {
     my $agent = LWP::UserAgent->new(
         env_proxy             => 1,
         keep_alive            => 2,
-        requests_redirectable => [],
       )
       or die "Cannot initialize proxy agent: $!";
     $self->agent($agent);
@@ -267,25 +303,48 @@ sub _init_agent {
 
 =head2 Other methods
 
+=over 4
+
 =cut
 
 sub process {
     my ( $self, $conn ) = @_;
+    my $response;
     while ( my $req = $conn->get_request() ) {
         unless ( defined $req ) {
             $self->log( 0, "Getting request failed:", $conn->reason );
-            return;
+            redo; # does not execute the continue block
         }
         $self->log( 1, "($$) Request: " . $req->uri );
         $self->log( 5, "($$) Request: " . $req->headers->as_string );
 
+        # can we serve this protocol?
+        if ( !$self->agent->is_protocol_supported( my $s = $req->uri->scheme ) )
+        {
+            $response = new HTTP::Response( 501, 'Not Implemented' );
+            $response->content(
+                "Scheme $s is not supported by the proxy's LWP::UserAgent");
+            next;
+        }
+
         # handle the Connection: header from the request
-        my $res = $self->agent->simple_request($req);
-        $conn->print( $res->as_string );
-        $self->log( 1, "($$) Response: " . $res->status_line );
-        $self->log( 5, "($$) Response: " . $res->headers->as_string );
+        $response = $self->agent->simple_request($req);
+    }
+    continue {
+
+        # send the response
+        $conn->print( $response->as_string );
+        $self->log( 1, "($$) Response: " . $response->status_line );
+        $self->log( 5, "($$) Response: " . $response->headers->as_string );
     }
 }
+
+=item log( $level, $message )
+
+Adds $message at the end of C<logfh>, if $level is greater than C<verbose>,
+the log() method also prints a timestamp.
+
+=cut
 
 sub log {
     my $self  = shift;
@@ -298,6 +357,8 @@ sub log {
     print $fh "[" . localtime() . "] $_\n" for @_;
     flock( $fh, LOCK_UN );
 }
+
+=back
 
 =head2 Callbacks
 
@@ -317,8 +378,6 @@ Some connections to the client are never closed.
 
 * Provide an interface for logging.
  
-* Remove forking, so that all data is in one place
-
 * Provide control over the proxy through special URLs
 
 =head1 AUTHOR
