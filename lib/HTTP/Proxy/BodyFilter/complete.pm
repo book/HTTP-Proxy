@@ -7,6 +7,18 @@ use vars qw( @ISA );
 @ISA = qw( HTTP::Proxy::BodyFilter );
 use Carp;
 
+sub filter {
+    my ( $self, $dataref, $message, $protocol, $buffer ) = @_;
+    return unless defined $buffer;
+
+    $$buffer  = $$dataref;
+    $$dataref = "";
+}
+
+1;
+
+__END__
+
 =head1 NAME
 
 HTTP::Proxy::BodyFilter::complete - A filter that passes on a complete body or nothing
@@ -52,15 +64,18 @@ This consumes memory and time.
 Use with caution, otherwise your client will timeout, or your proxy will
 run out of memory.
 
-=cut
+=head1 METHOD
 
-sub filter {
-    my ( $self, $dataref, $message, $protocol, $buffer ) = @_;
-    return unless defined $buffer;
+This filter has only one method, called automatically:
 
-    $$buffer  = $$dataref;
-    $$dataref = "";
-}
+=over 4
+
+=item filter()
+
+Stores the incoming data in memory until the last moment. The data
+is then released to the subsequent filters in the chain.
+
+=back
 
 =head1 AUTHOR
 
@@ -69,11 +84,11 @@ Philippe "BooK" Bruhat, E<lt>book@cpan.orgE<gt>.
 =head1 THANKS
 
 Thanks to Simon Cozens and Merijn H. Brandt, who needed this almost at
-the same time. ;-)
+the same time. C<;-)>
 
 =head1 COPYRIGHT
 
-Copyright 2004, Philippe Bruhat
+Copyright 2004-2005, Philippe Bruhat.
 
 =head1 LICENSE
 
@@ -81,6 +96,4 @@ This module is free software; you can redistribute it or modify it under
 the same terms as Perl itself.
 
 =cut
-
-1;
 

@@ -6,6 +6,55 @@ use HTTP::Proxy::BodyFilter;
 use vars qw( @ISA );
 @ISA = qw( HTTP::Proxy::BodyFilter );
 
+sub init {
+    my $self = shift;
+
+    croak "slurp mode is not supported. Use HTTP::Proxy::BodyFilter::store."
+      if @_ && not defined $_[0];
+
+    my $eol = @_ ? $_[0] : "\n"; # FIXME shouldn't this be $/?
+    if ( ref $eol eq 'SCALAR' ) {
+        local $^W;
+        croak qq'"$$eol" is not numeric' if $$eol ne ( 0 + $$eol );
+        croak "Records of size 0 are not supported" if $$eol == 0;
+    }
+    $self->{eol} = $eol;
+}
+
+sub filter {
+    my ( $self, $dataref, $message, $protocol, $buffer ) = @_;
+    return if not defined $buffer;    # last "lines"
+
+    my $eol = $self->{eol};
+    if ( $eol eq "" ) {               # paragraph mode
+        # if $$dataref ends with \n\n, we cannot know if there are
+        # more white lines at the beginning of the next chunk of data
+        $$dataref =~ /^(.*\n\n)([^\n].*)/sg;
+        ( $$dataref, $$buffer) = defined $1 ? ($1, $2) : ("", $$dataref);
+    }
+    elsif ( ref $eol eq 'SCALAR' ) {    # record mode
+        my $idx = length($$dataref) - length($$dataref) % $$eol;
+        $$buffer = substr( $$dataref, $idx );
+        $$dataref = substr( $$dataref, 0, $idx );
+    }
+    else {
+        my $idx = rindex( $$dataref, $eol );
+        if ( $idx == -1 ) {
+            $$buffer  = $$dataref;      # keep everything for later
+            $$dataref = '';
+        }
+        else {
+            $idx += length($eol);
+            $$buffer = substr( $$dataref, $idx );
+            $$dataref = substr( $$dataref, 0, $idx );
+        }
+    }
+}
+
+1;
+
+__END__
+
 =head1 NAME
 
 HTTP::Proxy::BodyFilter::lines - A filter that outputs only complete lines
@@ -49,52 +98,25 @@ Note that the "slurp" mode is not supported. Please use
 HTTP::Proxy::BodyFilter::complete to enable the generic store and forward
 filter mechanism.
 
-=cut
+=head1 METHODS
 
-sub init {
-    my $self = shift;
+This filter defines the following methods, which are automatically called:
 
-    croak "slurp mode is not supported. Use HTTP::Proxy::BodyFilter::store."
-      if @_ && not defined $_[0];
+=over 4
 
-    my $eol = @_ ? $_[0] : "\n";
-    if ( ref $eol eq 'SCALAR' ) {
-        local $^W;
-        croak qq'"$$eol" is not numeric' if $$eol ne ( 0 + $$eol );
-        croak "Records of size 0 are not supported" if $$eol == 0;
-    }
-    $self->{eol} = $eol;
-}
+=item init()
 
-sub filter {
-    my ( $self, $dataref, $message, $protocol, $buffer ) = @_;
-    return if not defined $buffer;    # last "lines"
+Initialise the filter with the EOL information.
 
-    my $eol = $self->{eol};
-    if ( $eol eq "" ) {               # paragraph mode
-        # if $$dataref ends with \n\n, we cannot know if there are
-        # more white lines at the beginning of the next chunk of data
-        $$dataref =~ /^(.*\n\n)([^\n].*)/sg;
-        ( $$dataref, $$buffer) = defined $1 ? ($1, $2) : ("", $$dataref);
-    }
-    elsif ( ref $eol eq 'SCALAR' ) {    # record mode
-        my $idx = length($$dataref) - length($$dataref) % $$eol;
-        $$buffer = substr( $$dataref, $idx );
-        $$dataref = substr( $$dataref, 0, $idx );
-    }
-    else {
-        my $idx = rindex( $$dataref, $eol );
-        if ( $idx == -1 ) {
-            $$buffer  = $$dataref;      # keep everything for later
-            $$dataref = '';
-        }
-        else {
-            $idx += length($eol);
-            $$buffer = substr( $$dataref, $idx );
-            $$dataref = substr( $$dataref, 0, $idx );
-        }
-    }
-}
+=item filter()
+
+Keeps unfinished lines for later.
+
+=back
+
+=head1 SEE ALSO
+
+L<HTTP::Proxy>, L<HTTP::Proxy::BodyFilter>.
 
 =head1 AUTHOR
 
