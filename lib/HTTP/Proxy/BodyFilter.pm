@@ -12,12 +12,10 @@ HTTP::Proxy::BodyFilter - A base class for HTTP messages body filters
 
     use base qw( HTTP::Proxy::BodyFilter );
 
-    # changes the User-Agent header in all requests
-    # this filter must be pushed on the request stack
+    # a simple modification, that may break things
     sub filter {
-        my ( $self, $headers, $message ) = @_;
-
-        $message->headers->header( User_Agent => 'MyFilter/1.0' );
+        my ( $self, $dataref, $message, $protocol, $buffer ) = @_;
+        $$dataref =~ s/PERL/Perl/g;
     }
     
     1;
