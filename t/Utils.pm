@@ -81,7 +81,7 @@ sub web_ok {
     my $ua = LWP::UserAgent->new( env_proxy => 1, timeout => 30 );
     my $res =
       $ua->request(
-        HTTP::Request->new( GET => 'http://www.google.com/intl/en/' ) );
+        HTTP::Request->new( GET => shift||'http://www.google.com/intl/en/' ) );
     return $res->is_success;
 }
 
