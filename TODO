@@ -1,20 +1,68 @@
 TODO
+----
 
-Here are all the features I plan to add to HTTP::Proxy
+Here are all the features I plan to add to HTTP::Proxy, in the form of a
+roadmap.
 
- - Browsing recording in a tree-like structure (thanks to Referer:)
+ASAP
+ - better connection handling
+ - I suppose this means looking at the Connection: headers
+   in both the request and the response
+
+Version 0.03
  - Control the proxy via specific URIs
-   (e.g. http://proxy/start_recording)
- - insert callbacks in the various stages of the process
- - become a POE component
- - remove forking
- - proxy a https site
-   http://proxy-https/www.secure.com:80/index.html
- - commands are prefixed by proxy-xxx
-   * proxy-status => some debug information
-   * proxy-config => live config management (not for forked stuff)
+ - Commands are called asking for http://proxy/cmd
+   (the host part of the URI should be configurable)
+   where cmd is a key to a dispatch table
+ - Example commands
+   * status => return some debug information
+   * config => live config management (uses forms)
+   * should be able to add more in inheriting classes
+     => as an example, we could rewrite RGS's biscuit script
+ - all this requires CGI/HTML, which I don't want to write or maintain
+   the program should automatically create the configuration forms
+   and handle the HTML/CSS stuff
+ - configuration commands are handled by the parent process, so that
+   future forked process obey the new configuration
+ - how do subclassed HTTP::Proxy modules handle this?
+ - can someone add his own commands by modifying either the class or
+   the instance dispatch table?
 
-Useful documentation
+Version 0.04
+ - insert callbacks/filters in the various stages of the process
+   => to modify the client request
+   => to modify the server answer
+ - filters depend on MIME type for responses
+   => text/html
+   => text/*
+ - these filters should be stackable
+   => push_request_filter( \&callback )
+   => push_response_filter( 'text/html' => \&callback )
+   => other ways to access both stacks?
+
+Version 0.05
+ - handle big responses (>1Mb) with the LWP::UA callback system
+   => short responses are concatenated together in a simple scalar,
+      that gets filtered at the end
+   => longer responses are filtered on the fly and sent as-is to the
+      client. Since only chunks of the response are filtered, this can
+      result in badly filtered data (I don't think we can do anything
+      about it...)
+
+Version 0.06
+ - proxy a https site, so as to filter and record, just as we do for
+   http requests.
+   => example: http://proxy/https://www.secure.com:443/index.html
+
+
+Better left to other modules
+ - Browsing recording in a tree-like structure (thanks to Referer:)
+   => maybe that should be left to a WWW::Mechanize::Builder module
+ - become a POE component (OK, maybe that's another project)
+   => POE::Component::?::?
+
+
+Useful documentation:
 
 http://www.stonehenge.com/merlyn/WebTechniques/col11.html
 http://www.foad.org/~abigail/Perl/proxy.pl
