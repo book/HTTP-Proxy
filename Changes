@@ -1,11 +1,12 @@
 Revision history for Perl extension HTTP::Proxy
 
-0.03  
+0.03  Fri Nov 29 11:17:36 CET 2002
         - url() method gives a url to reach the proxy
         - new 'control' attribute defines the control URL
         - better subprocess management by preforking child processes
         - a children handles only one request at a time, for better
           performance (this means we only to HTTP/1.0 for now)
+        - correctly handle the Proxy-Connection and Connection headers
 
 0.02  Thu Oct 24 23:45:08 CEST 2002
         - the system now forks to handle several connections
