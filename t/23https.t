@@ -11,9 +11,13 @@ my $test = Test::Builder->new;
 $test->use_numbers(0);
 $test->no_ending(1);
 
+SKIP: {
+    eval "require Crypt::SSLeay;"
+    skip "Crypt::SSLeay not installed", 1 if $@;
+
 my $proxy = HTTP::Proxy->new( port => 0, maxconn => 1, logmask => 63 );
 
-# Excerpts from the Crytp::SSLeay documentation
+# Excerpts from the Crypt::SSLeay documentation
 # ---------------------------------------------
 # LWP::UserAgent and Crypt::SSLeay have their own versions of proxy support.
 #
@@ -61,6 +65,8 @@ my $res = $ua->request($req);
 
 # make sure the kid is dead
 wait;
+
+}
 
 # tests with lwp-request:
 # HTTPS_PROXY=http://localhost:8080/ \
