@@ -114,7 +114,7 @@ sub AUTOLOAD {
 
     # must be one of the registered subs
     if ( $attr =~ /^(?:agent|daemon|host|maxconn
-                      |port|conn|verbose)$/x
+                      |logfh|port|conn|verbose)$/x
       )
     {
         no strict 'refs';
@@ -162,14 +162,14 @@ sub start {
 }
 
 #
-# init methiods
+# init methods
 #
 
 sub init {
     my $self = shift;
 
-    $self->init_daemon if ( !defined $self->agent );
-    $self->init_agent  if ( !defined $self->daemon );
+    $self->init_daemon if ( !defined $self->daemon );
+    $self->init_agent  if ( !defined $self->agent );
 }
 
 sub init_daemon {
@@ -208,7 +208,7 @@ sub process {
             return;
         }
         $self->log( "Request:\n" . $req->as_string );
-        my $res = $self->{agent}->send_request($req);
+        my $res = $self->agent->send_request($req);
         $conn->print( $res->as_string );
         $self->log( "Response:\n" . $res->headers->as_string );
     }
@@ -216,7 +216,7 @@ sub process {
 
 sub log {
     my $self = shift;
-    print { $self->{logfh} } "[" . localtime() . "] @_\n";
+    print { $self->logfh } "[" . localtime() . "] @_\n";
 }
 
 =head2 Callbacks
