@@ -333,6 +333,9 @@ sub serve_connections {
             goto SEND;
         }
 
+        # select the request filters
+        $self->{$_}{request}->select_filters( $req ) for qw( headers body );
+
         # massage the request
         $self->{headers}{request}->filter( $req->headers, $req );
 
@@ -364,6 +367,11 @@ sub serve_connections {
                 if ( !$sent ) { 
                     $sent++;
                     $self->response( $response );
+                    
+                    # select the response filters
+                    $self->{$_}{response}->select_filters( $response )
+                      for qw( headers body );
+
                     $self->{headers}{response}
                          ->filter( $response->headers, $response );
                     ( $last, $chunked ) =
@@ -743,12 +751,12 @@ sub all    { return @{ $_[0]->{filters} }; }
 sub active { return @{ $_[0]->{current} }; }
 
 #
-# the actual filtering is done here
+# select the filters that will be used on the message
 #
-sub filter {
-    my $self = shift;
+sub select_filters {
+    my ($self, $message ) = @_;
 
-    # first time we're called
+    # first time we're called this round
     if ( not defined $self->{current} ) {
 
         # select the filters that match
@@ -763,13 +771,20 @@ sub filter {
 
         # start the filter if needed (and pass the message)
         for ( @{ $self->{current} } ) {
-            if    ( $_->can('begin') ) { $_->begin( $_[1] ); }
+            if    ( $_->can('begin') ) { $_->begin( $message ); }
             elsif ( $_->can('start') ) {
                 $_->proxy->log( HTTP::Proxy::ERROR, "DEPRECATION", "The start() filter method is *deprecated* and will go away in 0.15!\nStart s/start/begin/g in your filters!" );
                 $_->start( $_[1] );
             }
         }
     }
+}
+
+#
+# the actual filtering is done here
+#
+sub filter {
+    my $self = shift;
 
     # pass the body data through the filter
     if ( $self->{body} ) {
