@@ -1,5 +1,17 @@
 Revision history for Perl extension HTTP::Proxy
 
+0.12
+        [ENHANCEMENTS]
+        - send the error message to the client when the Proxy agent dies
+          (usually because of a filter error)
+        [FIXES]
+        - do not block simultaneous connections when not forking
+        - clean up the filter chain after the body-request filters
+        - ensure the filter stack is reinitialised between requests
+        [EXAMPLES]
+        - eg/post.pl   - outputs the URI and parameters of all POST requests
+        - eg/logger.pl - outputs details of GET and POST requests
+
 0.11  Fri Jan  2 17:02:08 CET 2004
         [ENHANCEMENTS]
         - setting maxchild to 0 prevents forking (Jim Cromie)
