@@ -3,7 +3,9 @@ package HTTP::Proxy::HeaderFilter::standard;
 use strict;
 use HTTP::Proxy;
 use HTTP::Headers::Util qw( split_header_words );
-use base qw( HTTP::Proxy::HeaderFilter );
+use HTTP::Proxy::HeaderFilter;
+use vars qw( @ISA );
+@ISA = qw( HTTP::Proxy::HeaderFilter );
 
 # known hop-by-hop headers
 my %hopbyhop = map { $_ => 1 }

@@ -2,7 +2,9 @@ package HTTP::Proxy::HeaderFilter::simple;
 
 use strict;
 use Carp;
-use base qw( HTTP::Proxy::HeaderFilter );
+use HTTP::Proxy::HeaderFilter;
+use vars qw( @ISA );
+@ISA = qw( HTTP::Proxy::HeaderFilter );
 
 =head1 NAME
 

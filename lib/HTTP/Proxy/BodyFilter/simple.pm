@@ -2,7 +2,9 @@ package HTTP::Proxy::BodyFilter::simple;
 
 use strict;
 use Carp;
-use base qw( HTTP::Proxy::BodyFilter );
+use HTTP::Proxy::BodyFilter;
+use vars qw( @ISA );
+@ISA = qw( HTTP::Proxy::BodyFilter );
 
 =head1 NAME
 

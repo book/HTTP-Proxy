@@ -2,7 +2,9 @@ package HTTP::Proxy::BodyFilter::save;
 
 use strict;
 use HTTP::Proxy;
-use base qw( HTTP::Proxy::BodyFilter );
+use HTTP::Proxy::BodyFilter;
+use vars qw( @ISA );
+@ISA = qw( HTTP::Proxy::BodyFilter );
 use Fcntl;
 use File::Spec;
 use File::Path;
