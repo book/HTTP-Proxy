@@ -8,17 +8,13 @@ help users create web robots, web testing suites, as well as proxy
 systems than can transparently alter the requests to and answers from
 an origin server.
 
-The eg/ directory holds a few examples:
-- proxy.pl (simple proxy)
-- anonymiser.pl (basic anonymising proxy)
-- leet.pl (leet speak)
-- outline.pl (keeps only the outline of web pages)
-- rainbow.pl (the hippie browsing experience)
-- rot13.pl (simple encryption for web pages)
+The eg/ directory holds a few examples. See eg/README for details.
+
+There is also a t/README file that explains the tests strategy.
 
 !WARNING!WARNING!WARNING!WARNING!WARNING!WARNING!WARNING!WARNING!
 
-The way the filters are implemented has changed in this version
+The way the filters are implemented has changed in version 0.10
 of HTTP::Proxy. You can now play with two dedicated filter classes
 and notice slight changes in the HTTP::Proxy interface.
 
