@@ -5,7 +5,6 @@ use LWP::UserAgent;
 use LWP::ConnCache;
 use Fcntl ':flock';         # import LOCK_* constants
 use POSIX ":sys_wait_h";    # WNOHANG
-use Sys::Hostname;
 use IO::Select;
 use Carp;
 
@@ -19,9 +18,12 @@ require Exporter;
 @EXPORT_OK = qw( NONE ERROR STATUS PROCESS CONNECT HEADERS FILTER ALL );
 %EXPORT_TAGS = ( log => [@EXPORT_OK] );    # only one tag
 
-$VERSION = 0.09;
+$VERSION = '0.10';
 
 my $CRLF = "\015\012";                     # "\r\n" is not portable
+
+# standard filters
+require HTTP::Proxy::HeaderFilter::standard;    # needs $VERSION
 
 # constants used for logging
 use constant ERROR   => -1;
@@ -368,11 +370,14 @@ sub init {
     # standard header filters
     $self->{headers}{request}  = HTTP::Proxy::FilterStack->new;
     $self->{headers}{response} = HTTP::Proxy::FilterStack->new;
-    $self->{headers}{request}->push(  [ sub { 1 }, \&_proxy_headers_filter ] );
-    $self->{headers}{response}->push( [ sub { 1 }, \&_proxy_headers_filter ] );
+
+    # the same standard filter is used to handle headers
+    my $std = HTTP::Proxy::HeaderFilter::standard->new();
+    $self->{headers}{request}->push(  [ sub { 1 }, $std ] );
+    $self->{headers}{response}->push( [ sub { 1 }, $std ] );
 
     # standard body filters
-    $self->{body}{request}  = HTTP::Proxy::FilterStack->new;
+    $self->{body}{request}  = HTTP::Proxy::FilterStack->new(1);
     $self->{body}{response} = HTTP::Proxy::FilterStack->new(1);
 
     return;
@@ -763,41 +768,6 @@ sub push_headers_filter { _push_filter( @_, part => 'headers' ); }
 
 sub push_body_filter { _push_filter( @_, part => 'body' ); }
 
-# standard proxy header filter (RFC 2616)
-sub _proxy_headers_filter {
-    my ( $headers, $message ) = @_;
-
-    # the Via: header
-    my $via = $message->protocol() || '';
-    if ( $via =~ s!HTTP/!! ) {
-        $via .= " " . hostname() . " (HTTP::Proxy/$VERSION)";
-        $message->headers->header(
-            Via => join ', ',
-            $message->headers->header('Via') || (), $via
-        );
-    }
-
-    # remove some headers
-    for (
-
-        # LWP::UserAgent Client-* headers
-        qw( Client-Aborted Client-Bad-Header-Line Client-Date Client-Junk
-        Client-Peer Client-Request-Num Client-Response-Num
-        Client-SSL-Cert-Issuer Client-SSL-Cert-Subject Client-SSL-Cipher
-        Client-SSL-Warning Client-Transfer-Encoding Client-Warning ),
-
-        # hop-by-hop headers (for now)
-        qw( Connection Keep-Alive TE Trailers Transfer-Encoding Upgrade
-        Proxy-Connection Proxy-Authenticate Proxy-Authorization Public ),
-
-        # no encoding accepted (gzip, compress, deflate)
-        qw( Accept-Encoding ),
-      )
-    {
-        $message->headers->remove_header($_);
-    }
-}
-
 =item log( $level, $prefix, $message )
 
 Adds $message at the end of C<logfh>, if $level matches C<logmask>.
@@ -876,13 +846,19 @@ the same terms as Perl itself.
 # This is an internal class to work more easily with filter stacks
 #
 # Here's a description of the class internals
-# - filters: the actual filter stack
-# - current: the list of filters that match the message, and trhough which
-#            it must go (computed at the first call to filter())
+# - filters: the list of (sub, filter) pairs that match the message,
+#            and through which it must go
+# - current: the actual list of filters, which is computed during
+#            the first call to filter()
 # - buffers: the buffers associated with each (selected) filter
-# - body   : true if it's a message-body filter stack
+# - body   : true if it's a HTTP::Proxy::BodyFilter stack
 #
+# a filter is actually a (matchsub, filterobj) pair
+# the matchsub is run againt the HTTP::Message object to find out if
+# the filter must be applied to it
 package HTTP::Proxy::FilterStack;
+
+use Carp;
 
 #
 # new( $isbody )
@@ -895,14 +871,17 @@ sub new {
         buffers => [],
         current => undef,
     };
+    $self->{type} = $self->{body} ? "HTTP::Proxy::BodyFilter"
+                                  : "HTTP::Proxy::HeaderFilter";
     return bless $self, $class;
 }
 
 #
-# insert( $index, $matchsub, $filtersub )
+# insert( $index, [ $matchsub, $filter ], ...)
 #
 sub insert {
     my ( $self, $idx ) = ( shift, shift );
+    $_->[1]->isa( $self->{type} ) or croak("$_ is not a $self->{type}") for @_;
     splice @{ $self->{filters} }, $idx, 0, @_;
 }
 
@@ -914,11 +893,17 @@ sub remove {
     splice @{ $self->{filters} }, $idx, 1;
 }
 
-# some simple stuff
+# 
+# push( [ $matchsub, $filter ], ... )
+# 
 sub push {
     my $self = shift;
+    $_->[1]->isa( $self->{type} ) or croak("$_ is not a $self->{type}") for @_;
     push @{ $self->{filters} }, @_;
 }
+
+sub all    { return @{ $_[0]->{filters} }; }
+sub active { return @{ $_[0]->{current} }; }
 
 #
 # the actual filtering is done here
@@ -946,10 +931,10 @@ sub filter {
         my ( $data, $message, $protocol ) = @_;
         for ( @{ $self->{current} } ) {
             $$data = ${ $self->{buffers}[$i] } . $$data;
-            $_->( $data, $message, $protocol, $self->{buffers}[ $i++ ] );
+            $_->filter( $data, $message, $protocol, $self->{buffers}[ $i++ ] );
         }
     }
-    else { $_->(@_) for @{ $self->{current} }; }
+    else { $_->filter(@_) for @{ $self->{current} }; }
 }
 
 #
@@ -963,7 +948,7 @@ sub filter_last {
     my ( $data, $message, $protocol ) = @_;
     for ( @{ $self->{current} } ) {
         $$data = ${ $self->{buffers}[ $i++ ] } . $$data;
-        $_->( $data, $message, $protocol, undef );
+        $_->filter( $data, $message, $protocol, undef );
     }
 
     # clean up the mess for next time
