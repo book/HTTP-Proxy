@@ -10,8 +10,8 @@ use Sys::Hostname;          # hostname()
 use Carp;
 
 use strict;
-use vars qw( $VERSION $AUTOLOAD
-  @ISA  @EXPORT @EXPORT_OK %EXPORT_TAGS );
+use vars qw( $VERSION $AUTOLOAD @METHODS
+             @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS );
 
 require Exporter;
 @ISA    = qw(Exporter);
@@ -37,7 +37,7 @@ use constant FILTER  => 16;
 use constant ALL     => 31;
 
 # Methods we can forward
-my @METHODS = qw( OPTIONS GET HEAD POST PUT DELETE TRACE );
+@METHODS = qw( OPTIONS GET HEAD POST PUT DELETE TRACE );
 
 # useful regexes (from RFC 2616 BNF grammar)
 my %RX;
@@ -904,12 +904,20 @@ work on WinXP ActiveState Perl 5.8.
 
 =back
 
+=head1 SEE ALSO
+
+L<Proxy::BodyFilter>, L<Proxy::HeaderFilter>, the examples in eg/.
+
 =head1 AUTHOR
 
 Philippe "BooK" Bruhat, E<lt>book@cpan.orgE<gt>.
 
 The module has its own web page at http://http-proxy.mongueurs.net/
 complete with older versions and repository snapshot.
+
+There are also two mailing-lists: http-proxy@mongueurs.net for general
+discussion about HTTP::Proxy and http-proxy-cvs@mongueurs.net for
+CVS commits.
 
 =head1 THANKS
 

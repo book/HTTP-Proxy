@@ -3,7 +3,7 @@ Revision history for Perl extension HTTP::Proxy
 0.11  
         - setting maxchild to 0 prevents forking (Jim Cromie)
         - filters can match now on the query string
-        - hop-by-hop headers now correctly supported
+        - hop-by-hop headers and Max-Forwards headers correctly supported
         - new mutators added to HTTP::Proxy: via, hop_headers, request,
           response
         - new examples scripts: proxy-auth.pl

@@ -45,7 +45,33 @@ sub filter {
     # only the end-to-end headers are left in the message
     $self->proxy->hop_headers($hop);
 
-    # FIXME handle Max-Forwards
+    # handle Max-Forwards
+    if ( $message->isa('HTTP::Request')
+        and defined $headers->header('Max-Forwards') ) {
+        my ( $max, $method ) =
+          ( $headers->header('Max-Forwards'), $message->method );
+        if ( $max == 0 ) {
+            # answer directly TRACE ou OPTIONS
+            if ( $method eq 'TRACE' ) {
+                my $response =
+                  HTTP::Response->new( 200, 'OK',
+                    HTTP::Headers->new( Content_Type => 'message/http'
+                    , Content_Length => 0),
+                    $message->as_string );
+                $self->proxy->response($response);
+            }
+            elsif ( $method eq 'OPTIONS' ) {
+                my $response = HTTP::Response->new(200);
+                $response->header( Allow => join ', ', @HTTP::Proxy::METHODS );
+                $self->proxy->response($response);
+            }
+        }
+        # The Max-Forwards header field MAY be ignored for all
+        # other methods defined by this specification (RFC 2616)
+        elsif ( $method =~ /^(?:TRACE|OPTIONS)/ ) {
+            $headers->header( 'Max-Forwards' => --$max );
+        }
+    }
 
     # remove some headers
     $headers->remove_header($_) for (
