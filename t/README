@@ -1,0 +1,16 @@
+README files for the HTTP::Proxy tests
+
+HTTP::Proxy can test itself with using the network,
+thanks to the HTTP::Daemon module.
+
+But since I want to test the proxy against "real" servers,
+I also need to test it with an internet connection.
+
+localhost tests work as follows:
+ - a HTTP::Daemon is created and forked, that will serve
+   a certain number of simple requests
+ - a HTTP::Proxy is created and forked
+ - a LWP::UserAgent is created and connects to the proxy
+ - once every child is reaped, tests are run on the 
+   log files
+
