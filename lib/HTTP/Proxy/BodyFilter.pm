@@ -1,5 +1,6 @@
 package HTTP::Proxy::BodyFilter;
 
+use strict;
 use Carp;
 
 sub new {

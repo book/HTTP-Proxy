@@ -1,5 +1,6 @@
 package HTTP::Proxy::HeaderFilter;
 
+use strict;
 use Carp;
 
 sub new {
