@@ -122,7 +122,8 @@ store any data, because this is the very last run, needed to gather
 all the data left in all buffers.
 
 It is recommended to store as little data as possible in the buffer,
-so as to avoid (badly) reproducing the store and forward mechanism.
+so as to avoid (badly) reproducing what HTTP::Proxy::BodyFilter::complete
+does.
 
 In particular, you have to remember that all the data that remains in
 the buffer after the last piece of data is received from the origin
@@ -133,6 +134,9 @@ server will be sent back to your filter in one big piece.
 HTTP::Proxy implements a I<store and forward> mechanism, for those filters
 which need to have the whole message body to work. It's enabled simply by
 pushing the HTTP::Proxy::BodyFilter::complete filter on the filter stack.
+
+The data is store in memory by the "complete" filter, which passes it
+to the following filter once the full message body has been received.
 
 =head2 Standard BodyFilters
 
