@@ -34,6 +34,10 @@ system, and that there is no easy way to correlate the data that triggered
 the HTML::Parser event and its original position in the chunk sent by the
 origin server.
 
+A read-write filter is declared by passing C<rw =E<gt> 1> to the constructor:
+
+     HTTP::Proxy::BodyFilter::htmltext->new( $parser, rw => 1 );
+
 =head2 Creating a HTML::Parser that rewrites pages
 
 The HTML::Parser object can update a special attribute named C<output>.
@@ -50,7 +54,7 @@ A string that will hold the data sent back by the proxy.
 
 This string will be used as a replacement for the body data only
 if the filter is read-write, that is to say, if it was initialised with
-C<rw =C<gt> 1>.
+C<rw =E<gt> 1>.
 
 =item message
 
@@ -65,7 +69,7 @@ A reference to the HTTP::Protocol object.
 =cut
 
 sub init {
-    croak "Parameter must be a HTML::Parser object"
+    croak "First parameter must be a HTML::Parser object"
       unless $_[1]->isa('HTML::Parser');
 
     my $self = shift;
