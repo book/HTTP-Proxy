@@ -11,17 +11,17 @@ use Carp;
 
 use strict;
 use vars qw( $VERSION $AUTOLOAD
-             @ISA  @EXPORT @EXPORT_OK %EXPORT_TAGS );
+  @ISA  @EXPORT @EXPORT_OK %EXPORT_TAGS );
 
 require Exporter;
-@ISA = qw(Exporter);
-@EXPORT = ();  # no export by default
-@EXPORT_OK = qw( NONE ERROR STATUS PROCESS HEADERS FILTER ALL );
-%EXPORT_TAGS = ( log => [ @EXPORT_OK ] ); # only one tag
+@ISA    = qw(Exporter);
+@EXPORT = ();               # no export by default
+@EXPORT_OK   = qw( NONE ERROR STATUS PROCESS HEADERS FILTER ALL );
+%EXPORT_TAGS = ( log => [@EXPORT_OK] );                           # only one tag
 
 $VERSION = 0.06;
 
-my $CRLF = "\015\012";      # "\r\n" is not portable
+my $CRLF = "\015\012";    # "\r\n" is not portable
 
 # constants used for logging
 use constant NONE    => 0;
@@ -264,19 +264,11 @@ at most that many connections.
 
 sub start {
     my $self = shift;
-    $self->init;
-
     my @kids;
-    my $reap   = 0;
 
-    # zombies reaper
-    my $reaper;
-    $reaper = sub {
-        $reap++;
-        $SIG{CHLD} = $reaper;    # for sysV systems
-    };
-    $SIG{CHLD} = $reaper;
-    $SIG{INT}  = $SIG{KILL} = sub { $self->{loop} = 0 };
+    # some initialisation
+    $self->init;
+    $SIG{INT} = $SIG{KILL} = sub { $self->{loop} = 0 };
 
     # the main loop
     my $select = IO::Select->new( $self->daemon );
@@ -285,7 +277,7 @@ sub start {
         # check for new connections
         my @ready = $select->can_read(0.01);
         for my $fh (@ready) {    # there's only one, anyway
-            if( @kids >= $self->maxchild ) {
+            if ( @kids >= $self->maxchild ) {
                 $self->log( PROCESS, "Too many child process" );
                 last;
             }
@@ -314,31 +306,29 @@ sub start {
         }
 
         # handle zombies
-        if ($reap) {
-            while ( ( my $pid = waitpid( -1, WNOHANG ) ) > 0 ) {
-                @kids = grep { $_ != $pid } @kids;
-                $self->{conn}++;    # Cannot use the interface for RO attributes
-                $self->log( PROCESS, "Reaped child process $pid" );
-            }
-            $reap = 0;
-        }
+        $self->_reap( \@kids ) if @kids;
 
         # this was the last child we forked
         last if $self->maxconn && $self->conn >= $self->maxconn;
     }
 
     # wait for remaining children
-    $self->log( PROCESS, "Remaining kids: @kids" );
     kill INT => @kids;
-
-    while (@kids) {
-        my $pid = wait;
-        @kids = grep { $_ != $pid } @kids;
-        $self->log( PROCESS, "Waited for child process $pid" );
-    }
+    $self->_reap( \@kids ) while @kids;
 
     $self->log( STATUS, "Processed " . $self->conn . " connection(s)" );
     return $self->conn;
+}
+
+# private reaper sub
+sub _reap {
+    my ( $self, $kids, $pid ) = @_;
+    while ( ( $pid = waitpid( -1, WNOHANG ) ) && $pid != -1 ) {
+        @$kids = grep { $_ != $pid } @$kids;
+        $self->{conn}++;    # Cannot use the interface for RO attributes
+        $self->log( PROCESS, "Reaped child process $pid" );
+        $self->log( PROCESS, "Remaining kids: @$kids" );
+    }
 }
 
 # semi-private init method
@@ -451,8 +441,11 @@ sub serve_connections {
                 $self->response($response);
                 $self->_filter_headers('response');
                 $self->log( STATUS, "($$) Response:", $response->status_line );
-                $self->log( HEADERS, "($$) Response:",
-                    $response->headers->as_string );
+                $self->log(
+                    HEADERS,
+                    "($$) Response:",
+                    $response->headers->as_string
+                );
 
                 # send the headers
                 $conn->print( $HTTP::Daemon::PROTO, ' ', $response->status_line,
@@ -493,7 +486,7 @@ sub serve_connections {
         }
         $conn->print( $response->content );
     }
-    $self->log( STATUS, "($$) Response:", $response->status_line );
+    $self->log( STATUS,  "($$) Response:", $response->status_line );
     $self->log( HEADERS, "($$) Response:", $response->headers->as_string );
     $SIG{INT} = 'DEFAULT';
 }
