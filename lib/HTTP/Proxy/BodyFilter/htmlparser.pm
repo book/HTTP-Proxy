@@ -6,7 +6,7 @@ use base qw( HTTP::Proxy::BodyFilter );
 
 =head1 NAME
 
-HTTP::Proxy::BodyFilter::htmltext - A filter to transmogrify HTML text
+HTTP::Proxy::BodyFilter::htmlparser - Filter using HTML::Parser
 
 =head1 SYNOPSIS
 
@@ -15,7 +15,7 @@ HTTP::Proxy::BodyFilter::htmltext - A filter to transmogrify HTML text
     # $parser is a HTML::Parser object
     $proxy->push_filter(
         mime     => 'text/html',
-        response => HTTP::Proxy::BodyFilter::htmltext->new( $parser );
+        response => HTTP::Proxy::BodyFilter::htmlparser->new( $parser );
     );
 
 =head1 DESCRIPTION
@@ -36,7 +36,7 @@ origin server.
 
 A read-write filter is declared by passing C<rw =E<gt> 1> to the constructor:
 
-     HTTP::Proxy::BodyFilter::htmltext->new( $parser, rw => 1 );
+     HTTP::Proxy::BodyFilter::htmlparser->new( $parser, rw => 1 );
 
 =head2 Creating a HTML::Parser that rewrites pages
 
