@@ -17,7 +17,7 @@ HTTP::Proxy::BodyFilter - A base class for HTTP messages body filters
         my ( $self, $dataref, $message, $protocol, $buffer ) = @_;
         $$dataref =~ s/PERL/Perl/g;
     }
-    
+
     1;
 
 =head1 DESCRIPTION
@@ -65,27 +65,46 @@ The $headers HTTP::Headers object is the one that was sent to the client
 is on the request stack). Modifying it in the filter() method is useless,
 since the headers have already been sent.
 
+Since $dataref is a I<reference> to the data string, the referent
+can be modified and the changes will be transmitted through the
+filters that follows, until the data reaches its recipient.
+
+A HTTP::Proxy::BodyFilter object is a blessed hash, and the base class
+reserves only hash keys that start with C<_hpbf>.
+
 =head2 Using a buffer to store data for a later use
 
-FIXME
+Some filters cannot handle arbitrary data: for example a filter that
+basically lowercases tag name will apply a simple regex
+such as C<s/E<lt>\s*(\w+)([^E<gt>]*)E<gt>/E<lt>\L$1\E$2E<gt>/g>.
+But the filter will fail is the chunk of data contains a tag
+that is cut before the final C<E<gt>>.
+
+It would be extremely complicated and error-prone to let each filter
+(and its author) do its own buffering, so the HTTP::Proxy architecture
+handles this too. The proxy passes to each filter, each time it is called,
+a reference to an empty string ($buffer in the above signature) that
+the filter can use to store some data for next run.
+
+When the reference is C<undef>, it means that the filter cannot
+store any data, because this is the very last run, needed to gather
+all the data left in all buffers.
+
+It is recommended to store as little data as possible in the buffer,
+so as to avoid (badly) reproducing the store and forward mechanism.
+
+In particular, you have to remember that all the data that remains in
+the buffer after the last piece of data is received from the origin
+server will be sent back to your filter in one big piece.
 
 =head2 The store and forward approach
 
-HTTP::Proxy implements a I<store and forward> mechanism, for those
+HTTP::Proxy will implement a I<store and forward> mechanism, for those
 filters who needs to have the whole (response) message body to
 work. It's simply enabled by pushing the HTTP::Proxy::BodyFilter::store
 filter on the filter stack.
 
-Filters that need to have access to all the data can implement the
-filter_file() method, that is only called when there was a
-HTTP::Proxy::BodyFilter::store filter earlier in the chain.
-Its signature is:
-
-    sub filter_file { my ( $self, $filename, $message, $protocol ) = @_; ... }
-
-If they require to have the whole file, they usually shouldn't implement
-the filter() method. Calling such a filter outside the store and foward
-mechanisme will then cause a runtime error.
+The interface is not fully defined yet.
 
 In the store and forward mechanism, $headers is I<still> modifiable by
 the filter, and the modified headers will be sent to the client or server.
@@ -105,9 +124,19 @@ only receive complete lines. The "chunks" of data received by the
 following filters with either end with C<\n> or will be the last
 piece of data for the current HTTP message body.
 
-=item log
+=item htmltext
 
-This filter allows logging based on the HTTP message body data.
+This class lets you create a filter that runs a given code reference
+against text  included in a HTML document (outside C<E<lt>scriptE<gt>>
+and C<E<lt>styleE<gt>> tags). HTML entities are not included in the text.
+
+=item htmlparser
+
+Creates a filter from a HTML::Parser object.
+
+=item simple
+
+This class lets you create a simple body filter from a code reference.
 
 =item store (TODO)
 
@@ -117,13 +146,43 @@ by the proxy.
 
 The interface is not completely defined yet.
 
+=item tags
+
+The HTTP::Proxy::BodyFilter::tags filter makes sure that the next filter
+in the filter chain will only receive complete tags. The current
+implementation is not 100% perfect, though.
+
 =back
+
+Please read each filter's documentation for more details about their use.
 
 =cut
 
 sub filter {
     croak "HTTP::Proxy::HeaderFilter cannot be used as a filter";
 }
+
+=head1 AVAILABLE METHODS
+
+Some methods are available to filters, so that they can eventually use
+the little knowledge they might have of HTTP::Proxy's internals. They
+mostly are accessors.
+
+=over 4
+
+=item proxy()
+
+Gets a reference to the HTTP::Proxy objects that owns the filter.
+This gives access to some of the proxy methods.
+
+=cut
+
+sub proxy {
+    my ( $self, $new ) = @_;
+    return $new ? $self->{_hpbf_proxy} = $new : $self->{_hpbf_proxy};
+}
+
+=back
 
 =head1 AUTHOR
 
