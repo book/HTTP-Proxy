@@ -5,6 +5,8 @@ Technical
 ---------
 
 * Finalise the interface for the store and forward mechanism
+* in the push_filter method, host and path are regexp.
+  this should be tested and enhanced
 
 Features
 --------
