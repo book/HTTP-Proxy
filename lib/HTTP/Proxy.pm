@@ -200,6 +200,7 @@ sub process {
         $self->log( "Request:\n" . $req->as_string );
         my $res = $self->{agent}->send_request($req);
         $conn->print( $res->as_string );
+        $self->log( "Response:\n" . $res->headers->as_string );
     }
 }
 
