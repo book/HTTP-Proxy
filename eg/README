@@ -92,6 +92,16 @@ command-line. Example: ./proxy.pl port 3128 host 0.0.0.0
    A proxy that removes some of the shortcomings of the Dragon Go
    Server website (http://www.dragongoserver.net/)
 
-   Filter: HTTP::Proxy::HeaderFilter::simple
-           HTTP::Proxy::BodyFilter::simple
-           HTTP::Proxy::BodyFilter::tags
+   Filters: HTTP::Proxy::HeaderFilter::simple
+            HTTP::Proxy::BodyFilter::simple
+            HTTP::Proxy::BodyFilter::tags
+
+ * pdf.pl
+
+   Save all PDF files in the pdf/ directory, and replace it with a
+   HTML message saying "PDF file saved."
+   
+   Filters: HTTP::Proxy::HeaderFilter::simple
+            HTTP::Proxy::Body::simple
+            HTTP::Proxy::Body::save
+
