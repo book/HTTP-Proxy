@@ -19,7 +19,7 @@ require Exporter;
 @EXPORT_OK = qw( NONE ERROR STATUS PROCESS CONNECT HEADERS FILTER ALL );
 %EXPORT_TAGS = ( log => [@EXPORT_OK] );    # only one tag
 
-$VERSION = 0.07;
+$VERSION = 0.08;
 
 my $CRLF = "\015\012";                     # "\r\n" is not portable
 
@@ -393,10 +393,6 @@ sub _init_daemon {
       or die "Cannot initialize proxy daemon: $!";
     $self->daemon($daemon);
 
-    # remove the product tokens
-    local $^W = 0;
-    *HTTP::Daemon::product_tokens = sub {};
-
     return $daemon;
 }
 
@@ -471,7 +467,7 @@ sub serve_connections {
                     if ( $conn->antique_client ) { $last++ }
                     else {
                         my $code = $response->code;
-                        $conn->send_basic_header( $code, $response->message,
+                        $conn->send_status_line( $code, $response->message,
                             $response->protocol );
                         if ( $code =~ /^(1\d\d|[23]04)$/ ) {
 
@@ -481,9 +477,7 @@ sub serve_connections {
                         }
                         elsif ($response->request
                             && $response->request->method eq "HEAD" )
-                        {
-
-                            # probably OK
+                        {    # probably OK, says HTTP::Daemon
                         }
                         else {
                             if ( $conn->proto_ge("HTTP/1.1") ) {
@@ -517,7 +511,7 @@ sub serve_connections {
         );
 
         # do a last pass, in case there was something left in the buffers
-        my $data = ""; # FIXME $protocol is undef here too
+        my $data = "";    # FIXME $protocol is undef here too
         $self->{body}{response}->filter_last( \$data, $response, undef );
         if ( length $data ) {
             if ($chunked) {
@@ -876,6 +870,13 @@ the same terms as Perl itself.
 #
 # This is an internal class to work more easily with filter stacks
 #
+# Here's a description of the class internals
+# - filters: the actual filter stack
+# - current: the list of filters that match the message, and trhough which
+#            it must go (computed at the first call to filter())
+# - buffers: the buffers associated with each (selected) filter
+# - body   : true if it's a message-body filter stack
+#
 package HTTP::Proxy::FilterStack;
 
 #
@@ -884,9 +885,10 @@ package HTTP::Proxy::FilterStack;
 sub new {
     my $class = shift;
     my $self  = {
-        body    => shift || 0,
+        body => shift || 0,
         filters => [],
         buffers => [],
+        current => undef,
     };
     return bless $self, $class;
 }
@@ -920,7 +922,7 @@ sub filter {
     my $self = shift;
 
     # first time we're called
-    if ( not exists $self->{current} ) {
+    if ( not defined $self->{current} ) {
 
         # select the filters that match
         $self->{current} =
@@ -933,7 +935,7 @@ sub filter {
         }
     }
 
-    # pass the data through the filter
+    # pass the body data through the filter
     if ( $self->{body} ) {
         my $i = 0;
         my ( $data, $message, $protocol ) = @_;
@@ -961,7 +963,7 @@ sub filter_last {
 
     # clean up the mess for next time
     $self->{buffers} = [];
-    $self->{current} = [];
+    $self->{current} = undef;
 }
 
 1;
