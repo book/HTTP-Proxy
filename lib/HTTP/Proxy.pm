@@ -13,6 +13,8 @@ use vars qw( $VERSION $AUTOLOAD );
 
 $VERSION = 0.03;
 
+my $CRLF = "\015\012";    # "\r\n" is not portable
+
 =pod
 
 =head1 NAME
@@ -356,7 +358,7 @@ sub serve_connections {
     my $response;
 
     my $conn = $daemon->accept;
-    $SIG{INT} = 'IGNORE'; # don't interrupt while we talk to a client
+    $SIG{INT} = 'IGNORE';    # don't interrupt while we talk to a client
     my $req = $conn->get_request();
 
     unless ( defined $req ) {
@@ -387,7 +389,22 @@ sub serve_connections {
         $conn->print( $response->content );
     }
     else {
-        $conn->print( $response->as_string );
+        $conn->print( $HTTP::Daemon::PROTO, ' ', $response->status_line, $CRLF,
+            $response->headers->as_string($CRLF), $CRLF );
+        if ( !$response->content && !$response->is_success ) {
+            my $code    = $response->code;
+            my $message = $response->message;
+            $response->content( << "EOERR" );
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 2.0//EN">
+<HTML><HEAD>
+<TITLE>Error $code</TITLE>
+</HEAD><BODY>
+<H1>Error $code</H1>
+$message<P>
+</BODY></HTML>
+EOERR
+        }
+        $conn->print( $response->content );
     }
     $self->log( 1, "($$) Response:", $response->status_line );
     $self->log( 5, "($$) Response:", $response->headers->as_string );
