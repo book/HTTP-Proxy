@@ -7,6 +7,10 @@ BEGIN {
 }
 
 use Test::More tests => scalar @files;
-use Test::Pod;
 
-pod_ok($_) for @files;
+SKIP: {
+    eval { require Test::Pod };
+    skip "Test::Pod not available", 1 if $@;
+    pod_ok($_) for @files;
+}
+
