@@ -1,5 +1,5 @@
 use strict;
-use Test::More tests => 10;
+use Test::More tests => 11;
 use HTTP::Proxy;
 use HTTP::Proxy::BodyFilter;
 use HTTP::Proxy::HeaderFilter;
@@ -39,8 +39,20 @@ $filter = Foo->new;
 eval { $proxy->push_filter( response => $filter ); };
 is( $@, '', "Accept an object derived from HeaderFilter");
 
+# test multiple match criteria
+eval {
+    $proxy->push_filter(
+        response => $filter,
+        mime     => 'text/*',
+        scheme   => 'http',
+        method   => 'GET'
+    );
+};
+is( $@, "", "Support several match criteria" );
+
 # test pushing multiple filters at once
 # this test breaks encapsulation
+$proxy = HTTP::Proxy->new( port => 0 );
 $filter = HTTP::Proxy::BodyFilter->new;
 my $filter2 = HTTP::Proxy::BodyFilter->new;
 

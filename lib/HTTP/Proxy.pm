@@ -346,6 +346,7 @@ sub start {
             if ( $self->maxchild == 0 ) {
                 $self->log( PROCESS, "No fork allowed, serving the connection" );
                 $self->serve_connections($fh->accept);
+                $self->{conn}++;    # read-only attribute
                 next;
             }
 
@@ -532,7 +533,8 @@ sub serve_connections {
                 my ( $data, $response, $proto ) = @_;
 
                 # first time, filter the headers
-                if ( !$sent ) {
+                if ( !$sent ) { 
+                    $self->response( $response );
                     $self->{headers}{response}
                       ->filter( $response->headers, $response );
                     $response->remove_header("Content-Length");
@@ -679,6 +681,7 @@ Named parameters can be used to create the match routine. They are:
     scheme - the URI scheme         
     host   - the URI authority (host:port)
     path   - the URI path
+    query  - the URI query string
 
 The filters are applied only when all the the parameters match the
 request or the response. All these named parameters have default values,
@@ -729,7 +732,7 @@ Here's an example of subclassing a base filter class:
         use base qw( HTTP::Proxy::BodyFilter );
 
         sub filter {
-	    my ( $self, $dataref, $message, $protocol, $buffer ) = @_;
+            my ( $self, $dataref, $message, $protocol, $buffer ) = @_;
             $$dataref =~ s/PERL/Perl/g;
         }
     }
@@ -774,6 +777,7 @@ sub push_filter {
         next if $_[$i] !~ /^(mime|method|scheme|host|path)$/;
         $arg{$_[$i]} = $_[$i+1];
         splice @_, $i, 2;
+        $i -= 2;
     }
     croak "Odd number of arguments" if @_ % 2;
 
