@@ -19,6 +19,13 @@ my $CRLF = "\015\012";    # "\r\n" is not portable
 # Methods we can forward
 my @METHODS = qw( OPTIONS GET HEAD POST PUT DELETE TRACE );
 
+# useful regexes (from RFC 2616 BNF grammar)
+my %RX;
+$RX{token}  = qr/[-!#\$%&'*+.0-9A-Z^_`a-z|~]+/;
+$RX{mime}   = qr($RX{token}/$RX{token});
+$RX{method} = '(?:' . join ( '|', @METHODS ) . ')';
+$RX{method} = qr/$RX{method}/;
+
 =pod
 
 =head1 NAME
@@ -84,7 +91,8 @@ sub new {
 
 # AUTOLOADed attributes
 my $all_attr = qr/^(?:agent|chunk|conn|control_regex|daemon|host|logfh|
-                      loop|maxchild|maxconn|port|verbose)$/x;
+                      loop|maxchild|maxconn|port|request|response|
+                      verbose)$/x;
 
 # read-only attributes
 my $ro_attr = qr/^(?:conn|control_regex|loop)$/;
@@ -321,6 +329,12 @@ sub init {
     $self->agent->requests_redirectable( [] );
     $self->agent->agent('');    # for TRACE support
     $self->agent->protocols_allowed( [qw( http https ftp gopher )] );
+
+    # standard filters
+    $self->{headers}{request} = $self->{headers}{response} =
+      [ [ sub { 1 }, \&_proxy_headers_filter ] ];
+    $self->{body}{request} = $self->{body}{response} = [];
+
     return;
 }
 
@@ -386,24 +400,45 @@ sub serve_connections {
         goto SEND;
     }
 
-    # massage the request to pop a response
-    # remove th hop-by-hop headers (for now)
-    for (
-        qw( Connection Keep-Alive TE Trailers Transfer-Encoding Upgrade
-        Proxy-Connection Proxy-Authenticate Proxy-Authorization )
-      )
-    {
-        $req->headers->remove_header($_);
-    }
-
-    # the Via: header
-    my $http = $req->protocol();
-    $http =~ s!HTTP/!!;
-    $req->headers->push_header(
-        Via => "$http " . hostname() . " (HTTP::Proxy/$VERSION)" );
-
+    # massage the request
+    $self->request($req);
+    $self->filter_headers('request');
+    $self->filter_body('request');
     $self->log( 5, "($$) Request:", $req->headers->as_string );
-    $response = $self->agent->simple_request($req);
+
+    # pop a response
+    my ( $sent, $buf ) = ( 0, '' );
+    $response = $self->agent->simple_request(
+        $req,
+        sub {
+            my ( $data, $response, $proto ) = @_;
+
+            # first time, filter the headers
+            if ( !$sent ) {
+                $self->response($response);
+                $self->filter_headers('response');
+                $self->log( 1, "($$) Response:", $response->status_line );
+                $self->log( 5, "($$) Response:",
+                    $response->headers->as_string );
+
+                # send the headers
+                $conn->print( $HTTP::Daemon::PROTO, ' ', $response->status_line,
+                    $CRLF, $response->headers->as_string($CRLF), $CRLF );
+                $sent++;
+            }
+
+            # filter and send the data
+            $self->log( 6, "($$) Filter: got ", length($data),
+                "bytes of data" );
+            $self->filter_body( 'response', \$data, $proto );
+            $conn->print($data);
+        },
+        $self->chunk
+    );
+
+    # what about X-Died and X-Content-Range?
+
+    $SIG{INT} = 'DEFAULT', return if $sent;
 
   SEND:
 
@@ -460,7 +495,7 @@ Named parameters can be added. They are:
     mime   - the MIME type (for a response-body filter)
     method - the request method
     scheme - the URI scheme         
-    host   - the URI host/authority
+    host   - the URI authority (host:port)
     path   - the URI path
 
 The filters are applied only when all the the parameters match the
@@ -487,22 +522,26 @@ expressions.
 
 The signature for the "headers" filters is:
 
-    sub header_filter { my $header = @_; ... }
+    sub header_filter { my ( $headers, $message) = @_; ... }
 
-where $header is a HTTP::Headers object.
+where $header is a HTTP::Headers object, and $message is either a
+HTTP::Request or a HTTP::Response object.
 
 The signature for the "body" filters is:
 
-    sub body_filter { my ( $data, $response, $protocol ) = @_; ... }
+    sub body_filter { my ( $dataref, $message, $protocol ) = @_; ... }
 
-where $data is garanteed not to cut a HTML/XML tag in the middle.  Note that
-this is the same signature as for the callbacks of LWP::UserAgent.
+$dataref is a reference to the chunk of data received.
+
+Note that this subroutine signature looks a lot like that of the callbacks
+of LWP::UserAgent (except that $message is either a HTTP::Request or a
+HTTP::Response object).
 
 Here are a few example filters:
 
     # fixes a common typo ;-)
     # but chances are that this will modify a correct URL
-    $proxy->push_body_filter( response => sub { $_[0] =~ s/PERL/Perl/g } );
+    $proxy->push_body_filter( response => sub { $$_[0] =~ s/PERL/Perl/g } );
 
     # mess up trace requests
     $proxy->push_headers_filter(
@@ -526,20 +565,162 @@ Here are a few example filters:
 
 =over 4
 
+=cut
+
+# internal method
+# please use push_headers_filters() and push_body_filter()
+
+sub _push_filter {
+    my $self = shift;
+    my %arg  = (
+        mime   => 'text/*',
+        method => 'GET, POST, HEAD',
+        scheme => 'http',
+        host   => '',
+        path   => '',
+        @_
+    );
+
+    # argument checking
+    croak "No filter type defined" if ( !exists $arg{part} );
+    croak "Bad filter queue: $arg{part}"
+      if ( $arg{part} !~ /^(?:headers|body)$/ );
+    if ( !exists $arg{request} && !exists $arg{response} ) {
+        croak "No message type defined for filter";
+    }
+
+    # prepare the variables for the closure
+    my ( $mime, $method, $scheme, $host, $path ) =
+      @arg{qw( mime method scheme host path )};
+
+    if ( defined $mime && $mime ne '' ) {
+        $mime =~ m!/! or croak "Invalid MIME type definition: $mime";
+        $mime =~ s/\*/$RX{token}/;    #turn it into a regex
+        $mime = qr/^$arg{mime}/;
+    }
+
+    my @method = split /\s*,\s*/, $method;
+    for (@method) { croak "Invalid method: $_" if !/$RX{method}/ }
+    $method = @method ? '' : '(?:' . join ( '|', @method ) . ')';
+    $method = qr/$method/;
+
+    my @scheme = split /\s*,\s*/, $scheme;
+    for (@scheme) {
+        croak "Unsupported scheme" if !$self->agent->is_protocol_supported($_);
+    }
+    $scheme = @scheme ? '' : '(?:' . join ( '|', @scheme ) . ')';
+    $scheme = qr/$scheme/;
+
+    # push the filter and its match method on the correct stack
+    for my $message ( grep { exists $arg{$_} } qw( request response ) ) {
+        croak "Not a CODE reference for filter queue $message"
+          if ref $arg{$message} ne 'CODE';
+
+        # MIME can only match on reponse
+        my $mime = $mime;
+        undef $mime if $message eq 'request';
+
+        # compute the match sub as a closure
+        # for $self, $mime, $method, $scheme, $host, $path
+        my $match = sub {
+            return 0
+              if ( defined $mime
+                && $self->{response}->headers->header('Content-Type') !~
+                $mime );
+            return 0 if $self->{request}->method !~ $method;
+            return 0 if $self->{request}->uri->scheme !~ $scheme;
+            return 0 if $self->{request}->uri->authority !~ $host;
+            return 0 if $self->{request}->uri->path !~ $path;
+            return 1;    # it's a match
+        };
+        push @{ $self->{ $arg{part} }{$message} }, [ $match, $arg{$message} ];
+    }
+}
+
 =item push_headers_filter( type => coderef, %args )
 
 =cut
 
-sub push_headers_filter {
-
-}
+sub push_headers_filter { _push_filter( @_, part => 'headers' ); }
 
 =item push_body_filter( type => coderef, %args )
 
 =cut
 
-sub push_body_filter {
+sub push_body_filter { _push_filter( @_, part => 'body' ); }
 
+# the very simple filter_* methods
+
+# filter_headers( $type )
+#
+# type is either 'request' or 'response'
+
+sub filter_headers {
+    my ( $self, $type ) = ( shift, shift );
+
+    # argument checking
+    croak "Bad filter type: $type" if $type !~ /^re(?:quest|sponse)$/;
+
+    my $message = $self->{$type};
+    my $headers = $message->headers;
+
+    # filter the headers
+    for ( @{ $self->{headers}{$type} } ) {
+        $_->[1]->( $headers, $message ) if $_->[0]->();
+    }
+}
+
+# filter_body( $type, $dataref, $proto )
+#
+# type is either 'request' or 'response'
+# $dataref is a scalar ref to the data (\$data)
+# $proto is a HTTP::Protocol object
+
+sub filter_body {
+    my ( $self, $type, $dataref, $proto ) = @_;
+
+    # argument checking
+    croak "Bad filter type: $type" if $type !~ /^re(?:quest|sponse)$/;
+
+    my $message = $self->{$type};
+    my $headers = $message->headers;
+
+    # filter the body
+    for ( @{ $self->{body}{$type} } ) {
+        $_->[1]->( $dataref, $message, $proto ) if $_->[0]->();
+    }
+}
+
+# standard proxy header filter (RFC 2616)
+sub _proxy_headers_filter {
+    my ( $headers, $message ) = @_;
+
+    # the Via: header
+    my $via = $message->protocol();
+    if ( $via =~ s!HTTP/!! ) {
+        $via .= " " . hostname() . " (HTTP::Proxy/$VERSION)";
+        $message->headers->header(
+            Via => join ', ',
+            $message->headers->header('Via') || (), $via
+        );
+    }
+
+    # remove some headers
+    for (
+
+        # LWP::UserAgent Client-* headers
+        qw( Client-Aborted Client-Bad-Header-Line Client-Date Client-Junk
+        Client-Peer Client-Request-Num Client-Response-Num
+        Client-SSL-Cert-Issuer Client-SSL-Cert-Subject Client-SSL-Cipher
+        Client-SSL-Warning Client-Transfer-Encoding Client-Warning ),
+
+        # hop-by-hop headers(for now)
+        qw( Connection Keep-Alive TE Trailers Transfer-Encoding Upgrade
+        Proxy-Connection Proxy-Authenticate Proxy-Authorization )
+      )
+    {
+        $message->headers->remove_header($_);
+    }
 }
 
 =item log( $level, $message )
