@@ -81,6 +81,9 @@ filter the HTTP requests and responses through user-defined filters.
 
 =head2 Constructor
 
+The new() method creates a HTTP::Proxy object. All attributes can
+be passed as a parameter to replace the default.
+
 =cut
 
 sub new {
@@ -272,7 +275,8 @@ This method works like Tk's C<MainLoop>: you hand over control to the
 HTTP::Proxy object you created and configured.
 
 If C<maxconn> is not zero, start() will return after accepting
-at most that many connections.
+at most that many connections. It will return the total number of
+connexions.
 
 =cut
 
@@ -822,10 +826,14 @@ This does not work under Windows, but I can't see why, and do not have
 a development platform under that system. Patches and explanations
 very welcome.
 
-The Date: header is duplicated.
+David Fishburn says:
 
-This is still beta software, expect some interfaces to change as
-I receive feedback from users.
+=over 4
+
+This did not work for me under WinXP - ActiveState Perl 5.6, but it DOES        
+work on WinXP ActiveState Perl 5.8. 
+
+=back
 
 =head1 AUTHOR
 
