@@ -219,6 +219,9 @@ by the C<:log> tag. They can also be exported one by one.
 The maximum number of child process the HTTP::Proxy object will spawn
 to handle client requests (default: 16).
 
+If set to 0, the proxy will not fork at all. This can be helpful for
+debugging purpose.
+
 =item maxconn
 
 The maximum number of TCP connections the proxy will accept before
@@ -338,6 +341,14 @@ sub start {
         # check for new connections
         my @ready = $select->can_read(0.01);
         for my $fh (@ready) {    # there's only one, anyway
+
+            # single-process proxy (useful for debugging)
+            if ( $self->maxchild == 0 ) {
+                $self->log( PROCESS, "No fork allowed, serving the connection" );
+                $self->serve_connections($fh->accept);
+                next;
+            }
+
             if ( @kids >= $self->maxchild ) {
                 $self->log( PROCESS, "Too many child process" );
                 select( undef, undef, undef, 1 );
@@ -352,8 +363,6 @@ sub start {
                 $self->log( ERROR, "Cannot fork" );
                 $self->maxchild( $self->maxchild - 1 )
                   if $self->maxchild > @kids;
-                $self->log( ERROR, "Really cannot fork, abandon" ), last
-                  if $self->maxchild == 0;
                 next;
             }
 
