@@ -17,7 +17,7 @@ use vars qw( $VERSION $AUTOLOAD @METHODS
 require Exporter;
 @ISA    = qw(Exporter);
 @EXPORT = ();               # no export by default
-@EXPORT_OK = qw( NONE ERROR STATUS PROCESS CONNECT HEADERS FILTER ALL );
+@EXPORT_OK = qw( NONE ERROR STATUS PROCESS SOCKET HEADERS FILTER CONNECT ALL );
 %EXPORT_TAGS = ( log => [@EXPORT_OK] );    # only one tag
 
 $VERSION = '0.13';
@@ -838,7 +838,7 @@ request or the response. All these named parameters have default values,
 which are:
 
     mime   => 'text/*'
-    method => 'GET, POST, HEAD'
+    method => 'OPTIONS,GET,HEAD,POST,PUT,DELETE,TRACE,CONNECT'
     scheme => 'http'
     host   => ''
     path   => ''
@@ -915,7 +915,7 @@ sub push_filter {
     my $self = shift;
     my %arg  = (
         mime   => 'text/*',
-        method => 'GET, POST, HEAD',
+        method => join( ',', @METHODS ),
         scheme => 'http',
         host   => '',
         path   => '',
