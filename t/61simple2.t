@@ -26,7 +26,10 @@ my $url = $proxy->url;
 
 # fork the proxy
 my @pids;
-push @pids, fork_proxy($proxy);
+{
+    $^W = 0; # warning due to the absence of a host in the file URL
+    push @pids, fork_proxy($proxy);
+}
 
 # check that the correct transformation is applied
 my $ua = LWP::UserAgent->new();

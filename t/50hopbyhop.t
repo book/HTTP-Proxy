@@ -9,6 +9,7 @@ my $filter = HTTP::Proxy::HeaderFilter::standard->new;
 # a few hacks because we aren't actually connected
 $filter->proxy($proxy);
 $proxy->{client_socket} = IO::Socket::INET->new();
+$^W = 0; # warnings because the socket is not actually connected
 
 # the dummy request
 my $req = HTTP::Request->new( GET => 'http://www.example.com/' );
