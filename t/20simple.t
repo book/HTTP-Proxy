@@ -4,22 +4,12 @@ use Test::More tests => 10;
 use HTTP::Daemon;
 use LWP::UserAgent;
 use HTTP::Proxy;
-use Config;
 
 my $test = Test::Builder->new;
 
 # this is to work around tests in forked processes
 $test->use_numbers(0);
 $test->no_ending(1);
-
-my $sig_kill;
-{    # compute the KILL signal number
-    my $i = 0;
-    for ( split ' ', $Config{sig_name} ) {
-        $sig_kill = $i, last if $_ eq 'KILL';
-        $i++;
-    }
-}
 
 # here are all the requests the client will try
 my @requests = qw(
