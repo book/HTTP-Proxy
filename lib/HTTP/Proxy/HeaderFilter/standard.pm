@@ -93,7 +93,6 @@ sub filter {
         # no encoding accepted (gzip, compress, deflate)
         qw( Accept-Encoding ),
     );
-
 }
 
 1;
@@ -106,9 +105,27 @@ HTTP::Proxy::HeaderFilter::standard - An internal filter to respect RFC2616
 
 =head1 DESCRIPTION
 
-This is an internal filter used by HTTP::Proxy.
+This is an internal filter used by HTTP::Proxy to enforce behaviour
+compliant with RFC 2616.
 
-Move along, nothing to see here.
+=head1 METHOD
+
+This filter implements a single method that is called automatically:
+
+=over 4
+
+=item filter()
+
+Enforce RFC 2616-compliant behaviour, by adding the C<Via:> and
+C<X-Forwarded-For:> headers (except when the proxy was instructed not
+to add them), decrementing the C<Max-Forwards:> header and removing
+the hop-by-hop and LWP::UserAgent headers.
+
+=back
+
+=head1 SEE ALSO
+
+L<HTTP::Proxy>, L<HTTP::Proxy::HeaderFilter>, RFC 2616.
 
 =head1 AUTHOR
 
@@ -119,7 +136,7 @@ hop-by-hop headers.
 
 =head1 COPYRIGHT
 
-Copyright 2003-2004, Philippe Bruhat
+Copyright 2003-2005, Philippe Bruhat
 
 =head1 LICENSE
 

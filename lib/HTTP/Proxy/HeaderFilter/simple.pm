@@ -6,39 +6,6 @@ use HTTP::Proxy::HeaderFilter;
 use vars qw( @ISA );
 @ISA = qw( HTTP::Proxy::HeaderFilter );
 
-=head1 NAME
-
-HTTP::Proxy::HeaderFilter::simple - A class for creating simple filters
-
-=head1 SYNOPSIS
-
-    use HTTP::Proxy::HeaderFilter::simple;
-
-    # a simple User-Agent filter
-    my $filter = HTTP::Proxy::HeaderFilter::simple->new(
-        sub { $_[1]->header( User_Agent => 'foobar/1.0' ); }
-    );
-    $proxy->push_filter( request => $filter );
-
-=head1 DESCRIPTION
-
-HTTP::Proxy::HeaderFilter::simple can create BodyFilter without going
-through the hassle of creating a full-fledged class. Simply pass
-a code reference to the filter() method of your filter to the constructor,
-and you'll get the adequate filter.
-
-=head2 Constructor calling convention
-
-The constructor is called with a single code reference.
-The code reference must conform to the standard filter() signature
-for header filters:
-
-    sub filter { my ( $self, $headers, $message) = @_; ... }
-
-This code reference is used for the filter() method.
-
-=cut
-
 my $methods = join '|', qw( begin filter );
 $methods = qr/^(?:$methods)$/;
 
@@ -76,6 +43,76 @@ sub can {
       : UNIVERSAL::can( $self, $method );
 }
 
+1;
+
+__END__
+
+=head1 NAME
+
+HTTP::Proxy::HeaderFilter::simple - A class for creating simple filters
+
+=head1 SYNOPSIS
+
+    use HTTP::Proxy::HeaderFilter::simple;
+
+    # a simple User-Agent filter
+    my $filter = HTTP::Proxy::HeaderFilter::simple->new(
+        sub { $_[1]->header( User_Agent => 'foobar/1.0' ); }
+    );
+    $proxy->push_filter( request => $filter );
+
+=head1 DESCRIPTION
+
+HTTP::Proxy::HeaderFilter::simple can create BodyFilter without going
+through the hassle of creating a full-fledged class. Simply pass
+a code reference to the filter() method of your filter to the constructor,
+and you'll get the adequate filter.
+
+=head2 Constructor calling convention
+
+The constructor is called with a single code reference.
+The code reference must conform to the standard filter() signature
+for header filters:
+
+    sub filter { my ( $self, $headers, $message) = @_; ... }
+
+This code reference is used for the filter() method.
+
+=head1 METHODS
+
+This filter "factory" defines the standard HTTP::Proxy::HeaderFilter
+methods, but those are only, erm, "proxies" to the actual CODE references
+passed to the constructor. These "proxy" methods are:
+
+=over 4
+
+=item filter()
+
+=item begin()
+
+=back
+
+Two other methods are actually HTTP::Proxy::HeaderFilter::simple methods,
+and are called automatically:
+
+=over 4
+
+=item init()
+
+Initalise the filter instance with the code references passed to the
+constructor.
+
+=item can()
+
+Return the actual code reference that will be run, and not the "proxy"
+methods. If called with any other name than C<begin> and C<filter>,
+it calls UNIVERSAL::can() instead.
+
+=back
+
+=head1 SEE ALSO
+
+L<HTTP::Proxy>, L<HTTP::Proxy::HeaderFilter>.
 
 =head1 AUTHOR
 
@@ -83,7 +120,7 @@ Philippe "BooK" Bruhat, E<lt>book@cpan.orgE<gt>.
 
 =head1 COPYRIGHT
 
-Copyright 2003-2004, Philippe Bruhat
+Copyright 2003-2005, Philippe Bruhat.
 
 =head1 LICENSE
 
@@ -92,4 +129,3 @@ the same terms as Perl itself.
 
 =cut
 
-1;
