@@ -234,7 +234,7 @@ Philippe "BooK" Bruhat, E<lt>book@cpan.orgE<gt>.
 
 =head1 SEE ALSO
 
-HTTP::Proxy, HTTP::Proxy::HeaderFilter.
+L<HTTP::Proxy>, L<HTTP::Proxy::HeaderFilter>.
 
 =head1 COPYRIGHT
 

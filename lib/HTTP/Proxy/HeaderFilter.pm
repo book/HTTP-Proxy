@@ -133,11 +133,11 @@ Philippe "BooK" Bruhat, E<lt>book@cpan.orgE<gt>.
 
 =head1 SEE ALSO
 
-HTTP::Proxy, HTTP::Proxy::BodyFilter.
+L<HTTP::Proxy>, L<HTTP::Proxy::BodyFilter>.
 
 =head1 COPYRIGHT
 
-Copyright 2003-2004, Philippe Bruhat
+Copyright 2003-2005, Philippe Bruhat
 
 =head1 LICENSE
 
