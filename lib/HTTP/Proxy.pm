@@ -60,6 +60,7 @@ sub new {
     # some defaults
     my $self = {
         agent    => undef,
+        chunk    => 4096,
         control  => 'proxy',
         daemon   => undef,
         host     => 'localhost',
@@ -82,8 +83,8 @@ sub new {
 }
 
 # AUTOLOADed attributes
-my $all_attr = qr/^(?:agent|conn|control_regex|daemon|host|logfh|loop|
-                      maxchild|maxconn|port|verbose)$/x;
+my $all_attr = qr/^(?:agent|chunk|conn|control_regex|daemon|host|logfh|
+                      loop|maxchild|maxconn|port|verbose)$/x;
 
 # read-only attributes
 my $ro_attr = qr/^(?:conn|control_regex|loop)$/;
@@ -352,11 +353,8 @@ sub _init_agent {
     return $agent;
 }
 
-=head2 Other methods
-
-=over 4
-
-=cut
+# This is the internal "loop" that lets the child process process the
+# incoming connections.
 
 sub serve_connections {
     my ( $self, $daemon ) = @_;
@@ -429,6 +427,121 @@ sub serve_connections {
     $SIG{INT} = 'DEFAULT';
 }
 
+=head2 Callbacks
+
+You can alter the way the default HTTP::Proxy works by pluging callbacks
+at different stages of the request/response handling.
+
+When a request is received by the HTTP::Proxy object, it is filtered through
+a standard filter that transform this request accordingly to RFC 2616
+(by adding the Via: header, and a few other transformations).
+
+The response is also filtered in the same manner. There is a total of four
+filter chains: C<request-headers>, C<request-body>, C<reponse-headers> and
+C<response-body>.
+
+You can add your own filters to the default ones with the
+push_header_filter() and the push_body_filter() methods. Both methods
+work more or less the same way: they push a header filter on the
+corresponding filter stack.
+
+    $proxy->push_body_filter( response => $coderef );
+
+The name of the method called gives the headers/body part while the
+named parameter give the request/response part.
+
+It is possible to push the same coderef on the request and response
+stacks, as in the following example:
+
+    $proxy->push_header_filter( request => $coderef, response => $coderef );
+ 
+Named parameters can be added. They are:
+
+    mime   - the MIME type (for a response-body filter)
+    method - the request method
+    scheme - the URI scheme         
+    host   - the URI host/authority
+    path   - the URI path
+
+The filters are applied only when all the the parameters match the
+request or the response. All these named parameters have default values,
+which are:
+
+    mime   => 'text/*'
+    method => 'GET, POST, HEAD'
+    scheme => 'http'
+    host   => ''
+    path   => ''
+
+The C<mime> parameter is a glob-like string, with a required C</>
+character and a C<*> as a joker. Thus, C<*/*> matches I<all> responses,
+and C<""> those with no C<Content-Type:> header. To match any
+reponse (with or without a C<Content-Type:> header), use C<undef>.
+
+The C<mime> parameter is only meaningful with the C<response-body>
+filter stack. It is ignored if passed to any other filter stack.
+
+The C<method> and C<scheme> parameters are strings consisting of
+comma-separated values. The C<host> and C<path> parameters are regular
+expressions.
+
+The signature for the "headers" filters is:
+
+    sub header_filter { my $header = @_; ... }
+
+where $header is a HTTP::Headers object.
+
+The signature for the "body" filters is:
+
+    sub body_filter { my ( $data, $response, $protocol ) = @_; ... }
+
+where $data is garanteed not to cut a HTML/XML tag in the middle.  Note that
+this is the same signature as for the callbacks of LWP::UserAgent.
+
+Here are a few example filters:
+
+    # fixes a common typo ;-)
+    # but chances are that this will modify a correct URL
+    $proxy->push_body_filter( response => sub { $_[0] =~ s/PERL/Perl/g } );
+
+    # mess up trace requests
+    $proxy->push_headers_filter(
+        method   => 'TRACE',
+        response => sub {
+            my $headers = shift;
+            $headers->header( X_Trace => "Something's wrong!" );
+        },
+    );
+
+    # a simple anonymiser
+    $proxy->push_headers_filter(
+        mime    => undef,
+        request => sub {
+            $_[0]->remove_header(qw( User-Agent From Refere Cookie ));
+        },
+        response => sub {
+            $_[0]->revome_header(qw( Set-Cookie )),;
+        },
+    );
+
+=over 4
+
+=item push_headers_filter( type => coderef, %args )
+
+=cut
+
+sub push_headers_filter {
+
+}
+
+=item push_body_filter( type => coderef, %args )
+
+=cut
+
+sub push_body_filter {
+
+}
+
 =item log( $level, $message )
 
 Adds $message at the end of C<logfh>, if $level is greater than C<verbose>,
@@ -453,13 +566,6 @@ sub log {
 }
 
 =back
-
-=head2 Callbacks
-
-You can alter the way the default HTTP::Proxy works by pluging callbacks
-at different stages of the request/response handling.
-
-(TO BE IMPLEMENTED)
 
 =cut
 
