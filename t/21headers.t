@@ -1,5 +1,5 @@
 use strict;
-use Test::More tests => 3;
+use Test::More tests => 5;
 use LWP::UserAgent;
 use HTTP::Proxy;
 use t::Utils;    # some helper functions for the server
@@ -15,7 +15,7 @@ $test->no_ending(1);
 my $server = server_start();
 
 # create and fork the proxy
-my $proxy = HTTP::Proxy->new( port => 0, maxconn => 1 );
+my $proxy = HTTP::Proxy->new( port => 0, maxconn => 2 );
 $proxy->init;    # required to access the url later
 $proxy->agent->no_proxy( URI->new( $server->url )->host );
 push @pids, fork_proxy($proxy);
@@ -44,6 +44,7 @@ if ( $pid == 0 ) {
 
     # let's return some files when asked for them
     server_next( $server, $answer );
+    server_next($server);
 
     exit 0;
 }
@@ -51,14 +52,23 @@ if ( $pid == 0 ) {
 push @pids, $pid;
 
 # run a client
+my ( $req, $res );
 my $ua = LWP::UserAgent->new;
 $ua->proxy( http => $proxy->url );
 
 # send a Proxy-Connection header
-my $req = HTTP::Request->new( GET => $server->url . "proxy-connection" );
+$req = HTTP::Request->new( GET => $server->url . "proxy-connection" );
 $req->headers->header( Proxy_Connection => 'Keep-Alive' );
-my $rep = $ua->simple_request($req);
-ok( $rep->headers->header('Via'), "Client says Via: header added" );
+$res = $ua->simple_request($req);
+ok( $res->headers->header('Via'), "Client says Via: header added" );
+
+# check that we have single Date and Server headers
+$req = HTTP::Request->new( GET => $server->url . "headers" );
+$res = $ua->simple_request($req);
+my @date = $res->headers->header('Date');
+is( scalar @date, 1, "A single Date: header" );
+my @server = $res->headers->header('Server');
+is( scalar @server, 1, "A single Server: header" );
 
 # make sure both kids are dead
 wait for @pids;
