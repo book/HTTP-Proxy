@@ -1,6 +1,6 @@
 README files for the HTTP::Proxy tests
 
-HTTP::Proxy can test itself with using the network,
+HTTP::Proxy can test itself without using the network,
 thanks to the HTTP::Daemon module.
 
 But since I want to test the proxy against "real" servers,
