@@ -59,7 +59,7 @@ if ( $pid == 0 ) {
 push @pids, $pid;    # remember the kid
 
 # fork a HTTP proxy
-fork_proxy(
+$pid = fork_proxy(
     $proxy,
     sub {
         is( $proxy->conn, scalar @requests,
