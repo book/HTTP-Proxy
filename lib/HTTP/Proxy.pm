@@ -30,14 +30,15 @@ use HTTP::Proxy::HeaderFilter::standard;
 # constants used for logging
 use constant ERROR   => -1;    # always log
 use constant NONE    => 0;     # never log
-use constant STATUS  => 1;     # HTTP status
-use constant PROCESS => 2;     # sub-process life (and death)
-use constant SOCKET  => 4;     # low-level connections
-use constant HEADERS => 8;     # HTTP headers
-use constant FILTERS => 16;    # Messages from filters
-use constant DATA    => 32;    # Data received by the filters
-use constant CONNECT => 64;    # Data transmitted by the CONNECT method
-use constant ALL     => 127;   # All of the above
+use constant PROXY   => 1;     # proxy information
+use constant STATUS  => 2;     # HTTP status
+use constant PROCESS => 4;     # sub-process life (and death)
+use constant SOCKET  => 8;     # low-level connections
+use constant HEADERS => 16;    # HTTP headers
+use constant FILTERS => 32;    # Messages from filters
+use constant DATA    => 64;    # Data received by the filters
+use constant CONNECT => 127;   # Data transmitted by the CONNECT method
+use constant ALL     => 255;   # All of the above
 
 # Methods we can forward
 @METHODS = (
@@ -64,10 +65,7 @@ sub new {
         host     => 'localhost',
         logfh    => *STDERR,
         logmask  => NONE,
-        #maxchild => 10,
-        #maxconn  => 0,
         max_connections => 0,
-        #maxserve => 10,
         max_requests_per_child => 10,
         port     => 8080,
         timeout  => 60,
@@ -78,12 +76,28 @@ sub new {
     # non modifiable defaults
     my $self = bless { conn => 0, loop => 1 }, $class;
 
+    # support for deprecated stuff
+    {
+        my %convert = (
+            maxchild => 'max_clients',
+            maxconn  => 'max_connections',
+            maxserve => 'max_requests_per_child',
+        );
+        while( my ($old, $new) = each %convert ) {
+            if( exists $params{$old} ) {
+               $params{$new} = delete $params{$old};
+               carp "$old is deprecated, please use $new"
+            }
+        }
+    }
+
     # get attributes
     $self->{$_} = exists $params{$_} ? delete( $params{$_} ) : $defaults{$_}
       for keys %defaults;
 
     # choose an engine with the remaining parameters
     $self->{engine} = HTTP::Proxy::Engine->new( %params, proxy => $self );
+    $self->log( PROXY, "PROXY", "Selected engine " . ref $self->{engine} );
 
     return $self;
 }
@@ -129,6 +143,8 @@ for my $attr (qw( conn loop client_socket )) {
     no strict 'refs';
     *{"HTTP::Proxy::$attr"} = sub { $_[0]{$attr} }
 }
+
+sub max_clients { shift->engine->max_clients( @_ ) }
 
 sub new_connection { ++$_[0]{conn} }
 
