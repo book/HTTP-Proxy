@@ -1,5 +1,5 @@
 use strict;
-use Test::More tests => 4;
+use Test::More;
 use LWP::UserAgent;
 use HTTP::Proxy;
 use t::Utils;    # some helper functions for the server
@@ -8,6 +8,8 @@ if( $^O eq 'MSWin32' ) {
     plan skip_all => "This test fails on MSWin32. HTTP::Proxy is usable on Win32 with maxchild => 0";
     exit;
 }
+
+plan tests => 4;
 
 my $test = Test::Builder->new;
 my @pids;
