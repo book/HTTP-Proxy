@@ -1,6 +1,7 @@
 Revision history for Perl extension HTTP::Proxy
 
-0.10
+0.10  Wed Nov 19 01:36:59 CET 2003
+
         *** MAJOR INTERFACE CHANGES ***
 
         - new base classes HTTP::Proxy::HeaderFilter and
@@ -9,21 +10,24 @@ Revision history for Perl extension HTTP::Proxy
           HTTP::Proxy::BodyFiler::htmlparser
           HTTP::Proxy::BodyFiler::htmltext
           HTTP::Proxy::BodyFiler::lines
-          HTTP::Proxy::BodyFiler::log
           HTTP::Proxy::BodyFiler::simple
-          HTTP::Proxy::BodyFiler::store
-          HTTP::Proxy::HeaderFiler::html
-          HTTP::Proxy::HeaderFiler::log
+          HTTP::Proxy::BodyFiler::tags
           HTTP::Proxy::HeaderFiler::simple
           HTTP::Proxy::HeaderFiler::standard
-          HTTP::Proxy::HeaderFiler::tags
         - tests for the internal class HTTP::Proxy::FilterStack
         - tests for the built-in filters
         - the examples are up-to-date with the new interface 
+        - new/enhanced accessors:
+          + the proxy host() attribute becomes actually useful: by default,
+            the proxy is only usable by local user-agents (the socket
+            is bound to localhost)
+          + the filters proxy() accessor gives access to the proxy itself.
+            For example, one can get the IP address of the agent connected
+            to the proxy from inside a filter ($self->proxy->daemon->peerhost)
         - many documentation changes
-        
+
         This version is NOT compatible with the previous ones
-        regarding the handling of filters.
+        regarding the way filters work.
 
         *** MAJOR INTERFACE CHANGES ***
 
