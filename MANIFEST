@@ -8,5 +8,6 @@ t/00basic.t
 t/05new.t
 t/10init.t
 t/15accessors.t
-t/20simple.t
+t/20dummy.t
+t/22http.t
 t/README
