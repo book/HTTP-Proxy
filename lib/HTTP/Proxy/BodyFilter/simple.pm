@@ -20,17 +20,6 @@ HTTP::Proxy::BodyFilter::simple - A class for creating simple filters
     );
     $proxy->push_filter( response => $filter );
 
-    # a simple "caching" filter that store the latest downloaded
-    # file in /tmp/lastest.dat
-    use File::Copy;
-    use HTTP::Proxy::BodyFilter::store;
-
-    my $cache = HTTP::Proxy::BodyFilter::simple->new(
-        filter_file => sub { copy( $_[1], "/tmp/latest.dat" ); }
-    );
-    $proxy->push( response => HTTP::Proxy::BodyFilter::store->new );
-    $proxy->push( response => $cache );
-
 =head1 DESCRIPTION
 
 HTTP::Proxy::BodyFilter::simple can create BodyFilter without going
@@ -59,20 +48,16 @@ See HTTP::Proxy::BodyFilter.pm for more details about the filter() method.
 
 =item name/coderef pairs
 
-The name is the name of the method (either C<filter> or C<filter_file>)
+The name is the name of the method (C<filter>, C<begin>, C<end>)
 and the coderef is the method itself.
 
-A code reference for filter_file() must conform to the signature:
-
-    sub filter_file { my ( $self, $filename, $message, $protocol ) = @_; ... }
-
-See HTTP::Proxy::BodyFilter.pm for more details about the filter_file() method.
+See HTTP::Proxy::BodyFilter for the methods signatures.
 
 =back
 
 =cut
 
-my $methods = join '|', qw( begin start filter filter_file end );
+my $methods = join '|', qw( begin start filter end );
 $methods = qr/^(?:$methods)$/;
 
 sub init {
@@ -103,7 +88,6 @@ sub init {
 sub begin       { goto &{ $_[0]{_begin} }; }
 sub start       { goto &{ $_[0]{_start} }; } # DEPRECATED
 sub filter      { goto &{ $_[0]{_filter} }; }
-sub filter_file { goto &{ $_[0]{_filter_file} }; }
 sub end         { goto &{ $_[0]{_end} }; }
 
 sub can {
@@ -119,7 +103,7 @@ Philippe "BooK" Bruhat, E<lt>book@cpan.orgE<gt>.
 
 =head1 COPYRIGHT
 
-Copyright 2003-2004, Philippe Bruhat
+Copyright 2003-2005, Philippe Bruhat
 
 =head1 LICENSE
 
