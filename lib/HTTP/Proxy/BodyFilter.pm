@@ -88,6 +88,11 @@ filters that follows, until the data reaches its recipient.
 A HTTP::Proxy::BodyFilter object is a blessed hash, and the base class
 reserves only hash keys that start with C<_hpbf>.
 
+=item new()
+
+The constructor is defined for all subclasses. Initialisation tasks
+(if any) for subclasses should be done in the C<init()> method (see below).
+
 =item init()
 
 This method is called by the C<new()> constructeur to perform all
