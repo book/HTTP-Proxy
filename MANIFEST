@@ -42,6 +42,7 @@ t/64lines.t
 t/64tags.t
 t/66htmlparser.t
 t/71rot13.t
+t/90diveintomark.t
 t/README
 t/Utils.pm
 t/test.html
