@@ -345,6 +345,7 @@ sub start {
 
             # single-process proxy (useful for debugging)
             if ( $self->maxchild == 0 ) {
+                $self->maxserve(1);    # do not block simultaneous connections
                 $self->log( PROCESS, "No fork allowed, serving the connection" );
                 $self->serve_connections($fh->accept);
                 $self->{conn}++;    # read-only attribute
@@ -523,7 +524,9 @@ sub serve_connections {
         $self->{headers}{request}->filter( $req->headers, $req );
 
         # FIXME I don't know how to get the LWP::Protocol objet...
+        # NOTE: the request is always received in one piece
         $self->{body}{request}->filter( $req->content_ref, $req, undef );
+        $self->{body}{request}->eod;    # end of data
         $self->log( HEADERS, "($$) Request:", $req->headers->as_string );
 
         # the header filters created a response,
@@ -1093,8 +1096,15 @@ sub filter_last {
     }
 
     # clean up the mess for next time
-    $self->{buffers} = [];
-    $self->{current} = undef;
+    $self->eod;
+}
+
+#
+# END OF DATA cleanup method
+#
+sub eod {
+    $_[0]->{buffers} = [];
+    $_[0]->{current} = undef;
 }
 
 1;
