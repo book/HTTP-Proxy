@@ -9,7 +9,7 @@ use Carp;
 use strict;
 use vars qw( $VERSION $AUTOLOAD );
 
-$VERSION = 0.02;
+$VERSION = 0.03;
 
 =pod
 
@@ -86,6 +86,10 @@ The defined accessors are (in alphabetical order):
 
 The LWP::UserAgent object used internally to connect to remote sites.
 
+=item conn (read-only)
+
+The number of connections processed by this HTTP::Proxy instance.
+
 =item daemon
 
 The HTTP::Daemon object used to accept incoming connections.
@@ -113,9 +117,20 @@ from start(). 0 (the default) means never stop accepting connections.
 
 The proxy HTTP::Daemon port (default: 8080).
 
-=item conn (read-only)
+=item url (read-only)
 
-The number of connections processed by this HTTP::Proxy instance.
+The url where the proxy can be reached.
+
+=cut
+
+sub url {
+    my $self = shift;
+    if ( not defined $self->daemon ) {
+        carp "HTTP daemon not started yet";
+        return undef;
+    }
+    return $self->daemon->url;
+}
 
 =item verbose
 
@@ -135,7 +150,8 @@ sub AUTOLOAD {
     my $attr = $1;
 
     # must be one of the registered subs
-    if ( $attr =~ /^(?:agent|daemon|host|maxconn|maxchild
+    if (
+        $attr =~ /^(?:agent|daemon|host|maxconn|maxchild
                       |logfh|port|conn|verbose)$/x
       )
     {
@@ -223,12 +239,14 @@ sub init {
 #
 
 sub _init_daemon {
-    my $self   = shift;
-    my $daemon = HTTP::Daemon->new(
+    my $self = shift;
+    my %args = (
         LocalHost => $self->host,
         LocalPort => $self->port,
         ReuseAddr => 1,
-      )
+    );
+    delete $args{LocalPort} unless $self->port;    # 0 means autoselect
+    my $daemon = HTTP::Daemon->new(%args)
       or die "Cannot initialize proxy daemon: $!";
     $daemon->product_tokens("HTTP-Daemon/$VERSION");
     $self->daemon($daemon);
@@ -260,7 +278,8 @@ sub process {
         }
         $self->log( 1, "($$) Request: " . $req->uri );
         $self->log( 5, "($$) Request: " . $req->headers->as_string );
-	# handle the Connection: header from the request
+
+        # handle the Connection: header from the request
         my $res = $self->agent->simple_request($req);
         $conn->print( $res->as_string );
         $self->log( 1, "($$) Response: " . $res->status_line );
@@ -271,7 +290,7 @@ sub process {
 sub log {
     my $self  = shift;
     my $level = shift;
-    my $fh = $self->logfh;
+    my $fh    = $self->logfh;
 
     return if $self->verbose < $level;
 
