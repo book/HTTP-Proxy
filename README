@@ -5,14 +5,8 @@ This module is a pure Perl HTTP proxy.
 
 Its main use should be to record and/or modify web sessions, so as to
 help users create web robots, web testing suites, as well as proxy
-systems than can transparently alter the requests to and answer from
+systems than can transparently alter the requests to and answers from
 an origin server.
-
-This module allows the user to modify requests and responses
-on the fly, but also to record web sessions. The recorded
-sessions can be used to create a robot (with WWW::Mechanize),
-or create tree-like structures that represent the user's
-journey in cyberspace.
 
 The eg/ directory holds a few examples:
 - proxy.pl (simple proxy)
@@ -23,6 +17,6 @@ The eg/ directory holds a few examples:
 The way the filters are implemented is very likely to change in
 the next version of HTTP::Proxy. Expect a dedicated filter class
 to appear soon, as well as some slight changes in the HTTP::Proxy
-interfaces. Maybe in 0.09 or 0.10.
+interfaces. This will probably happen in 0.10.
 
 !WARNING!WARNING!WARNING!WARNING!WARNING!WARNING!WARNING!WARNING!
