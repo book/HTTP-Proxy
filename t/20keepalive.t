@@ -77,11 +77,12 @@ my ( $ua, $res, $re );
 $ua = LWP::UserAgent->new;
 $ua->proxy( http => $proxy->url );
 
+my $req = shift @requests;
 $res =
   $ua->simple_request(
-    HTTP::Request->new( GET => $server->url . shift @requests ) );
-ok( $res->is_success, "Got an answer (@{[$rep->status_line]})" );
-$re = quotemeta;
+    HTTP::Request->new( GET => $server->url . $req ) );
+ok( $res->is_success, "Got an answer (@{[$res->status_line]})" );
+$re = quotemeta $req;
 like( $res->content, qr/$re/, "The client got what it expected" );
 
 # the other connections (keep-alive)
@@ -90,7 +91,7 @@ $ua->proxy( http => $proxy->url );
 for (@requests) {
     $res =
       $ua->simple_request( HTTP::Request->new( GET => $server->url . $_ ) );
-    ok( $res->is_success, "Got an answer (@{[$rep->status_line]})" );
+    ok( $res->is_success, "Got an answer (@{[$res->status_line]})" );
     $re = quotemeta;
     like( $res->content, qr/$re/, "The client got what it expected" );
 }
