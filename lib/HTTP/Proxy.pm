@@ -19,7 +19,7 @@ require Exporter;
 @EXPORT_OK   = qw( NONE ERROR STATUS PROCESS HEADERS FILTER ALL );
 %EXPORT_TAGS = ( log => [@EXPORT_OK] );                           # only one tag
 
-$VERSION = 0.06;
+$VERSION = 0.07;
 
 my $CRLF = "\015\012";    # "\r\n" is not portable
 
@@ -105,17 +105,9 @@ sub new {
     return $self;
 }
 
-# AUTOLOADed attributes
-my $all_attr = qr/^(?:agent|chunk|conn|control_regex|daemon|host|logfh|
-                      loop|maxchild|maxconn|port|request|response|
-                      logmask)$/x;
-
-# read-only attributes
-my $ro_attr = qr/^(?:conn|control_regex|loop)$/;
-
 =head2 Accessors
 
-The HTTP::Proxy has several accessors. They are all AUTOLOADed.
+The HTTP::Proxy has several accessors.
 
 Called with arguments, the accessor returns the current value.
 Called with a single argument, it set the current value and
@@ -223,33 +215,25 @@ sub url {
 
 =cut
 
-sub AUTOLOAD {
+# normal accessors
+for my $attr (
+    qw( agent chunk daemon host logfh maxchild maxconn port
+        request response logmask )
+  )
+{
+    no strict 'refs';
+    *{"HTTP::Proxy::$attr"} = sub {
+        my $self = shift;
+        my $old  = $self->{$attr};
+        $self->{$attr} = shift if @_;
+        return $old;
+      }
+}
 
-    # we don't DESTROY
-    return if $AUTOLOAD =~ /::DESTROY/;
-
-    # fetch the attribute name
-    $AUTOLOAD =~ /.*::(\w+)/;
-    my $attr = $1;
-
-    # must be one of the registered subs
-    if ( $attr =~ $all_attr ) {
-        no strict 'refs';
-        my $rw = 1;
-        $rw = 0 if $attr =~ $ro_attr;
-
-        # create and register the method
-        *{$AUTOLOAD} = sub {
-            my $self = shift;
-            my $old  = $self->{$attr};
-            $self->{$attr} = shift if @_ && $rw;
-            return $old;
-        };
-
-        # now do it
-        goto &{$AUTOLOAD};
-    }
-    croak "Undefined method $AUTOLOAD";
+# read-only accessors
+for my $attr (qw( conn control_regex loop )) {
+    no strict 'refs';
+    *{"HTTP::Proxy::$attr"} = sub { return $_[0]->{$attr} }
 }
 
 =head2 The start() method
@@ -835,20 +819,19 @@ logging constants.
 
 =head1 BUGS
 
+This does not work under Windows, but I can't see why, and do not have
+a development platform under that system. Patches and explanations
+very welcome.
+
 This is still beta software, expect some interfaces to change as
 I receive feedback from users.
-
-=head1 TODO
-
-* correctly handle the Content-Length
-
-* Provide a better interface for logging.
-
-* Provide control over the proxy through special URLs
 
 =head1 AUTHOR
 
 Philippe "BooK" Bruhat, E<lt>book@cpan.orgE<gt>.
+
+The module has its own web page at http://http-proxy.mongueurs.net/
+complete with older versions and repository snapshot.
 
 =head1 THANKS
 
