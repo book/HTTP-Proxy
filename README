@@ -12,3 +12,4 @@ sessions can be used to create a robot (with WWW::Mechanize),
 or create tree-like structures that represent the user's
 journey in cyberspace.
 
+The eg/proxy.pl gives a simple proxy example.
