@@ -169,7 +169,7 @@ The HTTP::Daemon object used to accept incoming connections.
 
 The proxy HTTP::Daemon host (default: 'localhost').
 
-This means that by default, the proxy only answer to clients on the
+This means that by default, the proxy answers only to clients on the
 local machine. You can pass a specific interface address or C<"">/C<undef>
 for any interface.
 

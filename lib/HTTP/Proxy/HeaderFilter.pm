@@ -65,12 +65,18 @@ The following HeaderFilters are included in the HTTP::Proxy distribution:
 
 =over 4
 
+=item simple
+
+This class lets you create a simple header filter from a code reference.
+
 =item standard
 
 This is the filter that provides standard headers handling for HTTP::Proxy.
 It is loaded automatically by HTTP::Proxy.
 
 =back
+
+Please read each filter's documentation for more details about their use.
 
 =cut
 
