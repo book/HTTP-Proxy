@@ -19,7 +19,7 @@ HTTP::Proxy::HeaderFilter - A base class for HTTP message header filters
 
         $message->headers->header( User_Agent => 'MyFilter/1.0' );
     }
-    
+
     1;
 
 =head1 DESCRIPTION
