@@ -36,6 +36,7 @@ qq'<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//FR" "http://www.w3.
   )
 {
     my $data = "$_->[0]";
+    $stack->select_filters( $proxy->{response} );
     $stack->filter( \$data, $proxy->{response}, undef );
     is( $data, $_->[1], "Correct data transformation" );
 }
