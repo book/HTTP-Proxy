@@ -19,7 +19,7 @@ require Exporter;
 @EXPORT_OK = qw( NONE ERROR STATUS PROCESS CONNECT HEADERS FILTER ALL );
 %EXPORT_TAGS = ( log => [@EXPORT_OK] );    # only one tag
 
-$VERSION = 0.08;
+$VERSION = 0.09;
 
 my $CRLF = "\015\012";                     # "\r\n" is not portable
 
@@ -419,6 +419,8 @@ sub serve_connections {
     my ( $last, $served ) = ( 0, 0 );
     while ( my $req = $conn->get_request() ) {
 
+        $served++;
+
         # Got a request?
         unless ( defined $req ) {
             $self->log( ERROR, "($$) Getting request failed:", $conn->reason );
@@ -484,6 +486,10 @@ sub serve_connections {
                                 $response->push_header(
                                     "Transfer-Encoding" => "chunked" );
                                 $chunked++;
+                                $response->push_header(
+                                    "Connection" => "close" )
+                                    if $served >= $self->maxserve;
+                                
                             }
                             else {
                                 $last++;
@@ -544,7 +550,6 @@ sub serve_connections {
 
         $self->log( STATUS,  "($$) Response:", $response->status_line );
         $self->log( HEADERS, "($$) Response:", $response->headers->as_string );
-        $served++;
         last if $last || $served >= $self->maxserve;
     }
     $self->log( CONNECT, "($$) Connection closed by the client" )
@@ -781,9 +786,9 @@ sub _proxy_headers_filter {
         Client-SSL-Cert-Issuer Client-SSL-Cert-Subject Client-SSL-Cipher
         Client-SSL-Warning Client-Transfer-Encoding Client-Warning ),
 
-        # hop-by-hop headers(for now)
+        # hop-by-hop headers (for now)
         qw( Connection Keep-Alive TE Trailers Transfer-Encoding Upgrade
-        Proxy-Connection Proxy-Authenticate Proxy-Authorization ),
+        Proxy-Connection Proxy-Authenticate Proxy-Authorization Public ),
 
         # no encoding accepted (gzip, compress, deflate)
         qw( Accept-Encoding ),
