@@ -54,6 +54,9 @@ server (if the filter is on the request stack). If $headers is
 modified by the filter, the modified headers will be sent to the
 client or server.
 
+A HTTP::Proxy::HeaderFilter object is a blessed hash, and the base class
+reserves only hash keys that start with C<_hphf>.
+
 =head2 Standard HeaderFilters
 
 Standard HTTP::Proxy::HeaderFilter classes are lowercase.
@@ -69,7 +72,7 @@ This filter allows logging based on the HTTP message headers.
 =item standard
 
 This is the filter that provides standard headers handling for HTTP::Proxy.
-It is loaded automacally by HTTP::Proxy.
+It is loaded automatically by HTTP::Proxy.
 
 =back
 
@@ -77,6 +80,26 @@ It is loaded automacally by HTTP::Proxy.
 
 sub filter {
     croak "HTTP::Proxy::HeaderFilter cannot be used as a filter";
+}
+
+=head1 AVAILABLE METHODS
+
+Some methods are available to filters, so that they can eventually use
+the little knowledge they might have of HTTP::Proxy's internals. They
+mostly are accessors.
+
+=over 4
+
+=item proxy()
+
+Gets a reference to the HTTP::Proxy objects that owns the filter.
+This gives access to some of the proxy methods.
+
+=cut
+
+sub proxy {
+    my ( $self, $new ) = @_;
+    return $new ? $self->{_hphf_proxy} = $new : $self->{_hphf_proxy};
 }
 
 =head1 AUTHOR
