@@ -16,35 +16,39 @@ use t::Utils;
 use LWP::UserAgent;
 use HTTP::Proxy;
 
-# shall we skip tests if the network is not available?
+# we skip the tests if the network is not available
 
-my $test = Test::Builder->new;
+SKIP: {
+    skip "Web does not seem to work", @requests + 1 unless web_ok();
 
-# this is to work around tests in forked processes
-$test->use_numbers(0);
-$test->no_ending(1);
+    my $test = Test::Builder->new;
 
-my $proxy = HTTP::Proxy->new( port => 0, maxconn => scalar @requests );
-$proxy->init;    # required to access the url later
+    # this is to work around tests in forked processes
+    $test->use_numbers(0);
+    $test->no_ending(1);
 
-# fork a HTTP proxy
-my $pid = fork_proxy(
-    $proxy,
-    sub {
-        ok( $proxy->conn == @requests,
-            "Served the correct number of requests" );
+    my $proxy = HTTP::Proxy->new( port => 0, maxconn => scalar @requests );
+    $proxy->init;    # required to access the url later
+
+    # fork a HTTP proxy
+    my $pid = fork_proxy(
+        $proxy,
+        sub {
+            ok( $proxy->conn == @requests,
+                "Served the correct number of requests" );
+        }
+    );
+
+    # run a client
+    my $ua = LWP::UserAgent->new;
+    $ua->proxy( http => $proxy->url );
+
+    for (@requests) {
+        my $req = HTTP::Request->new( GET => $_->[0] );
+        my $rep = $ua->simple_request($req);
+        is( $rep->code, $_->[1], "Got an answer (@{[$rep->code]})" );
     }
-);
 
-# run a client
-my $ua = LWP::UserAgent->new;
-$ua->proxy( http => $proxy->url );
-
-for (@requests) {
-    my $req = HTTP::Request->new( GET => $_->[0] );
-    my $rep = $ua->simple_request($req);
-    is( $rep->code, $_->[1], "Got an answer (@{[$rep->code]})" );
+    # make sure the kid is dead
+    wait;
 }
-
-# make sure the kid is dead
-wait;
