@@ -388,6 +388,7 @@ sub start {
             # the child process handles the whole connection
             else {
                 $SIG{INT} = 'DEFAULT';
+                $fh->close;
                 $self->serve_connections($conn);
                 exit;    # let's die!
             }
@@ -679,6 +680,7 @@ sub _send_response_headers {
 
     # correct headers
     $response->remove_header("Content-Length");
+        # FIXME don't remove if no body filter
     $response->header( Server => "HTTP::Proxy/$VERSION" )
       unless $response->header( 'Server' );
     $response->header( Date => time2str(time) )
