@@ -20,12 +20,12 @@ require Exporter;
 @EXPORT_OK = qw( NONE ERROR STATUS PROCESS CONNECT HEADERS FILTER ALL );
 %EXPORT_TAGS = ( log => [@EXPORT_OK] );    # only one tag
 
-$VERSION = '0.11';
+$VERSION = '0.12';
 
 my $CRLF = "\015\012";                     # "\r\n" is not portable
 
 # standard filters
-require HTTP::Proxy::HeaderFilter::standard;    # needs $VERSION
+use HTTP::Proxy::HeaderFilter::standard;
 
 # constants used for logging
 use constant ERROR   => -1;
