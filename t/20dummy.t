@@ -1,6 +1,16 @@
-#!/usr/bin/perl
 use strict;
-use Test::More tests => 10;
+use vars qw( @requests );
+
+# here are all the requests the client will try
+BEGIN {
+    @requests = qw(
+      file1.txt
+      directory/file2.txt
+      ooh.cgi?q=query
+    );
+}
+
+use Test::More tests => 3 * @requests + 2;
 use HTTP::Daemon;
 use LWP::UserAgent;
 use HTTP::Proxy;
@@ -10,13 +20,6 @@ my $test = Test::Builder->new;
 # this is to work around tests in forked processes
 $test->use_numbers(0);
 $test->no_ending(1);
-
-# here are all the requests the client will try
-my @requests = qw(
-  file1.txt
-  directory/file2.txt
-  ooh.cgi?q=query
-);
 
 # create a HTTP::Daemon (on an available port)
 my $daemon = HTTP::Daemon->new(
@@ -35,18 +38,31 @@ die "Unable to fork web server" if not defined $pid;
 
 if ( $pid == 0 ) {
 
+    # the answer method
+    my $answer = sub {
+        my ( $conn, $data ) = @_;
+        my $h = HTTP::Headers->new( 'Content-Type' => 'text/plain' );
+        my $rep = HTTP::Response->new( 200, 'OK', $h, "Here is $data." );
+        $conn->send_response($rep);
+    };
+
     # this is the http daemon
     # let's return some files when asked for them
     for (@requests) {
         my $conn = $daemon->accept;
         my $req  = $conn->get_request;
-        ok( $req->uri =~ quotemeta, "The proxy requests what we expect" );
-        my $h = HTTP::Headers->new( 'Content-Type' => 'text/plain' );
-        my $rep = HTTP::Response->new( 200, 'OK', $h, "Here is $_." );
-        $conn->send_response($rep);
-
-        #$conn->close;
+        ok( $req->uri =~ quotemeta, "The proxy requested what we expected" );
+        $answer->( $conn, $_ );
     }
+
+    # Test the headers
+    my $conn = $daemon->accept;
+    my $req  = $conn->get_request;
+    ok(
+        !$req->headers->header('Proxy-Connection'),
+        "The Proxy-Connection header is filtered"
+    );
+    $answer->( $conn, 'Proxy-connection removed' );
     exit 0;
 }
 
@@ -78,6 +94,11 @@ for (@requests) {
     ok( $rep->is_success, "Got an answer (@{[$rep->code]})" );
     ok( $rep->content =~ quotemeta, "Got what we wanted" );
 }
+
+# send a Proxy-Connection header
+my $req = HTTP::Request->new( GET => $daemon->url . "proxy-connection" );
+$req->headers->header( Proxy_Connection => 'Keep-Alive' );
+my $rep = $ua->simple_request($req);
 
 # make sure both kids are dead
 wait for @pids;
