@@ -42,8 +42,8 @@ filter in the filter chain will only receive complete messages body
 It will store the chunks of data as they arrive, only to pass the B<entire>
 message body after the whole message has been received by the proxy.
 
-Next filters is the chain will receive the whole body as a big piece of
-data.
+Subsequent filters is the chain will receive the whole body as a big
+piece of data.
 
 =head1 CAVEAT EMPTOR
 
