@@ -16,4 +16,3 @@ CVS/.*
 ~$
 ^TODO$
 ^.cvsignore$
-^t/01pod.t$
