@@ -1183,7 +1183,13 @@ sub filter {
         }
 
         # start the filter if needed (and pass the message)
-        for ( @{ $self->{current} } ) { $_->start($_[1]) if $_->can('start'); }
+        for ( @{ $self->{current} } ) {
+            if    ( $_->can('begin') ) { $_->begin( $_[1] ); }
+            elsif ( $_->can('start') ) {
+                $_->proxy->log( HTTP::Proxy::ERROR, "DEPRECATION", "The start() filter method is *deprecated* and will go away in 0.15!\nStart s/start/begin/g in your filters!" );
+                $_->start( $_[1] );
+            }
+        }
     }
 
     # pass the body data through the filter
