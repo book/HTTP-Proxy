@@ -212,7 +212,7 @@ pages (for 404 codes).
 
 =cut
 
-sub start {
+sub begin {
     my ( $self, $message ) = @_;
 
     my $uri = $message->isa( 'HTTP::Request' )
@@ -356,7 +356,7 @@ Wget(1) provided the inspiration for many of the file naming options.
 
 Thanks to Nicolas Chuche for telling me about C<O_EXCL>.
 Thanks to Rafaël Garcia-Suarez and David Rigaudiere for their help on
-irc while coding the nasty start() method. C<;-)>
+irc while coding the nasty begin() method. C<;-)>
 Thanks to Howard Jones for the inspiration and initial patch for the
 C<filename> option. Lucas Gonze provided a patch to make C<status>
 actually work.

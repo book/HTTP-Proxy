@@ -83,14 +83,14 @@ Three methods can be added to a BodyFilter to enhance customisation:
 This method is called by the new() constructeur to perform all
 initisalisation tasks.  It's called once in the filter lifetime.
 
-=item start()
+=item begin()
 
 Some filters might require initialisation before they are able to handle
-the data. If a start() method is defined in your subclass, the proxy
+the data. If a begin() method is defined in your subclass, the proxy
 will call it before sending data to the filter() method.
 
 It's called once per HTTP message handled by the filter, before data
-processing starts.
+processing begins.
 
 =item end()
 

@@ -40,7 +40,7 @@ sub init {
     $_[0]->{_filter} = $_[1];
 }
 
-sub start { $_[0]->{js} = 0; }    # init
+sub begin { $_[0]->{js} = 0; }    # per message initialisation
 
 sub filter {
     my ( $self, $dataref, $message, $protocol, $buffer ) = @_;
