@@ -2,18 +2,16 @@ use Test::More tests => 33;
 use strict;
 use HTTP::Proxy::BodyFilter::lines;
 
-my ( $filter, $eol, $data );
+my $filter;
 
 # error checking
-eval { $filter = HTTP::Proxy::BodyFilter::lines->new($eol) };
+eval { $filter = HTTP::Proxy::BodyFilter::lines->new( undef ) };
 like( $@, qr/slurp mode is not supported/, "No slurp mode" );
 
-$eol = 'foo';
-eval { $filter = HTTP::Proxy::BodyFilter::lines->new( \$eol ) };
+eval { $filter = HTTP::Proxy::BodyFilter::lines->new( \'foo' ) };
 like( $@, qr/"foo" is not numeric/, "Records must be numeric" );
 
-$eol = 0;
-eval { $filter = HTTP::Proxy::BodyFilter::lines->new( \$eol ) };
+eval { $filter = HTTP::Proxy::BodyFilter::lines->new( \0 ) };
 like( $@, qr/Records of size 0/, "Records must be != 0" );
 
 # test the filter
@@ -39,7 +37,7 @@ for (
     [ '01234567890123', undef, "01234567890123", undef ],
   )
 {
-    $filter = $_, next if ref $_ eq 'HTTP::Proxy::BodyFilter::lines';
+    $filter = $_, next if ref eq 'HTTP::Proxy::BodyFilter::lines';
 
     my ( $data, $buffer ) = @$_[ 0, 1 ];
     $filter->filter( \$data, undef, undef,
