@@ -6,6 +6,7 @@ eg/README
 eg/anonymiser.pl
 eg/leet.pl
 eg/outline.pl
+eg/proxy-auth.pl
 eg/proxy.pl
 eg/rainbow.pl
 eg/rot13.pl
@@ -29,6 +30,7 @@ t/20keepalive.t
 t/22http.t
 t/40push_filters.t
 t/41filters.t
+t/50hopbyhop.t
 t/50standard.t
 t/50via.t
 t/51simple.t
