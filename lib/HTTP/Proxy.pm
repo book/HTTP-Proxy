@@ -469,6 +469,7 @@ sub serve_connections {
                     $self->response($response);
                     $self->{headers}{response}
                       ->filter( $response->headers, $response );
+                    $response->remove_header("Content-Length");
 
                     # this is adapted from HTTP::Daemon
                     if ( $conn->antique_client ) { $last++ }
@@ -511,7 +512,8 @@ sub serve_connections {
                     "got " . length($data) . " bytes of body data" );
                 $self->{body}{response}->filter( \$data, $response, $proto );
                 if ($chunked) {
-                    printf $conn "%x%s%s%s", length($data), $CRLF, $data, $CRLF;
+                    printf $conn "%x%s%s%s", length($data), $CRLF, $data, $CRLF
+                      if length($data);    # the filter may leave nothing
                 }
                 else {
                     print $conn $data;
