@@ -262,9 +262,7 @@ sub start {
 
             # the child process handles the whole connection
             else {
-                my $conn = $daemon->accept;
-                $SIG{INT} = 'IGNORE';
-                $self->process($conn);
+                $self->serve_connections($daemon);
                 exit;    # let's die!
             }
         }
@@ -325,7 +323,6 @@ sub init {
 sub _init_daemon {
     my $self = shift;
     my %args = (
-        LocalHost => $self->host,
         LocalPort => $self->port,
         ReuseAddr => 1,
     );
@@ -354,14 +351,18 @@ sub _init_agent {
 
 =cut
 
-sub process {
-    my ( $self, $conn ) = @_;
+sub serve_connections {
+    my ( $self, $daemon ) = @_;
     my $response;
+
+    my $conn = $daemon->accept;
+    $SIG{INT} = 'IGNORE'; # don't interrupt while we talk to a client
     my $req = $conn->get_request();
 
     unless ( defined $req ) {
         $self->log( 0, "Getting request failed:", $conn->reason );
     }
+    $self->log( 1, "($$) Request:", $req->uri );
 
     # can we serve this protocol?
     if ( !$self->agent->is_protocol_supported( my $s = $req->uri->scheme ) ) {
@@ -373,7 +374,6 @@ sub process {
 
     # massage the request to pop a response
     $req->headers->remove_header('Proxy-Connection');    # broken header
-    $self->log( 1, "($$) Request:", $req->uri );
     $self->log( 5, "($$) Request:", $req->headers->as_string );
     $response = $self->agent->simple_request($req);
 
@@ -391,6 +391,7 @@ sub process {
     }
     $self->log( 1, "($$) Response:", $response->status_line );
     $self->log( 5, "($$) Response:", $response->headers->as_string );
+    $SIG{INT} = 'DEFAULT';
 }
 
 =item log( $level, $message )
