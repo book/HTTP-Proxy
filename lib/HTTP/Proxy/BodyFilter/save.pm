@@ -58,11 +58,11 @@ sub init {
          no_dirs    => 0,
          cut_dirs   => 0,
          prefix     => '',
+         filename   => undef,
          multiple   => 1,
          keep_old   => 1, # no_clobber in wget parlance
          timestamp  => 0,
          status     => [ 200 ],
-         filename   => undef,
          @_
     );
     # keep_old and timestamp can't be selected together
@@ -76,8 +76,9 @@ sub init {
       if defined $args{filename} && UNIVERSAL::isa($args{filename}, 'CODE');
 
     $self->{"_hpbf_save_$_"} = $args{$_}
-      for qw( template no_host no_dirs cut_dirs prefix timestamp
-              keep_old multiple filename );
+      for qw( template no_host no_dirs cut_dirs prefix
+              filename
+              multiple keep_old timestamp status );
 }
 
 =head2 Constructor
