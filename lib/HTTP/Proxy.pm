@@ -34,9 +34,10 @@ use constant STATUS  => 1;     # HTTP status
 use constant PROCESS => 2;     # sub-process life (and death)
 use constant SOCKET  => 4;     # low-level connections
 use constant HEADERS => 8;     # HTTP headers
-use constant FILTER  => 16;    # Data received by the filters
-use constant CONNECT => 32;    # Data transmitted by the CONNECT method
-use constant ALL     => 63;    # All of the above
+use constant FILTERS => 16;    # Messages from filters
+use constant DATA    => 32;    # Data received by the filters
+use constant CONNECT => 64;    # Data transmitted by the CONNECT method
+use constant ALL     => 127;   # All of the above
 
 # Methods we can forward
 @METHODS = qw( OPTIONS GET HEAD POST PUT DELETE TRACE CONNECT );
@@ -201,8 +202,11 @@ Here are the various elements that can be added to the mask:
  STATUS  - Requested URL, reponse status and total number
            of connections processed
  PROCESS - Subprocesses information (fork, wait, etc.)
+ SOCKET  - Information about low-level sockets
  HEADERS - Full request and response headers are sent along
- FILTER  - Filter information
+ FILTERS - Filter information
+ DATA    - Data received by the filters
+ CONNECT - Data transmitted by the CONNECT method
  ALL     - Log all of the above
 
 If you only want status and process information, you can use:
@@ -564,7 +568,7 @@ sub serve_connections {
                 }
 
                 # filter and send the data
-                $self->log( FILTER, "($$) Filter:",
+                $self->log( DATA, "($$) Filter:",
                     "got " . length($data) . " bytes of body data" );
                 $self->{body}{response}->filter( \$data, $response, $proto );
                 if ($chunked) {
@@ -1157,8 +1161,8 @@ sub filter {
             $self->{buffers} = [ \( @{ $self->{buffers} } ) ];
         }
 
-        # start the filter if needed
-        for ( @{ $self->{current} } ) { $_->start if $_->can('start'); }
+        # start the filter if needed (and pass the message)
+        for ( @{ $self->{current} } ) { $_->start($_[1]) if $_->can('start'); }
     }
 
     # pass the body data through the filter

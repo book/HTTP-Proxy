@@ -71,3 +71,10 @@ The eg/ directory holds a few example proxies.
 
    Filter: HTTP::Proxy::BodyFilter::htmlparser
 
+ * rfc.pl
+
+   A proxy that automatically saves the files named rfc\d+\.txt to
+   a file of the same name in the rfc/ directory.
+
+   Filter: HTTP::Proxy::BodyFilter::save
+
