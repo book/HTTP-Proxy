@@ -283,7 +283,7 @@ sub log {
 =head2 Callbacks
 
 You can alter the way the default HTTP::Proxy works by pluging callbacks
-at differents stages of the request/response handling.
+at different stages of the request/response handling.
 
 (TO BE IMPLEMENTED)
 
@@ -296,7 +296,11 @@ Some connections to the client are never closed.
 
 =head1 TODO
 
-Provide an interface for logging.
+* Provide an interface for logging.
+ 
+* Remove forking, so that all data is in one place
+
+* Provide control over the proxy through special URLs
 
 =head1 AUTHOR
 
