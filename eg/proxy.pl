@@ -4,4 +4,5 @@ use strict;
 
 # a very simple proxy
 my $proxy = HTTP::Proxy->new;
+$proxy->verbose( shift || 0 );
 $proxy->start;
