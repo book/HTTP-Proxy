@@ -48,6 +48,7 @@ my own roadmaps. :-/
    filter can update the Content-Length: header.
  - Must support the Content-Encoding: gzip headers
  - Accept-Encoding: content-coding tokens are identity, gzip, compress, deflate
+ - add some "standard" filters, like a "recorder" for building web bots
    
 * Data flow
   I guess I'll change the way the responses are handled. The future should
@@ -97,6 +98,7 @@ my own roadmaps. :-/
 
 * record sessions
  - the logs are not enough
+ - this should probably be a "standard" filter
  - we want to be able to completely store a browsing session, probably
    as a tree, for example to use them as a base for WWW::Mechanize::Builder
 
