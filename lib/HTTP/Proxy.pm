@@ -369,6 +369,7 @@ sub start {
 
             # the parent process
             if ($child) {
+                $conn->close;
                 $self->log( PROCESS, "Forked child process $child" );
                 push @kids, $child;
             }
@@ -616,6 +617,7 @@ sub serve_connections {
         $response = $self->response ;
 
         # responses that weren't filtered through callbacks
+        # (empty body or error)
         # FIXME make sure there is no content to filter
         if ( !$sent ) {
             #$self->{headers}{response}->filter( $response->headers, $response );
@@ -895,8 +897,8 @@ logging constants.
 
 =head1 BUGS
 
-This does not work under Windows, but I can't see why, and do not have
-a development platform under that system. Patches and explanations
+This module does not work under Windows, but I can't see why, and do not
+have a development platform under that system. Patches and explanations
 very welcome.
 
 David Fishburn says:
@@ -907,6 +909,11 @@ This did not work for me under WinXP - ActiveState Perl 5.6, but it DOES
 work on WinXP ActiveState Perl 5.8. 
 
 =back
+
+I guess it is because fork() is not well supported. You can try to use
+the following workaround to prevent forking:
+
+    $proxy->maxchild(0);
 
 =head1 SEE ALSO
 

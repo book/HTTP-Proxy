@@ -1,5 +1,5 @@
 use strict;
-use Test::More tests => 2;
+use Test::More tests => 4;
 use LWP::UserAgent;
 use HTTP::Proxy;
 use t::Utils;    # some helper functions for the server
@@ -8,7 +8,7 @@ my $test = Test::Builder->new;
 my @pids;
 
 # this is a rather long test suite just to test that
-# $proxy->via('') prevents the Via: header to be added
+# $proxy->via() works ok
 
 # this is to work around tests in forked processes
 $test->use_numbers(0);
@@ -18,8 +18,8 @@ $test->no_ending(1);
 my $server = server_start();
 
 # create and fork the proxy
-my $proxy = HTTP::Proxy->new( port => 0, maxconn => 1 );
-$proxy->via('');
+# the proxy itself will not fork
+my $proxy = HTTP::Proxy->new( port => 0, maxconn => 1, maxchild => 0 );
 $proxy->init;    # required to access the url later
 $proxy->agent->no_proxy( URI->new( $server->url )->host );
 push @pids, fork_proxy($proxy);
@@ -31,9 +31,17 @@ die "Unable to fork web server" if not defined $pid;
 if ( $pid == 0 ) {
 
     # the answer method
-    my $answer = sub {
-        my $req  = shift;
-        my $data = shift;
+    my $answer1 = sub {
+        my ( $req, $data ) = @_;
+        isnt( $req->headers->header('Via'), undef, "Server says Via: header added" );
+        return HTTP::Response->new(
+            200, 'OK',
+            HTTP::Headers->new( 'Content-Type' => 'text/plain' ),
+            "Headers checked."
+        );
+    };
+    my $answer2 = sub {
+        my ( $req, $data ) = @_;
         is( $req->headers->header('Via'), undef, "Server says no Via: header added" );
         return HTTP::Response->new(
             200, 'OK',
@@ -43,7 +51,8 @@ if ( $pid == 0 ) {
     };
 
     # let's return some files when asked for them
-    server_next( $server, $answer );
+    server_next( $server, $answer1 );
+    server_next( $server, $answer2 );
 
     exit 0;
 }
@@ -58,7 +67,14 @@ $ua->proxy( http => $proxy->url );
 # send a Proxy-Connection header
 $req = HTTP::Request->new( GET => $server->url );
 $res = $ua->simple_request($req);
+isnt( $res->headers->header('Via'), undef, "Client says Via: header added" );
+
+# create and fork the proxy
+$proxy->via('');
+push @pids, fork_proxy($proxy);
+$res = $ua->simple_request($req);
 is( $res->headers->header('Via'), undef, "Client says no Via: header added" );
+
 
 # make sure both kids are dead
 wait for @pids;

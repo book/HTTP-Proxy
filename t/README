@@ -51,13 +51,16 @@ The tests are prefixed with a number, which indicates several categories:
      t/40push_filters.t - the push_filter method
 
 5x - Internal header filters
-     t/50standard.t     - the RFC compliant headers (used internaly)
+     t/50hopbyhop.t     - check hop-by-hop headers removal
+     t/50standard.t     - check other headers removal
+     t/50via.t          - check the Via: headers
      t/51simple.t       - HTTP::Proxy::HeaderFilter::simple
-     t/52log.t          - HTTP::Proxy::HeaderFilter::log
+     #t/52log.t          - HTTP::Proxy::HeaderFilter::log
 
 6x - Internal body filters
      t/61simple.t       - HTTP::Proxy::BodyFilter::simple
-     t/62log.t          - HTTP::Proxy::BodyFilter::log
+     t/61simple2.t      - HTTP::Proxy::BodyFilter::simple with a real proxy
+     #t/62log.t          - HTTP::Proxy::BodyFilter::log
      t/64htmltext.t     - HTTP::Proxy::BodyFilter::htmltext
      t/64lines.t        - HTTP::Proxy::BodyFilter::lines
      t/64tags.t         - HTTP::Proxy::BodyFilter::tags
