@@ -362,7 +362,7 @@ sub serve_connections {
     my $req = $conn->get_request();
 
     unless ( defined $req ) {
-        $self->log( 0, "Getting request failed:", $conn->reason );
+        $self->log( 0, "($$) Getting request failed:", $conn->reason );
     }
     $self->log( 1, "($$) Request:", $req->uri );
 
@@ -375,7 +375,12 @@ sub serve_connections {
     }
 
     # massage the request to pop a response
-    $req->headers->remove_header('Proxy-Connection');    # broken header
+    # remove th hop-by-hop headers (for now)
+    for ( qw( Connection Keep-Alive TE Trailers Transfer-Encoding Upgrade
+              Proxy-Connection Proxy-Authenticate Proxy-Authorization ) ) {
+        $req->headers->remove_header($_);
+    }
+
     $self->log( 5, "($$) Request:", $req->headers->as_string );
     $response = $self->agent->simple_request($req);
 
