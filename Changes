@@ -1,5 +1,12 @@
 Revision history for Perl extension HTTP::Proxy
 
+0.04  Sat Nov 30 12:19:22 CET 2002
+        - accept connection from other hosts
+        - better ftp support (no test yet)
+        - basic gopher support (no test yet)
+        - better HTTP error handling
+        - use CRLF in HTTP headers
+
 0.03  Fri Nov 29 11:17:36 CET 2002
         - url() method gives a url to reach the proxy
         - new 'control' attribute defines the control URL

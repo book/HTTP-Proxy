@@ -11,7 +11,7 @@ use Carp;
 use strict;
 use vars qw( $VERSION $AUTOLOAD );
 
-$VERSION = 0.03;
+$VERSION = 0.04;
 
 my $CRLF = "\015\012";    # "\r\n" is not portable
 
