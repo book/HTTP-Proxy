@@ -1,16 +1,22 @@
+use Test::More;
 use strict;
-use vars qw( @requests );
 
 # here are all the requests the client will try
-BEGIN {
-    @requests = qw(
-      file1.txt
-      directory/file2.txt
-      ooh.cgi?q=query
-    );
+my @requests = qw(
+    file1.txt
+    directory/file2.txt
+    ooh.cgi?q=query
+);
+
+if( $^O eq 'MSWin32' ) {
+    plan skip_all => << 'EOT';
+This test fails on MSWin32.
+HTTP::Proxy is only usable on Win32 with maxchild => 0.
+EOT
+    exit;
 }
 
-use Test::More tests => 3 * @requests + 1;
+plan tests => 3 * @requests + 1;
 
 use LWP::UserAgent;
 use HTTP::Proxy;
