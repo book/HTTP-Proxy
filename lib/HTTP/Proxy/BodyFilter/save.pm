@@ -394,7 +394,7 @@ actually work.
 
 =head1 COPYRIGHT
 
-Copyright 2004-2005, Philippe Bruhat
+Copyright 2004-2005, Philippe Bruhat.
 
 =head1 LICENSE
 
