@@ -23,6 +23,20 @@ my own roadmaps. :-/
        (some code will be cut and pasted)
     => should also use the send_redirect and send_error methods
        when possible
+  - obey the RFC regarding Connection (sections 8. and 14.10)
+    => send a Connection: close when the proxy decides to close
+       the connecion
+    => Remove the headers listed in the Connection header (14.10)
+From RFC 2068
+   If the Keep-Alive header is sent, the corresponding connection token
+   MUST be transmitted. The Keep-Alive header MUST be ignored if
+   received without the connection token.
+From RFC 2616
+
+Note: Mozilla sends stuff like this:
+Keep-Alive: 300
+Proxy-Connection: keep-alive
+
 
 * Proxy Control
  - Control the proxy via specific URIs
