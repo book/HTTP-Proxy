@@ -1,22 +1,6 @@
-BEGIN {
-    use File::Find;
-    use vars qw( @files );
+#!perl -T
 
-    find( sub { push @files, $File::Find::name if /\.p(?:m|od)$/ },
-        'blib/lib' );
-}
-
-use Test::More tests => scalar @files;
-
-SKIP: {
-    eval { require Test::Pod; import Test::Pod; };
-    skip "Test::Pod not available", scalar @files if $@;
-    if ( $Test::Pod::VERSION >= 0.95 ) {
-        pod_file_ok($_) for @files;
-    }
-    else {
-        pod_ok($_) for @files;
-    }
-
-}
-
+use Test::More;
+eval "use Test::Pod 1.14";
+plan skip_all => "Test::Pod 1.14 required for testing POD" if $@;
+all_pod_files_ok();
