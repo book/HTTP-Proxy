@@ -28,15 +28,15 @@ my $CRLF = "\015\012";                     # "\r\n" is not portable
 use HTTP::Proxy::HeaderFilter::standard;
 
 # constants used for logging
-use constant ERROR   => -1;
-use constant NONE    => 0;
-use constant STATUS  => 1;
-use constant PROCESS => 2;
-use constant CONNECT => 4;
-use constant HEADERS => 8;
-use constant FILTER  => 16;
-use constant SSL     => 32;
-use constant ALL     => 63;
+use constant ERROR   => -1;    # always log
+use constant NONE    => 0;     # never log
+use constant STATUS  => 1;     # HTTP status
+use constant PROCESS => 2;     # sub-process life (and death)
+use constant SOCKET  => 4;     # low-level connections
+use constant HEADERS => 8;     # HTTP headers
+use constant FILTER  => 16;    # Data received by the filters
+use constant CONNECT => 32;    # Data transmitted by the CONNECT method
+use constant ALL     => 63;    # All of the above
 
 # Methods we can forward
 @METHODS = qw( OPTIONS GET HEAD POST PUT DELETE TRACE CONNECT );
@@ -660,7 +660,7 @@ sub serve_connections {
 
         last if $last || $served >= $self->maxserve;
     }
-    $self->log( CONNECT, "($$) Connection closed by the client" )
+    $self->log( SOCKET, "($$) Connection closed by the client" )
       if !$last
       and $served < $self->maxserve;
     $self->log( PROCESS, "($$) Served $served requests" );
@@ -764,24 +764,28 @@ sub _handle_CONNECT {
             # read the data
             my $read = $sock->sysread( $data, 4096 );
           
-            # check for errors or end of connection
-            $read = 0 if not defined $read ;
+            # check for errors
+            if(not defined $read ) {
+                $self->log( ERROR, "($$) CONNECT:", "Read undef from $from ($!)" );
+                next;
+            }
 
             # end of connection
             if ( $read == 0 ) {
                 $_->close for ( $sock, $peer );
-                $self->log( CONNECT, "($$) Connection closed by the $from" );
+                $select->remove( $sock, $peer );
+                $self->log( SOCKET, "($$) CONNECT:", "Connection closed by the $from" );
                 $self->log( PROCESS, "($$) Served $served requests" );
-                return $last;
+                next;
             }
 
             # proxy the data
-            $self->log( SSL, "($$) SSL:",
-                             "$read encrypted bytes received from $from" );
+            $self->log( CONNECT, "($$) CONNECT:",
+                                 "$read bytes received from $from" );
             $peer->syswrite($data);
         }
     }
-    $self->log( ERROR, "($$) SSL:", "ERROR - wrong exit out of _handle_CONNECT");
+    $self->log( CONNECT, "($$) CONNECT:", "End of CONNECT proxyfication");
     return $last;
 }
 
