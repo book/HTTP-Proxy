@@ -578,19 +578,23 @@ filter chains: C<request-headers>, C<request-body>, C<reponse-headers> and
 C<response-body>.
 
 You can add your own filters to the default ones with the
-push_header_filter() and the push_body_filter() methods. Both methods
-work more or less the same way: they push a header filter on the
-corresponding filter stack.
+push_filter() method. The method push a filter on the appropriate
+filter stack.
 
-    $proxy->push_body_filter( response => $coderef );
+    $proxy->push_filter( response => $filter );
 
-The name of the method called gives the headers/body part while the
-named parameter give the request/response part.
+The headers/body category is determined by the type of the filter.
+There are two base classes for filters, which are
+HTTP::Proxy::HeaderFilter and HTTP::Proxy::BodyFilter (the names
+are self-explanatory). See the documentation of those two classes
+to find out how to write your own header or body filters.
 
-It is possible to push the same coderef on the request and response
+The named parameter is used to determine the request/response part.
+
+It is possible to push the same filter on the request and response
 stacks, as in the following example:
 
-    $proxy->push_header_filter( request => $coderef, response => $coderef );
+    $proxy->push_filter( request => $coderef, response => $coderef );
 
 Named parameters can be added. They are:
 
@@ -625,47 +629,37 @@ expressions.
 A match routine is compiled by the proxy and used to check if a particular
 request or response must be filtered through a particular filter.
 
-The signature for the "headers" filters is:
+For more details regarding the creation of new filters, check the
+HTTP::Proxy::HeaderFilter and HTTP::Proxy::BodyFilter documentation.
 
-    sub header_filter { my ( $headers, $message) = @_; ... }
-
-where $header is a HTTP::Headers object, and $message is either a
-HTTP::Request or a HTTP::Response object.
-
-The signature for the "body" filters is:
-
-    sub body_filter { my ( $dataref, $message, $protocol ) = @_; ... }
-
-$dataref is a reference to the chunk of data received.
-
-Note that this subroutine signature looks a lot like that of the callbacks
-of LWP::UserAgent (except that $message is either a HTTP::Request or a
-HTTP::Response object).
-
-Here are a few example filters:
+Here's an example:
 
     # fixes a common typo ;-)
     # but chances are that this will modify a correct URL
-    $proxy->push_body_filter( response => sub { ${$_[0]} =~ s/PERL/Perl/g } );
+    {
+        package FilterPerl;
+        use base qw( HTTP::Proxy::BodyFilter );
 
-    # mess up trace requests
-    $proxy->push_headers_filter(
-        method   => 'TRACE',
-        response => sub {
-            my $headers = shift;
-            $headers->header( X_Trace => "Something's wrong!" );
-        },
-    );
+        sub filter {
+            my ( $dataref, $message, $protocol ) = @_;
+            $$dataref =~ s/PERL/Perl/g;
+        }
+    }
+    $proxy->push_filter( response => FilterPerl->new() );
+
+Other examples can be found in the documentation for
+HTTP::Proxy::HeaderFilter, HTTP::Proxy::BodyFilter,
+HTTP::Proxy::HeaderFilter::simple, HTTP::Proxy::BodyFilter::simple.
 
     # a simple anonymiser
-    $proxy->push_headers_filter(
+    $proxy->push_filter(
         mime    => undef,
-        request => sub {
-            $_[0]->remove_header(qw( User-Agent From Referer Cookie ));
-        },
-        response => sub {
-            $_[0]->revome_header(qw( Set-Cookie )),;
-        },
+        request => HTTP::Proxy::HeaderFilter::simple->new(
+            sub { $_[0]->remove_header(qw( User-Agent From Referer Cookie )) },
+        ),
+        response => HTTP::Proxy::HeaderFilter::simple->new(
+            sub { $_[0]->revome_header(qw( Set-Cookie )); },
+        )
     );
 
 IMPORTANT: If you use your own LWP::UserAgent, you must install it
@@ -677,10 +671,7 @@ agent supports.
 
 =cut
 
-# internal method
-# please use push_headers_filters() and push_body_filter()
-
-sub _push_filter {
+sub push_filter {
     my $self = shift;
     my %arg  = (
         mime   => 'text/*',
@@ -692,9 +683,6 @@ sub _push_filter {
     );
 
     # argument checking
-    croak "No filter type defined" if ( !exists $arg{part} );
-    croak "Bad filter queue: $arg{part}"
-      if ( $arg{part} !~ /^(?:headers|body)$/ );
     if ( !exists $arg{request} && !exists $arg{response} ) {
         croak "No message type defined for filter";
     }
@@ -729,8 +717,13 @@ sub _push_filter {
 
     # push the filter and its match method on the correct stack
     for my $message ( grep { exists $arg{$_} } qw( request response ) ) {
-        croak "Not a CODE reference for filter queue $message"
-          if ref $arg{$message} ne 'CODE';
+        croak "Not a Filter reference for filter queue $message"
+          unless $arg{$message}->isa('HTTP::Proxy::HeaderFilter')
+              or $arg{$message}->isa('HTTP::Proxy::BodyFilter');
+
+        my $stack;
+        $stack = 'headers' if $arg{$message}->isa('HTTP::Proxy::HeaderFilter');
+        $stack = 'body'    if $arg{$message}->isa('HTTP::Proxy::BodyFilter');
 
         # MIME can only match on reponse
         my $mime = $mime;
@@ -752,21 +745,9 @@ sub _push_filter {
         };
 
         # push it on the corresponding FilterStack
-        $self->{ $arg{part} }{$message}->push( [ $match, $arg{$message} ] );
+        $self->{ $stack }{$message}->push( [ $match, $arg{$message} ] );
     }
 }
-
-=item push_headers_filter( type => coderef, %args )
-
-=cut
-
-sub push_headers_filter { _push_filter( @_, part => 'headers' ); }
-
-=item push_body_filter( type => coderef, %args )
-
-=cut
-
-sub push_body_filter { _push_filter( @_, part => 'body' ); }
 
 =item log( $level, $prefix, $message )
 
