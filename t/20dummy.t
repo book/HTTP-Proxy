@@ -27,6 +27,7 @@ my $server = server_start();
 
 my $proxy = HTTP::Proxy->new( port => 0, maxconn => scalar @requests );
 $proxy->init;    # required to access the url later
+$proxy->agent->no_proxy( URI->new( $server->url )->host );
 
 # fork the HTTP server
 my @pids;

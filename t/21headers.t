@@ -11,13 +11,14 @@ my @pids;
 $test->use_numbers(0);
 $test->no_ending(1);
 
+# create a HTTP::Daemon (on an available port)
+my $server = server_start();
+
 # create and fork the proxy
 my $proxy = HTTP::Proxy->new( port => 0, maxconn => 1 );
 $proxy->init;    # required to access the url later
+$proxy->agent->no_proxy( URI->new( $server->url )->host );
 push @pids, fork_proxy($proxy);
-
-# create a HTTP::Daemon (on an available port)
-my $server = server_start();
 
 # fork the HTTP server
 my $pid = fork;

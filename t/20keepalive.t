@@ -30,6 +30,7 @@ my $proxy = HTTP::Proxy->new(
     maxconn  => 3,
 );
 $proxy->init;    # required to access the url later
+$proxy->agent->no_proxy( URI->new( $server->url )->host );
 
 # fork the HTTP server
 my @pids;
