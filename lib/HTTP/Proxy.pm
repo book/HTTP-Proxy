@@ -869,10 +869,21 @@ filter the HTTP requests and responses through user-defined filters.
 
 =head1 METHODS
 
-=head2 Constructor
+=head2 Constructor and initilisation
+
+=over 4
+
+=item new()
 
 The new() method creates a HTTP::Proxy object. All attributes can
 be passed as a parameter to replace the default.
+
+=item init()
+
+init() initialise the proxy without starting it. It is usually not
+needed.
+
+This method is called by start() if needed.
 
 =head2 Accessors and mutators
 
@@ -892,6 +903,10 @@ The defined accessors are (in alphabetical order):
 =item agent
 
 The LWP::UserAgent object used internally to connect to remote sites.
+
+=item chunk
+
+The chunk size for the LWP::UserAgent callbacks.
 
 =item client_socket (read-only)
 
@@ -972,6 +987,10 @@ If you only want status and process information, you can use:
 Note that all the logging constants are not exported by default, but 
 by the C<:log> tag. They can also be exported one by one.
 
+=item loop (read-only)
+
+Internal. False when the main loop is about to be broken.
+
 =item maxchild
 
 The maximum number of child process the HTTP::Proxy object will spawn
@@ -1032,7 +1051,11 @@ If set to a true value, the proxy will send the X-Forwarded-For header.
 
 =back
 
-=head2 The start() method
+=head2 Connection handling methods
+
+=over 4
+
+=item start()
 
 This method works like Tk's C<MainLoop>: you hand over control to the
 HTTP::Proxy object you created and configured.
@@ -1040,6 +1063,11 @@ HTTP::Proxy object you created and configured.
 If C<maxconn> is not zero, start() will return after accepting
 at most that many connections. It will return the total number of
 connexions.
+
+=item serve_connections()
+
+This is the internal method used to handle each new TCP connection
+to the proxy.
 
 =head1 FILTERS
 
@@ -1053,6 +1081,8 @@ a standard filter that transform this request accordingly to RFC 2616
 The response is also filtered in the same manner. There is a total of four
 filter chains: C<request-headers>, C<request-body>, C<reponse-headers> and
 C<response-body>.
+
+=head2 push_filter()
 
 You can add your own filters to the default ones with the
 push_filter() method. The method push a filter on the appropriate
@@ -1160,6 +1190,8 @@ IMPORTANT: If you use your own LWP::UserAgent, you must install it
 before your calls to push_filter(), otherwise
 the match method will make wrong assumptions about the schemes your
 agent supports.
+
+=head2 Other methods
 
 =over 4
 
