@@ -146,6 +146,11 @@ for my $attr (qw( conn loop client_socket )) {
 
 sub max_clients { shift->engine->max_clients( @_ ) }
 
+# deprecated methods are still supported
+*maxchild = \&max_clients;
+*maxserve = \&max_requests_per_child;
+*maxconn  = \&max_connections;
+
 sub new_connection { ++$_[0]{conn} }
 
 sub start {
@@ -966,13 +971,10 @@ Internal. False when the main loop is about to be broken.
 =item max_clients
 =item maxchild
 
-FIXME
-
 The maximum number of child process the HTTP::Proxy object will spawn
-to handle client requests (default: 16).
+to handle client requests (default: depends on the engine).
 
-If set to 0, the proxy will not fork at all. This can be helpful for
-debugging purpose.
+This method is actually delegated to the HTTP::Proxy::Engine object.
 
 =item max_connections
 =item maxconn
