@@ -29,6 +29,7 @@ my $serverurl = $server->url;
 my $proxy = HTTP::Proxy->new( port => 0, maxconn => scalar @requests );
 $proxy->init;    # required to access the url later
 $proxy->agent->no_proxy( URI->new( $server->url )->host );
+my $proxyurl = $proxy->url;
 
 # fork the HTTP server
 my @pids;
@@ -73,7 +74,7 @@ push @pids, $pid;    # remember the kid
 
 # run a client
 my $ua = LWP::UserAgent->new;
-$ua->proxy( http => $proxy->url );
+$ua->proxy( http => $proxyurl );
 
 for (@requests) {
     my $req = HTTP::Request->new( GET => $serverurl . $_ );
