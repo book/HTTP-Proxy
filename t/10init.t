@@ -1,4 +1,4 @@
-use Test::More tests => 6;
+use Test::More tests => 8;
 
 use HTTP::Proxy;
 
@@ -20,6 +20,11 @@ $daemon = undef;
 
 # combined init method
 $proxy = HTTP::Proxy->new( port => 0 );
-$agent = $proxy->init;
+$proxy->init;
 isa_ok( $proxy->agent,  'LWP::UserAgent', 'init agent' );
 isa_ok( $proxy->daemon, 'HTTP::Daemon',   'init daemon' );
+
+# basic checks on the agent
+$agent = $proxy->agent;
+ok( ! $agent->is_protocol_supported('mailto'), "Can't mailto" );
+ok( ! $agent->is_protocol_supported('file'),   "Can't access local files" );
