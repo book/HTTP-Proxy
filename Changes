@@ -2,7 +2,7 @@ Revision history for Perl extension HTTP::Proxy
 
 0.11  
         - setting maxchild to 0 prevents forking (Jim Cromie)
-        - filters can match now on the query string
+        - filters can now match on the query string
         - hop-by-hop headers and Max-Forwards headers correctly supported
         - new mutators added to HTTP::Proxy: via, hop_headers, request,
           response
@@ -15,13 +15,13 @@ Revision history for Perl extension HTTP::Proxy
         - new base classes HTTP::Proxy::HeaderFilter and
           HTTP::Proxy::BodyFilter
         - some useful built-in filter classes:
-          HTTP::Proxy::BodyFiler::htmlparser
-          HTTP::Proxy::BodyFiler::htmltext
-          HTTP::Proxy::BodyFiler::lines
-          HTTP::Proxy::BodyFiler::simple
-          HTTP::Proxy::BodyFiler::tags
-          HTTP::Proxy::HeaderFiler::simple
-          HTTP::Proxy::HeaderFiler::standard
+          HTTP::Proxy::BodyFilter::htmlparser
+          HTTP::Proxy::BodyFilter::htmltext
+          HTTP::Proxy::BodyFilter::lines
+          HTTP::Proxy::BodyFilter::simple
+          HTTP::Proxy::BodyFilter::tags
+          HTTP::Proxy::HeaderFilter::simple
+          HTTP::Proxy::HeaderFilter::standard
         - tests for the internal class HTTP::Proxy::FilterStack
         - tests for the built-in filters
         - the examples are up-to-date with the new interface 
