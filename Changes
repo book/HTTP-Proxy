@@ -1,5 +1,10 @@
 Revision history for Perl extension HTTP::Proxy
 
+0.09  Fri Aug 15 21:12:17 CEST 2003
+        - maxserve is now correctly handled
+        - corrected a bug in the t/20keepalive.t test file that
+          made the tests fail on some machines
+
 0.08  Thu Mar 13 01:41:42 CET 2003
         - cleaned up support for filters
         - added support for "buffering" filters
