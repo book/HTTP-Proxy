@@ -104,6 +104,8 @@ sub proxy {
     return $new ? $self->{_hphf_proxy} = $new : $self->{_hphf_proxy};
 }
 
+=back
+
 =head1 AUTHOR
 
 Philippe "BooK" Bruhat, E<lt>book@cpan.orgE<gt>.
