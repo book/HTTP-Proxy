@@ -520,6 +520,9 @@ sub serve_connections {
             $self->chunk
         );
 
+        # remove the header added by LWP::UA before it sends the response back
+        $response->remove_header('Client-Date');
+
         # do a last pass, in case there was something left in the buffers
         my $data = "";    # FIXME $protocol is undef here too
         $self->{body}{response}->filter_last( \$data, $response, undef );
@@ -540,6 +543,7 @@ sub serve_connections {
       SEND:
 
         # responses that weren't filtered through callbacks
+        # FIXME make sure there is no content to filter
         if ( !$sent ) {
             $self->response($response);
             $self->{headers}{response}->filter( $response->headers, $response );
