@@ -222,7 +222,7 @@ sub start {
             exit;    # let's die!
         }
     }
-    $self->log( 0, "Done " . $self->conn . " connection(s)" );
+    $self->log( 1, "Done " . $self->conn . " connection(s)" );
     return $self->conn;
 }
 
