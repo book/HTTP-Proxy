@@ -17,7 +17,7 @@ use vars qw( $VERSION $AUTOLOAD @METHODS
 require Exporter;
 @ISA    = qw(Exporter);
 @EXPORT = ();               # no export by default
-@EXPORT_OK = qw( NONE ERROR STATUS PROCESS SOCKET HEADERS FILTER CONNECT ALL );
+@EXPORT_OK = qw( NONE ERROR STATUS PROCESS SOCKET HEADERS FILTERS CONNECT ALL );
 %EXPORT_TAGS = ( log => [@EXPORT_OK] );    # only one tag
 
 $VERSION = '0.14';
@@ -78,7 +78,7 @@ HTTP::Proxy - A pure Perl HTTP proxy
 This module implements a HTTP proxy, using a HTTP::Daemon to accept
 client connections, and a LWP::UserAgent to ask for the requested pages.
 
-The most interesting feature of this proxy object is its hability to
+The most interesting feature of this proxy object is its ability to
 filter the HTTP requests and responses through user-defined filters.
 
 =head1 METHODS
@@ -360,9 +360,11 @@ sub start {
             }
 
             if ( @kids >= $self->maxchild ) {
-                $self->log( ERROR, "PROCESS", "Too many child process" );
-                select( undef, undef, undef, 1 );
-                last;
+                $self->log( ERROR, "PROCESS",
+                            "Too many child process, serving the connection" );
+                $self->serve_connections($fh->accept);
+                $self->{conn}++;    # read-only attribute
+                next;
             }
 
             # accept the new connection
@@ -779,7 +781,7 @@ sub _handle_CONNECT {
 
             # proxy the data
             $self->log( CONNECT, "CONNECT", "$read bytes received from $from" );
-            $peer->syswrite($data);
+            $peer->syswrite($data, length $data);
         }
     }
     $self->log( CONNECT, "CONNECT", "End of CONNECT proxyfication");
