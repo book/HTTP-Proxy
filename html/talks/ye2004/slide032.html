@@ -1,0 +1,51 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="fr" lang="fr">
+<head>
+<title>Work in progress (2)</title>
+<link rel="stylesheet" type="text/css" href="podpoint.css" />
+<meta http-equiv="Pragma" content="No-cache" />
+</head>
+<body onload="document.getElementById('next').focus()">
+
+
+<table width="100%">
+<tr><td align="left">
+  <div class="navbar">
+  <a href="http://http-proxy.mongueurs.net/">HTTP::Proxy</a> |
+  <a href="slide033.html" id="next">Next</a> |
+  <a href="slide031.html" id="previous">Previous</a> |
+  <a href="index.html">TOC</a></div>
+</td><td align="center">
+<span class="pagenum">32/38</span>
+</td><td align="right">
+<div class="copyright">
+&copy; 2004 by Philippe "BooK" Bruhat.
+</div>
+</td></tr></table>
+
+<hr />
+
+<h1>Work in progress (2)</h1>
+
+<ul>
+<li>
+<p>The proxy logs the <code>Referer:</code>, URI and status code of the request</p>
+</li>
+<li>
+<p>The log file looks like this:</p>
+<pre>    http://www.google.com/search?q=graphviz&amp;sourceid=firefox&amp;start=0&amp;start=0&amp;ie=utf-8&amp;oe=utf-8 http://www.research.att.com/sw/tools/graphviz/ 200
+    NULL http://www.research.att.com/favicon.ico 200
+    http://www.research.att.com/sw/tools/graphviz/ http://www.research.att.com/sw/tools/graphviz/refs.html 200
+    http://www.research.att.com/sw/tools/graphviz/refs.html http://www.research.att.com/footers/CopyrightNotice.gif 404
+    http://www.research.att.com/sw/tools/graphviz/refs.html http://www.research.att.com/~erg/graphviz/info/output.html 200
+    http://search.cpan.org/ http://search.cpan.org/search?query=graphviz&amp;mode=all 200
+    http://search.cpan.org/search?query=graphviz&amp;mode=all http://search.cpan.org/author/LBROCARD/GraphViz-2.00/lib/GraphViz.pm 301
+    http://search.cpan.org/search?query=graphviz&amp;mode=all http://search.cpan.org/~lbrocard/GraphViz-2.00/lib/GraphViz.pm 200
+    http://search.cpan.org/~lbrocard/GraphViz-2.00/lib/GraphViz.pm http://www.research.att.com/sw/tools/graphviz/ 200</pre>
+
+</li>
+</ul>
+
+
+</body></html>

@@ -1,0 +1,52 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="fr" lang="fr">
+<head>
+<title>Live example: dragongoserver (3)</title>
+<link rel="stylesheet" type="text/css" href="podpoint.css" />
+<meta http-equiv="Pragma" content="No-cache" />
+</head>
+<body onload="document.getElementById('next').focus()">
+
+
+<table width="100%">
+<tr><td align="left">
+  <div class="navbar">
+  <a href="http://http-proxy.mongueurs.net/">HTTP::Proxy</a> |
+  <a href="slide026.html" id="next">Next</a> |
+  <a href="slide024.html" id="previous">Previous</a> |
+  <a href="index.html">TOC</a></div>
+</td><td align="center">
+<span class="pagenum">25/38</span>
+</td><td align="right">
+<div class="copyright">
+&copy; 2004 by Philippe "BooK" Bruhat.
+</div>
+</td></tr></table>
+
+<hr />
+
+<h1>Live example: dragongoserver (3)</h1>
+
+<p>So I let the proxy do all the work:</p>
+<pre>    <span class="c"># remove messages from the server</span>
+    <span class="k">my</span> <span class="i">$msg</span> = <span class="q">'&amp;msg=yes'</span><span class="sc">;</span>
+    <span class="i">$proxy</span><span class="i">-&gt;push_filter</span><span class="s">(</span>
+        <span class="w">host</span>     <span class="cm">=&gt;</span> <span class="q">'www.dragongoserver.net'</span><span class="cm">,</span>
+        <span class="w">path</span>     <span class="cm">=&gt;</span> <span class="q">'^/game.php'</span><span class="cm">,</span>
+        <span class="w">response</span> <span class="cm">=&gt;</span> <span class="w">HTTP::Proxy::BodyFilter::tags</span><span class="w">-&gt;new</span><span class="cm">,</span>
+        <span class="w">response</span> <span class="cm">=&gt;</span> <span class="w">HTTP::Proxy::BodyFilter::simple</span><span class="w">-&gt;new</span><span class="s">(</span>
+            <span class="k">sub</span> <span class="s">{</span> 
+                <span class="k">my</span> <span class="s">(</span> <span class="i">$self</span><span class="cm">,</span> <span class="i">$dataref</span><span class="cm">,</span> <span class="i">$message</span><span class="cm">,</span> <span class="i">$protocol</span><span class="cm">,</span> <span class="i">$buffer</span> <span class="s">)</span> = <span class="i">@_</span><span class="sc">;</span>
+                <span class="k">my</span> <span class="i">$uri</span> = <span class="i">$message</span><span class="i">-&gt;request</span><span class="i">-&gt;uri</span><span class="sc">;</span>
+                <span class="k">if</span><span class="s">(</span> <span class="i">$uri</span> =~ <span class="q">s/$msg//o</span> <span class="s">)</span> <span class="s">{</span> <span class="i">$msg</span> = <span class="q">''</span> <span class="s">}</span>
+                <span class="k">else</span> <span class="s">{</span> <span class="i">$$dataref</span> =~ <span class="q">s|(&lt;/?textarea.*&gt;)|&lt;!-- $1 --&gt;|</span> <span class="s">}</span>
+                <span class="i">$$dataref</span> =~ <span class="q">s|(Message:)|&lt;a href=&quot;$uri$msg&quot;&gt;$1&lt;/a&gt;|</span><span class="sc">;</span>
+            <span class="s">}</span>
+        <span class="s">)</span>
+    <span class="s">)</span><span class="sc">;</span></pre>
+<p>Note that this will fail when the string <code>Message:</code> is split between
+two chunks of data sent by the server. I'm lucky.</p>
+
+
+</body></html>

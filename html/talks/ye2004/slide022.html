@@ -1,0 +1,57 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="fr" lang="fr">
+<head>
+<title>Live example: proxy authentication</title>
+<link rel="stylesheet" type="text/css" href="podpoint.css" />
+<meta http-equiv="Pragma" content="No-cache" />
+</head>
+<body onload="document.getElementById('next').focus()">
+
+
+<table width="100%">
+<tr><td align="left">
+  <div class="navbar">
+  <a href="http://http-proxy.mongueurs.net/">HTTP::Proxy</a> |
+  <a href="slide023.html" id="next">Next</a> |
+  <a href="slide021.html" id="previous">Previous</a> |
+  <a href="index.html">TOC</a></div>
+</td><td align="center">
+<span class="pagenum">22/38</span>
+</td><td align="right">
+<div class="copyright">
+&copy; 2004 by Philippe "BooK" Bruhat.
+</div>
+</td></tr></table>
+
+<hr />
+
+<h1>Live example: proxy authentication</h1>
+
+<pre>    <span class="k">use</span> <span class="w">MIME::Base64</span> <span class="q">qw( encode_base64 )</span><span class="sc">;</span>
+    
+    <span class="c"># the encoded user:password pair</span>
+    <span class="k">my</span> <span class="i">$token</span> = <span class="q">&quot;Basic &quot;</span> . <span class="i">encode_base64</span><span class="s">(</span> <span class="q">&quot;login:password&quot;</span> <span class="s">)</span><span class="sc">;</span>
+    <span class="k">chomp</span> <span class="i">$token</span><span class="sc">;</span>    <span class="c"># grr</span>
+    
+    <span class="c"># the authentication filter</span>
+    <span class="i">$proxy</span><span class="i">-&gt;push_filter</span><span class="s">(</span>
+        <span class="w">request</span> <span class="cm">=&gt;</span> <span class="w">HTTP::Proxy::HeaderFilter::simple</span><span class="w">-&gt;new</span><span class="s">(</span>
+            <span class="k">sub</span> <span class="s">{</span>
+                <span class="k">my</span> <span class="s">(</span> <span class="i">$self</span><span class="cm">,</span> <span class="i">$headers</span><span class="cm">,</span> <span class="i">$request</span> <span class="s">)</span> = <span class="i">@_</span><span class="sc">;</span>
+                <span class="k">my</span> <span class="i">$auth</span> = <span class="i">$self</span><span class="i">-&gt;proxy</span><span class="i">-&gt;hop_headers</span><span class="i">-&gt;header</span><span class="s">(</span><span class="q">'Proxy-Authorization'</span><span class="s">)</span>
+                  || <span class="q">&quot;&quot;</span><span class="sc">;</span>
+    
+                <span class="c"># check the hard-coded credentials</span>
+                <span class="k">if</span> <span class="s">(</span> <span class="i">$auth</span> <span class="k">ne</span> <span class="i">$token</span> <span class="s">)</span> <span class="s">{</span>
+                    <span class="k">my</span> <span class="i">$response</span> = <span class="w">HTTP::Response</span><span class="w">-&gt;new</span><span class="s">(</span><span class="n">407</span><span class="s">)</span><span class="sc">;</span>
+                    <span class="i">$response</span><span class="i">-&gt;header</span><span class="s">(</span>
+                        <span class="w">Proxy_Authenticate</span> <span class="cm">=&gt;</span> <span class="q">'Basic realm=&quot;HTTP::Proxy&quot;'</span> <span class="s">)</span><span class="sc">;</span>
+                    <span class="i">$self</span><span class="i">-&gt;proxy</span><span class="i">-&gt;response</span><span class="s">(</span><span class="i">$response</span><span class="s">)</span><span class="sc">;</span>
+                <span class="s">}</span>
+            <span class="s">}</span>
+        <span class="s">)</span>
+    <span class="s">)</span><span class="sc">;</span></pre>
+
+
+</body></html>

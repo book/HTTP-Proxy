@@ -1,0 +1,56 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="fr" lang="fr">
+<head>
+<title>Limitations</title>
+<link rel="stylesheet" type="text/css" href="podpoint.css" />
+<meta http-equiv="Pragma" content="No-cache" />
+</head>
+<body onload="document.getElementById('next').focus()">
+
+
+<table width="100%">
+<tr><td align="left">
+  <div class="navbar">
+  <a href="http://http-proxy.mongueurs.net/">HTTP::Proxy</a> |
+  <a href="slide036.html" id="next">Next</a> |
+  <a href="slide034.html" id="previous">Previous</a> |
+  <a href="index.html">TOC</a></div>
+</td><td align="center">
+<span class="pagenum">35/38</span>
+</td><td align="right">
+<div class="copyright">
+&copy; 2004 by Philippe "BooK" Bruhat.
+</div>
+</td></tr></table>
+
+<hr />
+
+<h1>Limitations</h1>
+
+<ul>
+<li>
+<p>There is no store and forward mechanism</p>
+</li>
+<li>
+<p>The proxy does not detect some lost connections, and the child process
+is blocked until LWP::UserAgent times out</p>
+</li>
+<li>
+<p>The CONNECT method is supported (giving access to those https URL),
+but the proxy cannot use filters on those connections (no man-in-the-middle
+yet)</p>
+</li>
+<li>
+<p>The match criteria are <i>positive</i> ("apply this filter to example.com")
+and HTTP::Proxy does not support negative criteria (like "apply this
+filter to everything <i>but</i> example.com")</p>
+</li>
+<li>
+<p>It still does not do what I wanted when I started to work on this project...</p>
+<p>... luckily, other people worked on that</p>
+</li>
+</ul>
+
+
+</body></html>

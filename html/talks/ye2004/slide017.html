@@ -1,0 +1,61 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="fr" lang="fr">
+<head>
+<title>Simple filters</title>
+<link rel="stylesheet" type="text/css" href="podpoint.css" />
+<meta http-equiv="Pragma" content="No-cache" />
+</head>
+<body onload="document.getElementById('next').focus()">
+
+
+<table width="100%">
+<tr><td align="left">
+  <div class="navbar">
+  <a href="http://http-proxy.mongueurs.net/">HTTP::Proxy</a> |
+  <a href="slide018.html" id="next">Next</a> |
+  <a href="slide016.html" id="previous">Previous</a> |
+  <a href="index.html">TOC</a></div>
+</td><td align="center">
+<span class="pagenum">17/38</span>
+</td><td align="right">
+<div class="copyright">
+&copy; 2004 by Philippe "BooK" Bruhat.
+</div>
+</td></tr></table>
+
+<hr />
+
+<h1>Simple filters</h1>
+
+<ul>
+<li>
+<p>Simple filters are created with HTTP::Proxy::BodyFilter::simple
+or HTTP::Proxy::HeaderFilter::simple.</p>
+</li>
+<li>
+<p>These are filter factories that return a filter object given the
+filtering routine</p>
+<pre>    <span class="i">$filter</span> = <span class="w">HTTP::Proxy::BodyFilter::simple</span><span class="w">-&gt;new</span><span class="s">(</span>
+        <span class="k">sub</span> <span class="s">{</span> <span class="i">$</span>{ <span class="i">$_</span>[<span class="n">1</span>] } =~ <span class="q">s/foo/bar/g</span><span class="sc">;</span> <span class="s">}</span>
+    <span class="s">)</span><span class="sc">;</span></pre>
+</li>
+<li>
+<p>The routine must have the same signature as the <code>filter()</code> method.</p>
+</li>
+<li>
+<p>One can also use:</p>
+<pre>    <span class="i">$filter</span> = <span class="w">HTTP::Proxy::BodyFilter::simple</span><span class="w">-&gt;new</span><span class="s">(</span>
+        <span class="w">filter</span> <span class="cm">=&gt;</span> \<span class="i">&amp;filter_sub</span><span class="cm">,</span>
+        <span class="w">start</span>  <span class="cm">=&gt;</span> \<span class="i">&amp;start_sub</span><span class="cm">,</span>
+    <span class="s">)</span><span class="sc">;</span></pre>
+<p>to define the other standard methods.</p>
+</li>
+<li>
+<p>HTTP::Proxy::BodyFilter::simple and HTTP::Proxy::HeaderFilter::simple
+are conceptually identical</p>
+</li>
+</ul>
+
+
+</body></html>

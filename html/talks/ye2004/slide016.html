@@ -1,0 +1,49 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="fr" lang="fr">
+<head>
+<title>HTTP::Proxy::BodyFilter</title>
+<link rel="stylesheet" type="text/css" href="podpoint.css" />
+<meta http-equiv="Pragma" content="No-cache" />
+</head>
+<body onload="document.getElementById('next').focus()">
+
+
+<table width="100%">
+<tr><td align="left">
+  <div class="navbar">
+  <a href="http://http-proxy.mongueurs.net/">HTTP::Proxy</a> |
+  <a href="slide017.html" id="next">Next</a> |
+  <a href="slide015.html" id="previous">Previous</a> |
+  <a href="index.html">TOC</a></div>
+</td><td align="center">
+<span class="pagenum">16/38</span>
+</td><td align="right">
+<div class="copyright">
+&copy; 2004 by Philippe "BooK" Bruhat.
+</div>
+</td></tr></table>
+
+<hr />
+
+<h1>HTTP::Proxy::BodyFilter</h1>
+
+<ul>
+<li>
+<p>This is the base class for manipulating message bodies</p>
+</li>
+<li>
+<p>The <code>filter()</code> method has the following signature:</p>
+<pre>    <a name="filter"></a><span class="k">sub </span><span class="m">filter</span> <span class="s">{</span>
+        <span class="k">my</span> <span class="s">(</span> <span class="i">$self</span><span class="cm">,</span> <span class="i">$dataref</span><span class="cm">,</span> <span class="i">$message</span><span class="cm">,</span> <span class="i">$protocol</span><span class="cm">,</span> <span class="i">$buffer</span> <span class="s">)</span> = <span class="i">@_</span><span class="sc">;</span>
+        ...
+    <span class="s">}</span></pre>
+</li>
+<li>
+<p>In the case of response filters, the headers (<code>$message-&gt;headers()</code>)
+have already been sent to the client, so technically they're read-only.</p>
+</li>
+</ul>
+
+
+</body></html>

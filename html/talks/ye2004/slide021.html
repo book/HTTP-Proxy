@@ -1,0 +1,59 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="fr" lang="fr">
+<head>
+<title>Other standard filters</title>
+<link rel="stylesheet" type="text/css" href="podpoint.css" />
+<meta http-equiv="Pragma" content="No-cache" />
+</head>
+<body onload="document.getElementById('next').focus()">
+
+
+<table width="100%">
+<tr><td align="left">
+  <div class="navbar">
+  <a href="http://http-proxy.mongueurs.net/">HTTP::Proxy</a> |
+  <a href="slide022.html" id="next">Next</a> |
+  <a href="slide020.html" id="previous">Previous</a> |
+  <a href="index.html">TOC</a></div>
+</td><td align="center">
+<span class="pagenum">21/38</span>
+</td><td align="right">
+<div class="copyright">
+&copy; 2004 by Philippe "BooK" Bruhat.
+</div>
+</td></tr></table>
+
+<hr />
+
+<h1>Other standard filters</h1>
+
+<ul>
+<li>
+<p>HTTP::Proxy::BodyFilter::lines</p>
+<p>Ensures that only complete lines are sent to the next filter.
+You can change the line-ending definition, just as with <code>$/</code>.</p>
+<p>Note that the next filter does not receives data line by line, but
+by groups of <i>complete</i> lines (including the EOL characters).</p>
+</li>
+<li>
+<p>HTTP::Proxy::BodyFilter::htmltext</p>
+<p>This filter uses a basic parsing scheme to call a user-supplied routine
+for each piece of text in the HTML document.
+The routine takes no parameter and the chunk of data is stored in <code>$_</code>.</p>
+<pre>    <span class="w">HTTP::Proxy::BodyFilter::htmltext</span><span class="w">-&gt;new</span><span class="s">(</span> <span class="k">sub</span> <span class="s">{</span> <span class="q">tr/a-zA-z/n-za-mN-ZA-M/</span> <span class="s">}</span> <span class="s">)</span><span class="sc">;</span></pre>
+<p>It must be preceded by HTTP::Proxy::BodyFilter::tags.</p>
+</li>
+<li>
+<p>HTTP::Proxy::BodyFilter::htmlparser</p>
+<p>This filter lets you use a HTML::Parser object to read the message body.
+Modifying the data is a little more complicated, but possible.</p>
+</li>
+<li>
+<p>HTTP::Proxy::BodyFilter::save</p>
+<p>This filter saves the data to a file as it flows through the proxy.</p>
+</li>
+</ul>
+
+
+</body></html>

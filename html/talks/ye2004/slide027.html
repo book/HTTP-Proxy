@@ -1,0 +1,69 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="fr" lang="fr">
+<head>
+<title>Live example: dragongoserver (5)</title>
+<link rel="stylesheet" type="text/css" href="podpoint.css" />
+<meta http-equiv="Pragma" content="No-cache" />
+</head>
+<body onload="document.getElementById('next').focus()">
+
+
+<table width="100%">
+<tr><td align="left">
+  <div class="navbar">
+  <a href="http://http-proxy.mongueurs.net/">HTTP::Proxy</a> |
+  <a href="slide028.html" id="next">Next</a> |
+  <a href="slide026.html" id="previous">Previous</a> |
+  <a href="index.html">TOC</a></div>
+</td><td align="center">
+<span class="pagenum">27/38</span>
+</td><td align="right">
+<div class="copyright">
+&copy; 2004 by Philippe "BooK" Bruhat.
+</div>
+</td></tr></table>
+
+<hr />
+
+<h1>Live example: dragongoserver (5)</h1>
+
+<ul>
+<li>
+<p>Once again, I use the query string to communicate with the proxy</p>
+</li>
+<li>
+<p>Being nice to the server, the refresh interval grows after time...</p>
+<pre>    <span class="c"># dragongoserver auto refresh</span>
+    <span class="c"># refresh quickly at first, then more slowly</span>
+    <span class="i">$proxy</span><span class="i">-&gt;push_filter</span><span class="s">(</span>
+        <span class="w">host</span>     <span class="cm">=&gt;</span> <span class="q">'www.dragongoserver.net'</span><span class="cm">,</span>
+        <span class="w">path</span>     <span class="cm">=&gt;</span> <span class="q">'^/status.php'</span><span class="cm">,</span>
+        <span class="w">response</span> <span class="cm">=&gt;</span> <span class="w">HTTP::Proxy::HeaderFilter::simple</span><span class="w">-&gt;new</span><span class="s">(</span>
+            <span class="k">sub</span> <span class="s">{</span>
+                 <span class="k">my</span> <span class="s">(</span> <span class="i">$self</span><span class="cm">,</span> <span class="i">$headers</span><span class="cm">,</span> <span class="i">$response</span> <span class="s">)</span> = <span class="i">@_</span><span class="sc">;</span>
+                 <span class="s">(</span><span class="i">$response</span><span class="i">-&gt;request</span><span class="i">-&gt;uri</span><span class="i">-&gt;query</span> || <span class="q">''</span><span class="s">)</span> =~ <span class="q">/goreload=(\d+)/</span><span class="sc">;</span>
+                 <span class="k">my</span> <span class="i">$n</span> = <span class="s">(</span><span class="i">$1</span> || <span class="n">0</span><span class="s">)</span> + <span class="n">1</span><span class="sc">;</span>
+                 <span class="k">my</span> <span class="i">$delay</span> = <span class="i">$n</span> &lt; <span class="n">5</span> ? <span class="n">30</span> <span class="co">:</span> <span class="i">$n</span> &lt; <span class="n">15</span> ? <span class="n">60</span> <span class="co">:</span> <span class="i">$n</span> &lt; <span class="n">25</span> ? <span class="n">300</span> <span class="co">:</span> <span class="n">3600</span><span class="sc">;</span>
+                 <span class="i">$headers</span><span class="i">-&gt;push_header</span><span class="s">(</span>
+                     <span class="w">Refresh</span> <span class="cm">=&gt;</span> <span class="q">&quot;$delay;url=&quot;</span>
+                              . <span class="i">$response</span><span class="i">-&gt;request</span><span class="i">-&gt;uri</span><span class="i">-&gt;path</span>
+                              . <span class="q">&quot;?goreload=$n&quot;</span>
+                 <span class="s">)</span><span class="sc">;</span>
+            <span class="s">}</span>
+        <span class="s">)</span>
+    <span class="s">)</span><span class="sc">;</span></pre>
+</li>
+<li>
+<p>So, after about one hour, the status page is only reloaded 
+every hour.</p>
+</li>
+<li>
+<p>When the user clicks on the "Status" link or when the server redirects
+to the original status page, the original URL is queried, thus
+restarting the counter</p>
+</li>
+</ul>
+
+
+</body></html>

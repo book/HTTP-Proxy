@@ -1,0 +1,65 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="fr" lang="fr">
+<head>
+<title>Live example: dragongoserver (7)</title>
+<link rel="stylesheet" type="text/css" href="podpoint.css" />
+<meta http-equiv="Pragma" content="No-cache" />
+</head>
+<body onload="document.getElementById('next').focus()">
+
+
+<table width="100%">
+<tr><td align="left">
+  <div class="navbar">
+  <a href="http://http-proxy.mongueurs.net/">HTTP::Proxy</a> |
+  <a href="slide030.html" id="next">Next</a> |
+  <a href="slide028.html" id="previous">Previous</a> |
+  <a href="index.html">TOC</a></div>
+</td><td align="center">
+<span class="pagenum">29/38</span>
+</td><td align="right">
+<div class="copyright">
+&copy; 2004 by Philippe "BooK" Bruhat.
+</div>
+</td></tr></table>
+
+<hr />
+
+<h1>Live example: dragongoserver (7)</h1>
+
+<pre>    <span class="k">my</span> <span class="i">$seen_title</span><span class="sc">;</span>
+    <span class="i">$proxy</span><span class="i">-&gt;push_filter</span><span class="s">(</span>
+        <span class="w">host</span>     <span class="cm">=&gt;</span> <span class="q">'www.dragongoserver.net'</span><span class="cm">,</span>
+        <span class="w">path</span>     <span class="cm">=&gt;</span> <span class="q">'^/status.php'</span><span class="cm">,</span>
+        <span class="w">response</span> <span class="cm">=&gt;</span> <span class="w">HTTP::Proxy::BodyFilter::tags</span><span class="w">-&gt;new</span><span class="cm">,</span>   <span class="c"># protect tags</span>
+        <span class="w">response</span> <span class="cm">=&gt;</span> <span class="w">HTTP::Proxy::BodyFilter::simple</span><span class="w">-&gt;new</span><span class="s">(</span>
+            <span class="w">start</span>  <span class="cm">=&gt;</span> <span class="k">sub</span> <span class="s">{</span> <span class="i">$seen_title</span> = <span class="n">0</span><span class="sc">;</span> <span class="s">}</span><span class="cm">,</span> <span class="c"># initialise the filter</span>
+            <span class="w">filter</span> <span class="cm">=&gt;</span> <span class="k">sub</span> <span class="s">{</span>
+                 <span class="k">my</span> <span class="s">(</span> <span class="i">$self</span><span class="cm">,</span> <span class="i">$dataref</span><span class="cm">,</span> <span class="i">$message</span><span class="cm">,</span> <span class="i">$protocol</span><span class="cm">,</span> <span class="i">$buffer</span> <span class="s">)</span> = <span class="i">@_</span><span class="sc">;</span>
+                 <span class="c"># pass everything until &lt;TITLE&gt; (included)</span>
+                 <span class="k">if</span><span class="s">(</span> !<span class="i">$seen_title</span> <span class="s">)</span> <span class="s">{</span>
+                     <span class="k">if</span><span class="s">(</span> <span class="i">$$dataref</span> =~ <span class="q">/&lt;TITLE&gt;/</span> <span class="s">)</span> <span class="s">{</span>
+                         <span class="i">$seen_title</span>++<span class="sc">;</span>
+                         <span class="i">$$dataref</span> =~ <span class="q">s/(.*&lt;TITLE&gt;)(.*)/$1/s</span><span class="sc">;</span>
+                         <span class="i">$$buffer</span> .= <span class="i">$2</span><span class="sc">;</span>
+                     <span class="s">}</span>
+                     <span class="k">return</span><span class="sc">;</span>
+                 <span class="s">}</span>
+                 <span class="c"># store the rest of the page</span>
+                 <span class="k">if</span><span class="s">(</span> <span class="k">defined</span> <span class="i">$buffer</span> <span class="s">)</span> <span class="s">{</span>
+                     <span class="i">$$buffer</span> = <span class="i">$$dataref</span><span class="sc">;</span>
+                     <span class="i">$$dataref</span> = <span class="q">''</span><span class="sc">;</span>
+                 <span class="s">}</span>
+                 <span class="c"># finally, count the games and change the title</span>
+                 <span class="k">else</span> <span class="s">{</span>
+                     <span class="k">my</span> <span class="i">$n</span><span class="sc">;</span> <span class="i">$n</span>++ <span class="k">while</span> <span class="i">$$dataref</span> =~ <span class="q">/game\.php\?gid=\d+/g</span><span class="sc">;</span>
+                     <span class="k">my</span> <span class="i">$s</span> = <span class="i">$n</span> &gt; <span class="n">1</span> ? <span class="q">&quot;s&quot;</span> <span class="co">:</span> <span class="q">&quot;&quot;</span><span class="sc">;</span> <span class="i">$n</span> ||= <span class="q">&quot;No&quot;</span><span class="sc">;</span>
+                     <span class="i">$$dataref</span> =~ <span class="q">s!.*&lt;/TITLE&gt;!Go - $n game$s pending&lt;/TITLE&gt;!s</span><span class="sc">;</span>
+                 <span class="s">}</span><span class="sc">;</span>
+            <span class="s">}</span><span class="cm">,</span>
+        <span class="s">)</span><span class="cm">,</span>
+    <span class="s">)</span><span class="sc">;</span></pre>
+
+
+</body></html>

@@ -1,0 +1,64 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="fr" lang="fr">
+<head>
+<title>Work in progress (1)</title>
+<link rel="stylesheet" type="text/css" href="podpoint.css" />
+<meta http-equiv="Pragma" content="No-cache" />
+</head>
+<body onload="document.getElementById('next').focus()">
+
+
+<table width="100%">
+<tr><td align="left">
+  <div class="navbar">
+  <a href="http://http-proxy.mongueurs.net/">HTTP::Proxy</a> |
+  <a href="slide032.html" id="next">Next</a> |
+  <a href="slide030.html" id="previous">Previous</a> |
+  <a href="index.html">TOC</a></div>
+</td><td align="center">
+<span class="pagenum">31/38</span>
+</td><td align="right">
+<div class="copyright">
+&copy; 2004 by Philippe "BooK" Bruhat.
+</div>
+</td></tr></table>
+
+<hr />
+
+<h1>Work in progress (1)</h1>
+
+<p>Here is a filter I've created to have a look at my browsing habits
+and patterns.</p>
+<pre>    #!/usr/bin/perl -w
+    <span class="k">use</span> <span class="w">HTTP::Proxy</span><span class="sc">;</span>
+    <span class="k">use</span> <span class="w">HTTP::Proxy::HeaderFilter::simple</span><span class="sc">;</span>
+    <span class="k">use</span> <span class="w">Fcntl</span> <span class="q">':flock'</span><span class="sc">;</span>
+    <span class="k">use</span> <span class="w">strict</span><span class="sc">;</span>
+    
+    <span class="k">my</span> <span class="i">$file</span> = <span class="k">shift</span> || <span class="q">'-'</span><span class="sc">;</span>
+    <span class="k">open</span> <span class="w">OUT</span><span class="cm">,</span> <span class="q">&quot;&gt;&gt; $file&quot;</span> <span class="k">or</span> <span class="k">die</span> <span class="q">&quot;Can't open $file: $!&quot;</span><span class="sc">;</span>
+    
+    <span class="k">my</span> <span class="i">$proxy</span> = <span class="w">HTTP::Proxy</span><span class="w">-&gt;new</span><span class="s">(</span> <span class="i">@ARGV</span> <span class="s">)</span><span class="sc">;</span> <span class="c"># pass any args to the proxy</span>
+    
+    <span class="i">$proxy</span><span class="i">-&gt;push_filter</span><span class="s">(</span>
+        <span class="w">response</span> <span class="cm">=&gt;</span> <span class="w">HTTP::Proxy::HeaderFilter::simple</span><span class="w">-&gt;new</span><span class="s">(</span>
+            <span class="k">sub</span> <span class="s">{</span>
+                <span class="k">my</span> <span class="s">(</span> <span class="i">$self</span><span class="cm">,</span> <span class="i">$headers</span><span class="cm">,</span> <span class="i">$message</span> <span class="s">)</span> = <span class="i">@_</span><span class="sc">;</span>
+    
+                <span class="k">flock</span><span class="s">(</span> <span class="w">OUT</span><span class="cm">,</span> <span class="w">LOCK_EX</span> <span class="s">)</span><span class="sc">;</span>
+                <span class="k">print</span> <span class="i">OUT</span> <span class="k">join</span><span class="s">(</span> <span class="q">&quot; &quot;</span><span class="cm">,</span>
+                      <span class="i">$message</span><span class="i">-&gt;request</span><span class="i">-&gt;headers</span><span class="i">-&gt;header</span><span class="s">(</span> <span class="q">'Referer'</span> <span class="s">)</span> || <span class="q">'NULL'</span><span class="cm">,</span>
+                      <span class="i">$message</span><span class="i">-&gt;request</span><span class="i">-&gt;uri</span><span class="cm">,</span>
+                      <span class="i">$message</span><span class="i">-&gt;code</span> <span class="s">)</span><span class="cm">,</span> <span class="i">$/</span><span class="sc">;</span>
+                <span class="k">flock</span><span class="s">(</span> <span class="w">OUT</span><span class="cm">,</span> <span class="w">LOCK_UN</span> <span class="s">)</span><span class="sc">;</span>
+            <span class="s">}</span>
+        <span class="s">)</span>
+    <span class="s">)</span><span class="sc">;</span>
+    
+    <span class="i">$proxy</span><span class="i">-&gt;start</span><span class="sc">;</span>
+    
+    <span class="k">close</span> <span class="w">OUT</span><span class="sc">;</span></pre>
+
+
+</body></html>

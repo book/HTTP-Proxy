@@ -1,0 +1,61 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="fr" lang="fr">
+<head>
+<title>Filter selection (3)</title>
+<link rel="stylesheet" type="text/css" href="podpoint.css" />
+<meta http-equiv="Pragma" content="No-cache" />
+</head>
+<body onload="document.getElementById('next').focus()">
+
+
+<table width="100%">
+<tr><td align="left">
+  <div class="navbar">
+  <a href="http://http-proxy.mongueurs.net/">HTTP::Proxy</a> |
+  <a href="slide013.html" id="next">Next</a> |
+  <a href="slide011.html" id="previous">Previous</a> |
+  <a href="index.html">TOC</a></div>
+</td><td align="center">
+<span class="pagenum">12/38</span>
+</td><td align="right">
+<div class="copyright">
+&copy; 2004 by Philippe "BooK" Bruhat.
+</div>
+</td></tr></table>
+
+<hr />
+
+<h1>Filter selection (3)</h1>
+
+<ul>
+<li>
+<p>Filters sharing the same match routine can be pushed within
+a single call:</p>
+<pre>    <span class="i">$proxy</span><span class="i">-&gt;push_filter</span><span class="s">(</span>
+        <span class="w">host</span>     <span class="cm">=&gt;</span> <span class="q">'example.com'</span><span class="cm">,</span>
+        <span class="w">request</span>  <span class="cm">=&gt;</span> <span class="i">$req_filter</span><span class="cm">,</span>
+        <span class="w">response</span> <span class="cm">=&gt;</span> <span class="i">$res_filter</span><span class="cm">,</span>
+        <span class="w">response</span> <span class="cm">=&gt;</span> <span class="i">$res_filter2</span><span class="cm">,</span>
+    <span class="s">)</span><span class="sc">;</span></pre>
+</li>
+<li>
+<p>In this example,</p>
+<ul>
+<li>
+<p><code>$req_filter</code> is applied on all requests to example.com</p>
+</li>
+<li>
+<p><code>$res_filter</code> receives the response body data for all
+requests to example.com before <code>$res_filter2</code></p>
+</li>
+</ul>
+</li>
+<li>
+<p>The filter class is used by the proxy to decide if the filter is a header
+filter or a body filter</p>
+</li>
+</ul>
+
+
+</body></html>

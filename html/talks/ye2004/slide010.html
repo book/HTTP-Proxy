@@ -1,0 +1,80 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="fr" lang="fr">
+<head>
+<title>Filter selection (1)</title>
+<link rel="stylesheet" type="text/css" href="podpoint.css" />
+<meta http-equiv="Pragma" content="No-cache" />
+</head>
+<body onload="document.getElementById('next').focus()">
+
+
+<table width="100%">
+<tr><td align="left">
+  <div class="navbar">
+  <a href="http://http-proxy.mongueurs.net/">HTTP::Proxy</a> |
+  <a href="slide011.html" id="next">Next</a> |
+  <a href="slide009.html" id="previous">Previous</a> |
+  <a href="index.html">TOC</a></div>
+</td><td align="center">
+<span class="pagenum">10/38</span>
+</td><td align="right">
+<div class="copyright">
+&copy; 2004 by Philippe "BooK" Bruhat.
+</div>
+</td></tr></table>
+
+<hr />
+
+<h1>Filter selection (1)</h1>
+
+<ul>
+<li>
+<p>Filters are activated according to certain criteria:</p>
+<ul>
+<li>
+<p>Request</p>
+<ul>
+<li>
+<p>method</p>
+</li>
+<li>
+<p>scheme</p>
+</li>
+<li>
+<p>host</p>
+</li>
+<li>
+<p>path</p>
+</li>
+<li>
+<p>query-string</p>
+</li>
+</ul>
+</li>
+<li>
+<p>Response</p>
+<ul>
+<li>
+<p>All of the above</p>
+</li>
+<li>
+<p>MIME type (<code>text/*</code>, etc.)</p>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>The <code>push_filter()</code> method is using these criteria to create a
+"match subroutine". A filter stack is actually a stack of
+<code>[&nbsp;$match_sub,&nbsp;$filter&nbsp;]</code> pairs.</p>
+</li>
+<li>
+<p>The match subroutine is used to create the actual list of filters
+that will act on the HTTP messages.</p>
+</li>
+</ul>
+
+
+</body></html>
