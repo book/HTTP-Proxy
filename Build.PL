@@ -9,7 +9,7 @@ my $builder = Module::Build->new(
     dist_version_from   => 'lib/HTTP/Proxy.pm',
     requires => {
         'Test::More' => 0,
-        'HTTP::Daemon' => 1.24,
+        'HTTP::Daemon' => 1.25,
         'LWP::UserAgent' => 2,
     },
     add_to_cleanup      => [ 'HTTP-Proxy-*' ],
