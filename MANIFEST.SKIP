@@ -4,10 +4,14 @@ CVS/.*
 \.tar$
 \.tgz$
 \.tar\.gz$
+\.SKIP$
 ^mess/
 ^tmp/
 ^blib/
+^dist/
 ^Makefile$
 ^Makefile\.[a-z]+$
 ^pm_to_blib$
 ~$
+^TODO$
+^.cvsignore$

@@ -1,0 +1,7 @@
+HTTP::Proxy
+
+This modules is aimed at making a pure Perl HTTP proxy.
+
+Its main use should be to record web sessions, so as to
+help users create web robots, and web testing suites.
+

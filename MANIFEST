@@ -1,5 +1,6 @@
-MANIFEST
-README
 Changes
-t/00basic.t
+MANIFEST
+Makefile.PL
+README
 lib/HTTP/Proxy.pm
+t/00basic.t

@@ -1,0 +1,10 @@
+TODO
+
+Here are all the features I plan to add to HTTP::Proxy
+
+ - Browsing recording in a tree-like structure (thanks to Referer:)
+ - Control the proxy via specific URIs
+   (e.g. http://proxy/start_recording)
+ - insert callbacks in the various stages of the process
+ - become a POE component
+
