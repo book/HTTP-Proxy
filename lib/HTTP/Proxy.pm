@@ -520,6 +520,21 @@ sub serve_connections {
             goto SEND;
         }
 
+        # transparent proxying support
+        if( not defined $req->uri->scheme ) {
+            if( my $host = $req->header('Host') ) {
+                 $req->uri->scheme( 'http' );
+                 $req->uri->host( $host );
+            }
+            else {
+                $response = HTTP::Response->new( 400, 'Bad request' );
+                $response->content_type( "text/plain" );
+                $response->content("Can't do transparent proxying without a Host: header.");
+                $self->response($response);
+                goto SEND;
+            }
+        }
+
         # can we serve this protocol?
         if ( !$self->agent->is_protocol_supported( my $s = $req->uri->scheme ) )
         {
@@ -635,10 +650,10 @@ sub serve_connections {
         }
 
         # FIXME ftp, gopher
-        if ( $req->uri->scheme =~ /^(?:ftp|gopher)$/ && $response->is_success )
-        {
-            $conn->print( $response->content );
-        }
+        $conn->print( $response->content )
+          if defined $req->uri->scheme
+             and $req->uri->scheme =~ /^(?:ftp|gopher)$/
+             and $response->is_success;
 
         $self->log( SOCKET, "SOCKET", "Connection closed by the proxy" ), last
           if $last || $served >= $self->maxserve;
