@@ -1,4 +1,3 @@
-## Please see file perltidy.ERR
 use Test::More tests => 14;
 use strict;
 use HTTP::Proxy::BodyFilter::tags;
