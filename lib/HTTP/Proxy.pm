@@ -171,6 +171,14 @@ sub url {
 
 Be verbose in the logs (default: 0).
 
+Here are the various log levels:
+ 0 - All errors
+ 1 - Requested URL, reponse status and total number of connections processed
+ 2 -
+ 3 - Subprocesses information (fork, wait, etc.)
+ 4 -
+ 5 - Full request and response headers are sent along
+
 =back
 
 =cut
@@ -345,8 +353,8 @@ sub process {
             $self->log( 0, "Getting request failed:", $conn->reason );
             redo;    # does not execute the continue block
         }
-        $self->log( 1, "($$) Request: " . $req->uri );
-        $self->log( 5, "($$) Request: " . $req->headers->as_string );
+        $self->log( 1, "($$) Request:", $req->uri );
+        $self->log( 5, "($$) Request:", $req->headers->as_string );
 
         # can we serve this protocol?
         if ( !$self->agent->is_protocol_supported( my $s = $req->uri->scheme ) )
@@ -364,8 +372,8 @@ sub process {
 
         # send the response
         $conn->print( $response->as_string );
-        $self->log( 1, "($$) Response: " . $response->status_line );
-        $self->log( 5, "($$) Response: " . $response->headers->as_string );
+        $self->log( 1, "($$) Response:", $response->status_line );
+        $self->log( 5, "($$) Response:", $response->headers->as_string );
     }
 }
 
@@ -383,8 +391,12 @@ sub log {
 
     return if $self->verbose < $level;
 
+    my ($prefix, $msg) = (@_, '');
+    my @lines = split /\n/, $msg;
+    @lines = ('') if not @lines;
+
     flock( $fh, LOCK_EX );
-    print $fh "[" . localtime() . "] $_\n" for @_;
+    print $fh "[" . localtime() . "] $prefix $_\n" for @lines;
     flock( $fh, LOCK_UN );
 }
 
