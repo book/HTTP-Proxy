@@ -20,6 +20,7 @@ Tests
 * tests for push_filter( query => 'foo' )
 * test the short-circuit system ($self->proxy->response( $res ))
 * test the regex for host and path in push_filter
+* http://diveintomark.org/tests/client/http/
 
 Features
 --------
