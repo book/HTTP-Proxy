@@ -11,12 +11,21 @@ an origin server.
 The eg/ directory holds a few examples:
 - proxy.pl (simple proxy)
 - anonymiser.pl (basic anonymising proxy)
+- leet.pl (leet speak)
+- outline.pl (keeps only the outline of web pages)
+- rainbow.pl (the hippie browsing experience)
+- rot13.pl (simple encryption for web pages)
 
 !WARNING!WARNING!WARNING!WARNING!WARNING!WARNING!WARNING!WARNING!
 
-The way the filters are implemented is very likely to change in
-the next version of HTTP::Proxy. Expect a dedicated filter class
-to appear soon, as well as some slight changes in the HTTP::Proxy
-interfaces. This will probably happen in 0.10.
+The way the filters are implemented has changed in this version
+of HTTP::Proxy. You can now play with two dedicated filter classes
+and notice slight changes in the HTTP::Proxy interface.
 
 !WARNING!WARNING!WARNING!WARNING!WARNING!WARNING!WARNING!WARNING!
+
+Recommended order for reading the documentation:
+1) HTTP::Proxy
+2) HTTP::Proxy::HeaderFilter and HTTP::Proxy::BodyFilter
+3) included standard filter classes and code examples in eg/
+
