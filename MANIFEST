@@ -7,3 +7,4 @@ lib/HTTP/Proxy.pm
 t/00basic.t
 t/05new.t
 t/10init.t
+t/README
