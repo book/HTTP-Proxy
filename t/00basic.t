@@ -1,4 +1,5 @@
 use vars qw( @modules );
+
 BEGIN {
     use File::Find;
     use vars qw( @modules );
@@ -8,5 +9,5 @@ BEGIN {
 
 use Test::More tests => scalar @modules;
 
-use_ok($_) for map { s!/!::!g; s/\.pm$//; $_ } @modules;
+use_ok($_) for sort map { s!/!::!g; s/\.pm$//; s/^blib::lib:://; $_ } @modules;
 
