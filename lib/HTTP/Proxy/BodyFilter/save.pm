@@ -299,7 +299,7 @@ sub start {
     # we have an open filehandle
     $self->{_hpbf_save_filename} = $file.$ext;
     binmode( $self->{_hpbf_save_fh} );    # for Win32 and friends
-    $self->proxy->log( HTTP::Proxy::FILTERS, "($$) HPBF::save",
+    $self->proxy->log( HTTP::Proxy::FILTERS, "HPBF::save",
                        "Saving $uri to $file$ext" );
 }
 
@@ -309,7 +309,7 @@ sub filter {
 
     # save the data to the file
     my $res = $self->{_hpbf_save_fh}->syswrite( $$dataref );
-    $self->proxy->log( HTTP::Proxy::ERROR, "($$) ERROR: HPBF::save", "$!")
+    $self->proxy->log( HTTP::Proxy::ERROR, "HPBF::save", "syswrite() error: $!")
       if ! defined $res;  # FIXME error handling
 }
 
@@ -358,7 +358,8 @@ Thanks to Nicolas Chuche for telling me about C<O_EXCL>.
 Thanks to Rafaël Garcia-Suarez and David Rigaudiere for their help on
 irc while coding the nasty start() method. C<;-)>
 Thanks to Howard Jones for the inspiration and initial patch for the
-C<filename> option.
+C<filename> option. Lucas Gonze provided a patch to make C<status>
+actually work.
 
 =head1 COPYRIGHT
 
