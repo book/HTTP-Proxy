@@ -190,7 +190,7 @@ sub start {
     my $dir = File::Spec->catdir( (File::Spec->splitpath($file))[ 0, 1 ] );
     eval { mkpath( $dir ) };
     if ($@) {
-        $self->proxy->log( HTTP::Proxy::ERROR, "($$) HTBF::save",
+        $self->proxy->log( HTTP::Proxy::ERROR, "HTBF-save",
                           "Unable to create directory $dir" );
         return;
     }
@@ -199,7 +199,7 @@ sub start {
     my ( $ext, $n, $i ) = ( "", 0 );
     while( ! sysopen( $self->{_hpbf_save_fh}, "$file$ext",
                       O_WRONLY | O_EXCL | O_CREAT ) ) {
-        $self->proxy->log( HTTP::Proxy::ERROR, "($$) HPBF::save",
+        $self->proxy->log( HTTP::Proxy::ERROR, "HPBF-save",
                            "Too many errors opening $file$ext" ), return
           if $i++ - $n == 10; # should be ok now
         if( $self->{_hpbf_save_multiple} ) {
@@ -209,7 +209,7 @@ sub start {
         if( $self->{_hpbf_save_timestamp} ) {
             # FIXME timestamp
         } elsif( $self->{_hpbf_save_keep_old} ) {
-            $self->proxy->log( HTTP::Proxy::FILTERS, "($$) HPBF::save",
+            $self->proxy->log( HTTP::Proxy::FILTERS, "HPBF-save",
                                "Skip saving $uri" );
             delete $self->{_hpbf_save_fh}; # it's a closed filehandle
             return;

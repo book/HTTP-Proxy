@@ -401,7 +401,7 @@ sub start {
     kill INT => @kids;
     $self->_reap( \@kids ) while @kids;
 
-    $self->log( STATUS, "Processed " . $self->conn . " connection(s)" );
+    $self->log( STATUS, "STATUS", "Processed " . $self->conn . " connection(s)" );
     return $self->conn;
 }
 
@@ -489,7 +489,7 @@ sub serve_connections {
     my ( $self, $conn ) = @_;
     my $response;
     $self->{client_socket} = $conn;  # read-only
-    $self->log( SOCKET, "($$) New connection from " . $conn->peerhost
+    $self->log( SOCKET, "SOCKET", "New connection from " . $conn->peerhost
                       . ":" . $conn->peerport );
 
     my ( $last, $served ) = ( 0, 0 );
@@ -503,10 +503,10 @@ sub serve_connections {
 
         # Got a request?
         unless ( defined $req ) {
-            $self->log( ERROR, "($$) Getting request failed:", $conn->reason );
+            $self->log( ERROR, "ERROR", "Getting request failed:", $conn->reason );
             return;
         }
-        $self->log( STATUS, "($$) Request:", $req->method . ' '
+        $self->log( STATUS, "REQUEST", $req->method . ' '
            . ( $req->method eq 'CONNECT' ? $req->uri->host_port : $req->uri ) );
 
         # can we forward this method?
@@ -537,7 +537,7 @@ sub serve_connections {
         # NOTE: the request is always received in one piece
         $self->{body}{request}->filter( $req->content_ref, $req, undef );
         $self->{body}{request}->eod;    # end of data
-        $self->log( HEADERS, "($$) Request:", $req->headers->as_string );
+        $self->log( HEADERS, "REQUEST", $req->headers->as_string );
 
         # CONNECT method is a very special case
         if( ! defined $self->response and $req->method eq 'CONNECT' ) {
@@ -568,7 +568,7 @@ sub serve_connections {
                 }
 
                 # filter and send the data
-                $self->log( DATA, "($$) Filter:",
+                $self->log( DATA, "DATA",
                     "got " . length($data) . " bytes of body data" );
                 $self->{body}{response}->filter( \$data, $response, $proto );
                 if ($chunked) {
@@ -607,7 +607,7 @@ sub serve_connections {
 
         # what about X-Died and X-Content-Range?
         if( my $died = $response->header('X-Died') ) {
-            $self->log( ERROR, "($$) ERROR:", $died );
+            $self->log( ERROR, "ERROR", $died );
             $sent = 0;
             $response = HTTP::Response->new( 500, "Proxy filter error" );
             $response->content_type( "text/plain" );
@@ -639,13 +639,13 @@ sub serve_connections {
             $conn->print( $response->content );
         }
 
-        $self->log( SOCKET, "($$) Connection closed by the proxy" ), last
+        $self->log( SOCKET, "SOCKET", "Connection closed by the proxy" ), last
           if $last || $served >= $self->maxserve;
     }
-    $self->log( SOCKET, "($$) Connection closed by the client" )
+    $self->log( SOCKET, "SOCKET", "Connection closed by the client" )
       if !$last
       and $served < $self->maxserve;
-    $self->log( PROCESS, "($$) Served $served requests" );
+    $self->log( PROCESS, "PROCESS", "Served $served requests" );
     $conn->close;
 }
 
@@ -696,8 +696,8 @@ sub _send_response_headers {
         print $conn $response->headers_as_string($CRLF);
         print $conn $CRLF;    # separates headers and content
     }
-    $self->log( STATUS,  "($$) Response:", $response->status_line );
-    $self->log( HEADERS, "($$) Response:", $response->headers->as_string );
+    $self->log( STATUS,  "RESPONSE", $response->status_line );
+    $self->log( HEADERS, "RESPONSE", $response->headers->as_string );
     return ($last, $chunked);
 }
 
@@ -748,7 +748,7 @@ sub _handle_CONNECT {
           
             # check for errors
             if(not defined $read ) {
-                $self->log( ERROR, "($$) CONNECT:", "Read undef from $from ($!)" );
+                $self->log( ERROR, "CONNECT", "Read undef from $from ($!)" );
                 next;
             }
 
@@ -756,18 +756,17 @@ sub _handle_CONNECT {
             if ( $read == 0 ) {
                 $_->close for ( $sock, $peer );
                 $select->remove( $sock, $peer );
-                $self->log( SOCKET, "($$) CONNECT:", "Connection closed by the $from" );
-                $self->log( PROCESS, "($$) Served $served requests" );
+                $self->log( SOCKET, "CONNECT", "Connection closed by the $from" );
+                $self->log( PROCESS, "PROCESS", "Served $served requests" );
                 next;
             }
 
             # proxy the data
-            $self->log( CONNECT, "($$) CONNECT:",
-                                 "$read bytes received from $from" );
+            $self->log( CONNECT, "CONNECT", "$read bytes received from $from" );
             $peer->syswrite($data);
         }
     }
-    $self->log( CONNECT, "($$) CONNECT:", "End of CONNECT proxyfication");
+    $self->log( CONNECT, "CONNECT", "End of CONNECT proxyfication");
     return $last;
 }
 
@@ -991,10 +990,12 @@ The log() method also prints a timestamp.
 
 The output looks like:
 
-    [Thu Dec  5 12:30:12 2002] $prefix $message
+    [Thu Dec  5 12:30:12 2002] ($$) $prefix: $message
+
+where $$ is the current processus pid.
 
 If $message is a multiline string, several log lines will be output,
-each starting with $prefix.
+each line starting with C<$prefix>.
 
 =cut
 
@@ -1010,7 +1011,7 @@ sub log {
     @lines = ('') if not @lines;
 
     flock( $fh, LOCK_EX );
-    print $fh "[" . localtime() . "] $prefix $_\n" for @lines;
+    print $fh "[" . localtime() . "] ($$) $prefix: $_\n" for @lines;
     flock( $fh, LOCK_UN );
 }
 
