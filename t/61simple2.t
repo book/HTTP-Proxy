@@ -58,7 +58,7 @@ $sub = sub {
 };
 $filter = HTTP::Proxy::BodyFilter::simple->new(
     filter => $sub,
-    start  => sub { ok( 1, "start() called" ) },
+    begin  => sub { ok( 1, "begin() called" ) },
     end    => sub { ok( 1, "end() called" ) },
 );
 $proxy->push_filter( response => $filter, scheme => 'file', mime => 'text/*' );
