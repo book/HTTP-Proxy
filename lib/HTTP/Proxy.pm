@@ -268,7 +268,6 @@ sub start {
 
     my @kids;
     my $reap   = 0;
-    my $hupped = 0;
 
     # zombies reaper
     my $reaper;
@@ -277,7 +276,6 @@ sub start {
         $SIG{CHLD} = $reaper;    # for sysV systems
     };
     $SIG{CHLD} = $reaper;
-    $SIG{HUP}  = sub { $hupped++ };
     $SIG{INT}  = $SIG{KILL} = sub { $self->{loop} = 0 };
 
     # the main loop
@@ -323,12 +321,6 @@ sub start {
                 $self->log( PROCESS, "Reaped child process $pid" );
             }
             $reap = 0;
-        }
-
-        # did a child send us information?
-        if ($hupped) {
-
-            # TODO
         }
 
         # this was the last child we forked
