@@ -718,8 +718,9 @@ sub push_filter {
     # push the filter and its match method on the correct stack
     for my $message ( grep { exists $arg{$_} } qw( request response ) ) {
         croak "Not a Filter reference for filter queue $message"
-          unless $arg{$message}->isa('HTTP::Proxy::HeaderFilter')
-              or $arg{$message}->isa('HTTP::Proxy::BodyFilter');
+          unless ref $arg{message}
+          and ($arg{$message}->isa('HTTP::Proxy::HeaderFilter')
+            or $arg{$message}->isa('HTTP::Proxy::BodyFilter') );
 
         my $stack;
         $stack = 'headers' if $arg{$message}->isa('HTTP::Proxy::HeaderFilter');
