@@ -10,17 +10,20 @@ Technical
 * how do we handle filters for:
   - CONNECT (i.e. a transparent TCP connection through the proxy)
   - SSL (a different socket type, but that's about all)
-* Basic_headers : Server and Date:
 * a method to send a response 
+* Sets of HTTP methods (RFC2616, WebDAV, Microsoft RPC, etc...)
 
 Tests
 -----
 
-* tests for Max-Forwards (HeaderFilters::standard)
 * tests for push_filter( query => 'foo' )
 * test the short-circuit system ($self->proxy->response( $res ))
 * test the regex for host and path in push_filter
-* http://diveintomark.org/tests/client/http/
+
+Examples
+--------
+
+* http://www.alltooflat.com/geeky/elgoog/
 
 Features
 --------
@@ -37,7 +40,6 @@ my own roadmaps. :-/
 * have a look at Log::Dispatch
 
 * RFC support
-  - Max-Forwards header
   - Answer to TRACE and OPTIONS request
   - support for chunked encoding
     => it's already in HTTP::Daemon, but the send_response
@@ -217,4 +219,8 @@ http://www.stonehenge.com/merlyn/WebTechniques/col11.html
 http://www.foad.org/~abigail/Perl/proxy.pl
 http://rgarciasuarez.free.fr/perl/biscuit
 http://www.jmarshall.com/tools/cgiproxy/
+http://www.research.att.com/~hpk/wsp/
 
+Yet another proxy in Perl:
+http://www.schmerg.com/WrapUp.asp?file=HttpSniffer.html
+http://www.schmerg.com/HttpSniffer.pl.txt
