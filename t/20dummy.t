@@ -62,7 +62,7 @@ if ( $pid == 0 ) {
         !$req->headers->header('Proxy-Connection'),
         "Proxy-Connection: header filtered"
     );
-    ok( $req->headers->header('Via'), "Proxy says Via: header added" );
+    ok( $req->headers->header('Via'), "Server says Via: header added" );
     $answer->( $conn, 'Proxy-connection removed' );
     exit 0;
 }
