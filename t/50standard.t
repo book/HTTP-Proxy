@@ -4,6 +4,9 @@ use LWP::UserAgent;
 use HTTP::Proxy;
 use t::Utils;    # some helper functions for the server
 
+# this test was t/21headers.t before the test API was fully designed
+# this is the reason why it uses a complete client-proxy-server chain
+
 my $test = Test::Builder->new;
 my @pids;
 
