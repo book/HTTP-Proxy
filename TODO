@@ -10,6 +10,8 @@ my own roadmaps. :-/
 * Windows support
   - the proxy breaks horribly under windows
 
+* have a look at Log::Dispatch
+
 * RFC support
   - Max-Forwards header
   - Answer to TRACE and OPTIONS request
@@ -79,6 +81,7 @@ my own roadmaps. :-/
    => name, args, description, code, buffer
    my $filter = HTTP::Proxy::Filter->new( code => $coderef, name =>...)
    or subclasses like: HTTP::Proxy::Filter::substitute->( LHS => qr//, RHS=>)
+ - have a look at Apache::Filter (mod_perl 2)
    
 * Data flow
   I guess I'll change the way the responses are handled. The future should
@@ -117,6 +120,18 @@ my own roadmaps. :-/
  - I suppose there is a problem also with gzip Transfered files, if
    we forward them as is, we can't filter them (need to think more
    about that)
+
+* "nochunks" filters
+ - filters are divided in two kinds: stream filters that can create a
+   response from a stream of data on the fly, and file filters, that
+   need a whole file to create the appropriate response (usually as
+   another file)
+ - if we go the HTTP::Proxy::Filter route, this is mostly a problem
+   of checking if one of the selected filters is a file filter, and
+   make sure that all filters are called at the end.
+ - add a stream attribute to the filters, and compute a stream
+   attribute for the filterstack, once the request/response is
+   received
 
 * record sessions
  - the logs are not enough
