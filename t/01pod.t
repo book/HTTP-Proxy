@@ -9,7 +9,7 @@ BEGIN {
 use Test::More tests => scalar @files;
 
 SKIP: {
-    eval { require Test::Pod };
+    eval { require Test::Pod; import Test::Pod; };
     skip "Test::Pod not available", 1 if $@;
     pod_ok($_) for @files;
 }
