@@ -12,7 +12,7 @@ eval { $filter = HTTP::Proxy::BodyFilter::simple->new( filter => "foo") };
 like( $@, qr/^Parameter to filter must be a CODE reference/, "Need coderef" );
 
 eval { $filter = HTTP::Proxy::BodyFilter::simple->new( filter_file => "foo") };
-like( $@, qr/^Parameter to filter must be a CODE reference/, "Need coderef" );
+like( $@, qr/^Parameter to filter_file must be a CODE ref/, "Need coderef" );
 
 eval { $filter = HTTP::Proxy::BodyFilter::simple->new( typo => sub {} ) };
 like( $@, qr/Unkown method typo/, "Incorrect method name" );

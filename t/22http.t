@@ -6,7 +6,7 @@ BEGIN {
     @requests = (
         [ 'http://www.mongueurs.net/',    200 ],
         [ 'http://httpd.apache.org/docs', 301 ],
-        [ 'http://www.perl.com/testing/', 404 ],
+        [ 'http://www.google.com/testing/', 404 ],
         [ 'http://www.error.zzz/',        500 ],
     );
 }
