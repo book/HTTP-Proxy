@@ -1,5 +1,5 @@
 use strict;
-use Test::More tests => 5;
+use Test::More tests => 8;
 use LWP::UserAgent;
 use HTTP::Proxy;
 use t::Utils;    # some helper functions for the server
@@ -15,7 +15,7 @@ $test->no_ending(1);
 my $server = server_start();
 
 # create and fork the proxy
-my $proxy = HTTP::Proxy->new( port => 0, maxconn => 3 );
+my $proxy = HTTP::Proxy->new( port => 0, maxconn => 4 );
 $proxy->init;    # required to access the url later
 $proxy->agent->no_proxy( URI->new( $server->url )->host );
 push @pids, fork_proxy($proxy);
@@ -38,21 +38,36 @@ my ( $req, $res );
 my $ua = LWP::UserAgent->new;
 $ua->proxy( http => $proxy->url );
 
+#
 # check that we have single Date and Server headers
+#
+
+# for GET requests
 $req = HTTP::Request->new( GET => $server->url . "headers" );
 $res = $ua->simple_request($req);
 my @date = $res->headers->header('Date');
-is( scalar @date, 1, "A single Date: header" );
+is( scalar @date, 1, "A single Date: header for GET request" );
 my @server = $res->headers->header('Server');
-is( scalar @server, 1, "A single Server: header" );
+is( scalar @server, 1, "A single Server: header for GET request" );
 
-# check that we have single Date and Server headers for HEAD requests
+# for HEAD requests
 $req = HTTP::Request->new( HEAD => $server->url . "headers-head" );
 $res = $ua->simple_request($req);
 my @date = $res->headers->header('Date');
-is( scalar @date, 1, "A single Date: header" );
+is( scalar @date, 1, "A single Date: header for HEAD request" );
 my @server = $res->headers->header('Server');
-is( scalar @server, 1, "A single Server: header" );
+is( scalar @server, 1, "A single Server: header for HEAD request" );
+
+# for direct proxy responses
+$ua->proxy( file => $proxy->url );
+$req = HTTP::Request->new( GET => "file:///etc/passwd" );
+$res = $ua->simple_request($req);
+my @date = $res->headers->header('Date');
+is( scalar @date, 1, "A single Date: header for direct proxy response" );
+my @server = $res->headers->header('Server');
+is( scalar @server, 1, "A single Server: header for direct proxy response" );
+# check the Server: header
+like( $server[0], qr!HTTP::Proxy/\d+\.\d+!, "Correct server name for direct proxy response" );
 
 # we cannot use a LWP user-agent to check
 # that the LWP Client-* headers are removed
@@ -80,3 +95,4 @@ close $sock or diag "close: $!";
 
 # make sure both kids are dead
 wait for @pids;
+

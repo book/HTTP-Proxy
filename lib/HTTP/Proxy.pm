@@ -1,6 +1,7 @@
 package HTTP::Proxy;
 
 use HTTP::Daemon;
+use HTTP::Date qw(time2str);
 use LWP::UserAgent;
 use LWP::ConnCache;
 use Fcntl ':flock';         # import LOCK_* constants
@@ -104,7 +105,7 @@ sub new {
         maxserve => 10,
         port     => 8080,
         timeout  => 60,
-        via      => hostname() . " (HTTP::Proxy/$HTTP::Proxy::VERSION)",
+        via      => hostname() . " (HTTP::Proxy/$VERSION)",
         @_,
     };
 
@@ -500,6 +501,7 @@ sub serve_connections {
         # can we forward this method?
         if ( !grep { $_ eq $req->method } @METHODS ) {
             $response = new HTTP::Response( 501, 'Not Implemented' );
+            $response->content_type( "text/plain" );
             $response->content(
                 "Method " . $req->method . " is not supported by this proxy." );
             $self->response($response);
@@ -509,7 +511,9 @@ sub serve_connections {
         # can we serve this protocol?
         if ( !$self->agent->is_protocol_supported( my $s = $req->uri->scheme ) )
         {
+            # should this be 400 Bad Request?
             $response = new HTTP::Response( 501, 'Not Implemented' );
+            $response->content_type( "text/plain" );
             $response->content("Scheme $s is not supported by this proxy.");
             $self->response($response);
             goto SEND;
@@ -535,45 +539,12 @@ sub serve_connections {
 
                 # first time, filter the headers
                 if ( !$sent ) { 
+                    $sent++;
                     $self->response( $response );
                     $self->{headers}{response}
-                      ->filter( $response->headers, $response );
-                    $response->remove_header("Content-Length");
-
-                    # this is adapted from HTTP::Daemon
-                    if ( $conn->antique_client ) { $last++ }
-                    else {
-                        my $code = $response->code;
-                        $conn->send_status_line( $code, $response->message,
-                            $response->protocol );
-                        if ( $code =~ /^(1\d\d|[23]04)$/ ) {
-
-                            # make sure content is empty
-                            $response->remove_header("Content-Length");
-                            $response->content('');
-                        }
-                        elsif ($response->request
-                            && $response->request->method eq "HEAD" )
-                        {    # probably OK, says HTTP::Daemon
-                        }
-                        else {
-                            if ( $conn->proto_ge("HTTP/1.1") ) {
-                                $response->push_header(
-                                    "Transfer-Encoding" => "chunked" );
-                                $chunked++;
-                                $response->push_header(
-                                    "Connection" => "close" )
-                                    if $served >= $self->maxserve;
-                            }
-                            else {
-                                $last++;
-                                $conn->force_last_request;
-                            }
-                        }
-                        print $conn $response->headers_as_string($CRLF);
-                        print $conn $CRLF;    # separates headers and content
-                    }
-                    $sent++;
+                         ->filter( $response->headers, $response );
+                    ( $last, $chunked ) =
+                      $self->_send_response_headers( $conn, $served );
                 }
 
                 # filter and send the data
@@ -581,12 +552,10 @@ sub serve_connections {
                     "got " . length($data) . " bytes of body data" );
                 $self->{body}{response}->filter( \$data, $response, $proto );
                 if ($chunked) {
-                    printf $conn "%x%s%s%s", length($data), $CRLF, $data, $CRLF
+                    printf $conn "%x$CRLF%s$CRLF", length($data), $data
                       if length($data);    # the filter may leave nothing
                 }
-                else {
-                    print $conn $data;
-                }
+                else { print $conn $data; }
             },
             $self->chunk
         );
@@ -599,11 +568,9 @@ sub serve_connections {
         $self->{body}{response}->filter_last( \$data, $response, undef );
         if ( length $data ) {
             if ($chunked) {
-                printf $conn "%x%s%s%s", length($data), $CRLF, $data, $CRLF;
+                printf $conn "%x$CRLF%s$CRLF", length($data), $data;
             }
-            else {
-                print $conn $data;
-            }
+            else { print $conn $data; }
         }
 
         # last chunk
@@ -618,10 +585,16 @@ sub serve_connections {
 
         # responses that weren't filtered through callbacks
         # (empty body or error)
-        # FIXME make sure there is no content to filter
+        # FIXME some error response headers might not be filtered
         if ( !$sent ) {
-            #$self->{headers}{response}->filter( $response->headers, $response );
-            $conn->send_response($response);
+            ($last, $chunked) = $self->_send_response_headers( $conn, $served );
+            my $content = $response->content;
+            if ($chunked) {
+                printf $conn "%x$CRLF%s$CRLF", length($content), $content
+                  if length($content);    # the filter may leave nothing
+                print $conn "0$CRLF$CRLF";
+            }
+            else { print $conn $content; }
         }
 
         # FIXME ftp, gopher
@@ -641,7 +614,56 @@ sub serve_connections {
     $conn->close;
 }
 
-=head2 Filters
+# INTERNAL METHOD
+# send the response headers for the proxy
+# expects $conn and $served  (connection object, number of requests served)
+# returns $last and $chunked (last request served, chunked encoding)
+sub _send_response_headers {
+    my ( $self, $conn, $served ) = @_;
+    my ( $last, $chunked ) = ( 0, 0 );
+    my $response = $self->response;
+
+    # correct headers
+    $response->remove_header("Content-Length");
+    $response->header( Server => "HTTP::Proxy/$VERSION" )
+      unless $response->header( 'Server' );
+    $response->header( Date => time2str(time) )
+      unless $response->header( 'Date' );
+
+    # this is adapted from HTTP::Daemon
+    if ( $conn->antique_client ) { $last++ }
+    else {
+        my $code = $response->code;
+        $conn->send_status_line( $code, $response->message,
+            $response->protocol );
+        if ( $code =~ /^(1\d\d|[23]04)$/ ) {
+
+            # make sure content is empty
+            $response->remove_header("Content-Length");
+            $response->content('');
+        }
+        elsif ( $response->request && $response->request->method eq "HEAD" )
+        {    # probably OK, says HTTP::Daemon
+        }
+        else {
+            if ( $conn->proto_ge("HTTP/1.1") ) {
+                $chunked++;
+                $response->push_header( "Transfer-Encoding" => "chunked" );
+                $response->push_header( "Connection"        => "close" )
+                  if $served >= $self->maxserve;
+            }
+            else {
+                $last++;
+                $conn->force_last_request;
+            }
+        }
+        print $conn $response->headers_as_string($CRLF);
+        print $conn $CRLF;    # separates headers and content
+    }
+    return ($last, $chunked);
+}
+
+=head1 FILTERS
 
 You can alter the way the default HTTP::Proxy works by pluging callbacks
 at different stages of the request/response handling.

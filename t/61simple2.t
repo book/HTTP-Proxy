@@ -28,7 +28,7 @@ my $url = $proxy->url;
 my @pids;
 push @pids, fork_proxy($proxy);
 
-# vérifier que ca marche
+# check that the correct transformation is applied
 my $ua = LWP::UserAgent->new();
 $ua->proxy( file => $url );
 my $response = $ua->request( HTTP::Request->new( GET => 'file:t/test.html' ) );
