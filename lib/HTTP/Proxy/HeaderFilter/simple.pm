@@ -14,7 +14,7 @@ HTTP::Proxy::HeaderFilter::simple - A class for creating simple filters
 
     # a simple User-Agent filter
     my $filter = HTTP::Proxy::HeaderFilter::simple->new(
-        sub { $_[0]->header( User_Agent => 'foobar/1.0' ); }
+        sub { $_[1]->header( User_Agent => 'foobar/1.0' ); }
     );
     $proxy->push_filter( request => $filter );
 
