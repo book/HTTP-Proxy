@@ -62,6 +62,7 @@ sub init {
          keep_old   => 1, # no_clobber in wget parlance
          timestamp  => 0,
          status     => [ 200 ],
+         filename   => undef,
          @_
     );
     # keep_old and timestamp can't be selected together
@@ -71,19 +72,37 @@ sub init {
       unless ref($args{status}) eq 'ARRAY';
     croak "status must contain only HTTP codes"
       if grep { !/^[12345]\d\d$/ } @{ $args{status} };
+    croak "filename must be a code reference"
+      if defined $args{filename} && UNIVERSAL::isa($args{filename}, 'CODE');
 
     $self->{"_hpbf_save_$_"} = $args{$_}
       for qw( template no_host no_dirs cut_dirs prefix timestamp
-              keep_old multiple );
+              keep_old multiple filename );
 }
 
 =head2 Constructor
 
-The constructor accepts the following options:
+The constructor accepts quite a few options. Most of them control
+the construction of the filename that will be used to save the
+response body. There are two options to compute this filename:
 
 =over 4
 
-=item B<template> I<string>
+=item *
+
+use a template
+
+=item *
+
+use your own filename creation routine
+
+=back
+
+The template option uses the following options:
+
+=over 4
+
+=item B<template> => I<string>
 
 The file name is build from the C<template> option. The following
 placeholders are available:
@@ -104,26 +123,54 @@ and B<cut_dirs>.
 
 The default template is the local equivalent of the C<%h/%P> Unix path.
 
-=item B<no_host> I<boolean>
+=item B<no_host> => I<boolean>
 
 The C<no_host> option makes C<%h> empty. Default is I<false>.
 
-=item B<no_dirs> I<boolean>
+=item B<no_dirs> => I<boolean>
 
 The C<no_dirs> option removes all directories from C<%p>, C<%P> and C<%d>.
 Default is I<false>.
 
-=item B<cut_dirs> I<number>
+=item B<cut_dirs> => I<number>
 
 The C<cut_dirs> options removes the first I<n> directories from the
 content of C<%p>, C<%P> and C<%d>. Default is C<0>.
 
-=item B<prefix> I<string>
+=item B<prefix> => I<string>
 
 The B<prefix> option prepends the given prefix to the filename
 created from the template. Default is C<"">.
 
-=item B<multiple> I<boolean>
+=back
+
+Using your own subroutine is also possible, with the following parameter:
+
+=over 4
+
+=item B<filename> => I<coderef>
+
+When the C<filename> option is used, the C<template> option and the
+other template-related options (C<no_host>, C<no_dirs>, C<cut_dirs>
+and C<prefix>) are ignored.
+
+The C<filename> option expects a reference to a subroutine. The subroutine
+will receive the request URI object, and must return a string which is
+the path of the file to be created (an absolute path is recommended,
+but a relative path is accepted).
+
+Returning C<""> or C<undef> will prevent the creation of the file.
+This lets a filter decide even more precisely what to save or not,
+even though this should be done in the match subroutine (see
+HTTP::Proxy's C<pushè_filte()> method).
+
+=back
+
+Other options help the filter decide where and when to save:
+
+=over 4
+
+=item B<multiple> => I<boolean>
 
 With the B<multiple> option, saving the same file in the same directory
 will result in the original copy of file being preserved and the second
@@ -135,7 +182,7 @@ Default is I<true>.
 If B<multiple> is set to I<false> then a file will be overwritten
 by the next one with the same name.
 
-=item B<timestamp> I<boolean>
+=item B<timestamp> => I<boolean>
 
 With the C<timestamp> option, the decision as to whether or not to save
 a newer copy of a file depends on the local and remote timestamp and
@@ -146,7 +193,7 @@ recent than the local file's timestamp.
 
 Default is I<false>.
 
-=item B<keep_old> I<boolean>
+=item B<keep_old> => I<boolean>
 
 The C<keep_old> option will prevent the file to be saved if a file
 with the same name already exists. Default is I<false>.
@@ -154,7 +201,7 @@ with the same name already exists. Default is I<false>.
 No matter if B<multiple> is set or not, the file will I<not> be saved
 if B<keep_old> is set to true.
 
-=item B<status> \@codes
+=item B<status> => \@codes
 
 The C<status> option limits the status codes for which a response body
 will be saved. The default is C<[ 200 ]>, which prevent saving error
@@ -176,27 +223,40 @@ sub start {
         return unless grep { $code eq $_ } @{ $self->{_hpbf_save_status} };
     }
     
-    # set the template variables from the URI
-    my @segs = $uri->path_segments; # starts with an empty string
-    shift @segs;
-    splice(@segs, 1, $self->{_hpbf_save_cut_dirs} >= @segs
-                     ? @segs - 1 : $self->{_hpbf_save_cut_dirs} );
-    my %vars = (
-         '%' => '%',
-         h   => $self->{_hpbf_save_no_host} ? '' : $uri->host,
-         f   => $segs[-1] || 'index.html', # same default as wget
-         p   => $self->{_hpbf_save_no_dirs} ? $segs[-1] || 'index.html'
-                                            : File::Spec->catfile(@segs),
-         q   => $uri->query,
-    );
-    pop @segs;
-    $vars{d} = $self->{_hpbf_save_no_dirs} ? '' : File::Spec->catfile(@segs);
-    $vars{P} = $vars{p} . ( $vars{q} ? "?$vars{q}" : '' );
-
-    # create the filename
-    my $file = File::Spec->catfile( $self->{_hpbf_save_prefix} || (),
-                                    $self->{_hpbf_save_template} );
-    $file =~ s/%(.)/$vars{$1}/g;
+    my $file = '';
+    if( defined $self->{_hpbf_save_filename} ) {
+        # use the user-provided callback
+        $file = &{ $self->{_hpbf_save_filename} }->($uri);
+        unless ( defined $file and $file ne '' ) {
+            $self->proxy->log( HTTP::Proxy::FILTERS, "HTBF::save",
+                               "Filter will not save $uri" );
+            return;
+        }
+    }
+    else {
+        # set the template variables from the URI
+        my @segs = $uri->path_segments; # starts with an empty string
+        shift @segs;
+        splice(@segs, 1, $self->{_hpbf_save_cut_dirs} >= @segs
+                         ? @segs - 1 : $self->{_hpbf_save_cut_dirs} );
+        my %vars = (
+             '%' => '%',
+             h   => $self->{_hpbf_save_no_host} ? '' : $uri->host,
+             f   => $segs[-1] || 'index.html', # same default as wget
+             p   => $self->{_hpbf_save_no_dirs} ? $segs[-1] || 'index.html'
+                                                : File::Spec->catfile(@segs),
+             q   => $uri->query,
+        );
+        pop @segs;
+        $vars{d} = $self->{_hpbf_save_no_dirs} ? ''
+                                               : File::Spec->catfile(@segs);
+        $vars{P} = $vars{p} . ( $vars{q} ? "?$vars{q}" : '' );
+    
+        # create the filename
+        $file = File::Spec->catfile( $self->{_hpbf_save_prefix} || (),
+                                     $self->{_hpbf_save_template} );
+        $file =~ s/%(.)/$vars{$1}/g;
+    }
     $file = File::Spec->rel2abs( $file );
 
     # internal data initialisation
@@ -296,6 +356,8 @@ Wget(1) provided the inspiration for many of the file naming options.
 Thanks to Nicolas Chuche for telling me about C<O_EXCL>.
 Thanks to Rafaël Garcia-Suarez and David Rigaudiere for their help on
 irc while coding the nasty start() method. C<;-)>
+Thanks to Howard Jones for the inspiration and initial patch for the
+C<filename> option.
 
 =head1 COPYRIGHT
 
