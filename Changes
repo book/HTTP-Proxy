@@ -1,5 +1,32 @@
 Revision history for Perl extension HTTP::Proxy
 
+0.10
+        *** MAJOR INTERFACE CHANGES ***
+
+        - new base classes HTTP::Proxy::HeaderFilter and
+          HTTP::Proxy::BodyFilter
+        - some useful built-in filter classes:
+          HTTP::Proxy::BodyFiler::htmlparser
+          HTTP::Proxy::BodyFiler::htmltext
+          HTTP::Proxy::BodyFiler::lines
+          HTTP::Proxy::BodyFiler::log
+          HTTP::Proxy::BodyFiler::simple
+          HTTP::Proxy::BodyFiler::store
+          HTTP::Proxy::HeaderFiler::html
+          HTTP::Proxy::HeaderFiler::log
+          HTTP::Proxy::HeaderFiler::simple
+          HTTP::Proxy::HeaderFiler::standard
+          HTTP::Proxy::HeaderFiler::tags
+        - tests for the internal class HTTP::Proxy::FilterStack
+        - tests for the built-in filters
+        - the examples are up-to-date with the new interface 
+        - many documentation changes
+        
+        This version is NOT compatible with the previous ones
+        regarding the handling of filters.
+
+        *** MAJOR INTERFACE CHANGES ***
+
 0.09  Fri Aug 15 21:12:17 CEST 2003
         - maxserve is now correctly handled
         - corrected a bug in the t/20keepalive.t test file that
