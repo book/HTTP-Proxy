@@ -81,7 +81,9 @@ Three methods can be added to a BodyFilter to enhance customisation:
 =item init()
 
 This method is called by the new() constructeur to perform all
-initisalisation tasks.  It's called once in the filter lifetime.
+initisalisation tasks. It's called once in the filter lifetime.
+
+It receives all the parameters passed to new().
 
 =item begin()
 
@@ -92,6 +94,13 @@ will call it before sending data to the filter() method.
 It's called once per HTTP message handled by the filter, before data
 processing begins.
 
+The method signature is as follows:
+
+    sub begin {
+        my ( $self, $message ) = @_
+        ...
+    }
+
 =item end()
 
 Some filters might require finalisation after they are finished handling
@@ -100,6 +109,8 @@ will call it after it has finished sending data to the filter() method.
 
 It's called once per HTTP message handled by the filter, after all data
 processing is done.
+
+This method does not expect any parameters.
 
 =back
 
@@ -225,7 +236,7 @@ HTTP::Proxy, HTTP::Proxy::HeaderFilter.
 
 =head1 COPYRIGHT
 
-Copyright 2003-2004, Philippe Bruhat
+Copyright 2003-2005, Philippe Bruhat
 
 =head1 LICENSE
 
