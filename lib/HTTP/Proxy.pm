@@ -441,8 +441,8 @@ sub _send_response_headers {
     my $response = $self->response;
 
     # correct headers
-    $response->remove_header("Content-Length");
-        # FIXME don't remove if no body filter
+    $response->remove_header("Content-Length")
+      if $self->{body}{response}->active;
     $response->header( Server => "HTTP::Proxy/$VERSION" )
       unless $response->header( 'Server' );
     $response->header( Date => time2str(time) )
