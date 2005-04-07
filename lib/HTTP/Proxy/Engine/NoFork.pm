@@ -37,7 +37,8 @@ HTTP::Proxy::Engine::NoFork - A basic, non forking HTTP::Proxy engine
 
 =head1 SYNOPSIS
 
-See L<HTTP::Proxy::Engine>.
+    use HTTP::Proxy;
+    my $proxy = HTTP::Proxy->new( engine => 'NoFork' );
 
 =head1 DESCRIPTION
 
