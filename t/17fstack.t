@@ -1,4 +1,4 @@
-use Test::More tests => 10;
+use Test::More tests => 11;
 
 use HTTP::Proxy;
 use HTTP::Proxy::HeaderFilter;
@@ -22,6 +22,7 @@ is_deeply( [ $stack->all ], [ $hf, $hf2, $hf ], "FilterStack has three elements"
 # insert
 $stack->insert(1, $hf2);
 is_deeply( [ $stack->all ], [ $hf, $hf2, $hf2, $hf ], "FilterStack is correct");
+is( scalar $stack->all, 4, "Correct in scalar context too");
 
 # remove
 my $elem = $stack->remove(1);
