@@ -3,7 +3,7 @@ use strict;
 use Carp;
 
 my %engines = (
-    Win32   => 'NoFork',
+    MSWin32 => 'NoFork',
     default => 'Legacy',
 );
 
