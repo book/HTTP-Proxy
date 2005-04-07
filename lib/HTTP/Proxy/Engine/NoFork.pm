@@ -61,6 +61,10 @@ directly.
 
 =back
 
+=head1 SEE ALSO
+
+L<HTTP::Proxy>, L<HTTP::Proxy::Engine>.
+
 =head1 AUTHOR
 
 Philippe "BooK" Bruhat, C<< <book@cpan.org> >>.

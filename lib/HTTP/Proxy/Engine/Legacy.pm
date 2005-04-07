@@ -108,10 +108,46 @@ HTTP::Proxy::Engine::Legacy - The "older" HTTP::Proxy engine
 
 =head1 SYNOPSIS
 
-See L<HTTP::Proxy::Engine>.
+
 
 =head1 DESCRIPTION
 
+This engine reproduces the older child creation algorithm of HTTP::Proxy.
+
+=head1 METHODS
+
+The module defines the following methods, used by HTTP::Proxy main loop:
+
+=over 
+
+=item start()
+
+Initialise the engine.
+
+=item run()
+
+Implements the forking logic: a new process is forked for each new
+incoming TCP connection.
+
+=item stop()
+
+Reap remaining child processes.
+
+=back
+
+The following method is used by the engine internally:
+
+=over 4
+
+=item reap_zombies()
+
+Process the dead child processes.
+
+=back
+
+=head1 SEE ALSO
+
+L<HTTP::Proxy>, L<HTTP::Proxy::Engine>.
 
 =head1 AUTHOR
 
