@@ -505,6 +505,8 @@ sub _handle_CONNECT {
     # send the response headers (FIXME more headers required?)
     my $response = HTTP::Response->new(200);
     $self->response($response);
+    $self->{$_}{response}->select_filters( $response ) for qw( headers body );
+
     $self->_send_response_headers( $served );
 
     # we now have a TCP connection
