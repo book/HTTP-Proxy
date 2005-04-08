@@ -123,7 +123,7 @@ sub url {
 
 # normal accessors
 for my $attr ( qw(
-    agent chunk daemon host logfh port request response hop_headers
+    agent chunk daemon host logfh port hop_headers
     logmask via x_forwarded_for client_headers engine
     max_connections max_requests_per_child
     )
@@ -142,6 +142,25 @@ for my $attr ( qw(
 for my $attr (qw( conn loop client_socket )) {
     no strict 'refs';
     *{"HTTP::Proxy::$attr"} = sub { $_[0]{$attr} }
+}
+
+# setting the request or the response selects the filters
+sub request {
+    my ( $self, $req ) = @_;
+    if( $req ) {
+        $self->{request} = $req;
+        $self->{$_}{request}->select_filters($req) for qw( headers body );
+    }
+    $self->{request};
+}
+sub response {
+    my ( $self, $res ) = @_;
+    if( $res ) {
+        $res->request( $self->{request} );
+        $self->{response} = $res;
+        $self->{$_}{response}->select_filters($res) for qw( headers body );
+    }
+    $self->{response};
 }
 
 sub max_clients { shift->engine->max_clients( @_ ) }
@@ -301,9 +320,6 @@ sub serve_connections {
             goto SEND;
         }
 
-        # select the request filters
-        $self->{$_}{request}->select_filters( $req ) for qw( headers body );
-
         # massage the request
         $self->{headers}{request}->filter( $req->headers, $req );
 
@@ -335,11 +351,6 @@ sub serve_connections {
                 if ( !$sent ) { 
                     $sent++;
                     $self->response( $response );
-                    
-                    # select the response filters
-                    $self->{$_}{response}->select_filters( $response )
-                      for qw( headers body );
-
                     $self->{headers}{response}
                          ->filter( $response->headers, $response );
                     ( $last, $chunked ) =
@@ -380,8 +391,6 @@ sub serve_connections {
         # in some case (HEAD, error)
         if ( !$sent ) {
             $self->response($response);
-            $self->{$_}{response}->select_filters( $response )
-              for qw( headers body );
             $self->{headers}{response}
                  ->filter( $response->headers, $response );
         }
@@ -505,8 +514,6 @@ sub _handle_CONNECT {
     # send the response headers (FIXME more headers required?)
     my $response = HTTP::Response->new(200);
     $self->response($response);
-    $self->{$_}{response}->select_filters( $response ) for qw( headers body );
-
     $self->_send_response_headers( $served );
 
     # we now have a TCP connection
