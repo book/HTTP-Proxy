@@ -86,7 +86,7 @@ sub new {
         while( my ($old, $new) = each %convert ) {
             if( exists $params{$old} ) {
                $params{$new} = delete $params{$old};
-               carp "$old is deprecated, please use $new"
+               carp "$old is deprecated, please use $new";
             }
         }
     }
@@ -147,9 +147,20 @@ for my $attr (qw( conn loop client_socket )) {
 sub max_clients { shift->engine->max_clients( @_ ) }
 
 # deprecated methods are still supported
-*maxchild = \&max_clients;
-*maxserve = \&max_requests_per_child;
-*maxconn  = \&max_connections;
+{
+    my %convert = (
+        maxchild => 'max_clients',
+        maxconn  => 'max_connections',
+        maxserve => 'max_requests_per_child',
+    );
+    while ( my ( $old, $new ) = each %convert ) {
+        no strict 'refs';
+        *$old = sub {
+            carp "$old is deprecated, please use $new";
+            goto \&$new;
+        };
+    }
+}
 
 sub new_connection { ++$_[0]{conn} }
 
