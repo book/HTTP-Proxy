@@ -10,9 +10,6 @@ Technical
   - CONNECT (i.e. a transparent TCP connection through the proxy)
   - SSL (a different socket type, but that's about all)
 * Sets of HTTP methods (RFC2616, WebDAV, Microsoft RPC, etc...)
-* Leave the Content-Length header untouched if no filter passed on the
-  response body (problem active() does return valid numbers only after
-  filtering has begun)
 * enable filter bypass
 * Add a stash in the proxy (Trelane)
 * do something about utf8:
@@ -42,7 +39,7 @@ Things are listed by big features, since I seem to be unable to follow
 my own roadmaps. :-/
 
 * Windows support
-  - the proxy breaks horribly under windows
+  - the HPE::NoFork is the only engine correctly working under Win32
 
 * have a look at Log::Dispatch
 
@@ -95,8 +92,6 @@ Proxy-Connection: keep-alive
  => control system probably means having a HTTP::Proxy::Control module...
 
 * Special response handlers
- - must be able to break after processing a request and compute
-   a specific response (other than the current fecth and filter)
  - must support: standard proxyied request, OPTIONS, TRACE, userdefined
  - these methods have the following prototype: method($req, ...)
  - they will be pushed by response_handler( GET => sub {} )
@@ -106,17 +101,6 @@ Proxy-Connection: keep-alive
    
 
 * Filters
- - filters cause several problems: the biggest being that, if they
-   change the data size, they should update the Content-Lenght header
- - the filters to apply to a specific request or response can be
-   determined from the headers, there is no need to go through the
-   whole list of filters each time.
- - unfiltered response body should be send on the fly, while response
-   that are to be filtered should be either filtered and sent
-   (if one can determine that all the filters are isometric), or
-   sent in a HTTP/1.0 fashion (Connection: close, and no
-   Content-Length). Another solution is to support chunked transfer-coding
-   with the client.
  - Must support the Content-Encoding: gzip headers
  - Accept-Encoding: content-coding tokens are identity, gzip, compress, deflate
  - add some "standard" filters, like a "recorder" for building web bots
@@ -124,61 +108,18 @@ Proxy-Connection: keep-alive
    this could give some reflection capabilities to the system
    (like: naming the filters, giving the parameters used to create them
    and so on)
- - draft for a HTTP::Proxy::Filter class
-   => name, args, description, code, buffer
-   my $filter = HTTP::Proxy::Filter->new( code => $coderef, name =>...)
-   or subclasses like: HTTP::Proxy::Filter::substitute->( LHS => qr//, RHS=>)
  - have a look at Apache::Filter (mod_perl 2)
    
 * Data flow
-  I guess I'll change the way the responses are handled. The future should
-  look like this :
-  Request:
-   * The client (C) sends a request
-   * The proxy (P) receives the full request (headers+body)
-   * P filters the request headers
-   * P filters the request body
-   * P runs the correct handler to get a response
-     (this usually involves contacting a server, but not always)
-  Response:
-   * P receives the response in chunks (often)
-   * 1st chunk is received
-     - P filters the response headers
-     - P computes the filter chain to run against each chunk
-   * other chunks are passed to the filter chain
-   * if any of the buffers used by the filters is not empty
-     before-last chunk is sent with the remaining data
-   * last chunk is sent (always empty)
-
   The system could even be more sophisticated by allowing one to
   indicate that a filter does not change the body size (s/foo/bar/g vs.
   s/foo/squigglewiggle/g). This way a Content-Length could be sent
   with the other headers.
 
 * On the fly forwarding
- - handle big responses (>1Mb) with the LWP::UA callback system
-   => short responses are concatenated together in a simple scalar,
-      that gets filtered at the end
-   => longer responses are filtered on the fly and sent as-is to the
-      client. Since only chunks of the response are filtered, this can
-      result in badly filtered data (I don't think we can do anything
-      about it...)
- - this works, but we *have* a problem with Content-Length:
  - I suppose there is a problem also with gzip Transfered files, if
    we forward them as is, we can't filter them (need to think more
    about that)
-
-* "nochunks" filters
- - filters are divided in two kinds: stream filters that can create a
-   response from a stream of data on the fly, and file filters, that
-   need a whole file to create the appropriate response (usually as
-   another file)
- - if we go the HTTP::Proxy::Filter route, this is mostly a problem
-   of checking if one of the selected filters is a file filter, and
-   make sure that all filters are called at the end.
- - add a stream attribute to the filters, and compute a stream
-   attribute for the filterstack, once the request/response is
-   received
 
 * record sessions
  - the logs are not enough
@@ -196,12 +137,6 @@ Proxy-Connection: keep-alive
    simply proxy the TCP connection, or do a "man in the middle"-like
    connection (with Crypt::SSLeay)
 
-* support keep-alive with the client
- - make use of the keep-alive capabilities of LWP::UserAgent
-   => one subprocess should accept a predefined number of requests
-      (or all of them until it dies)
- - better handling of broken connection (from the client)
-
 * other protocols
  - support for ftp
  - support for gopher 
@@ -209,9 +144,6 @@ Proxy-Connection: keep-alive
    gopher://marvel.loc.gov/
 
 * special headers
- - support for hop by hop headers :
-   => Connection, Keep-Alive, Proxy-Authenticate, Proxy-Authorization, TE,
-      Trailers, Transfer-Encoding, Upgrade
  - handle big requests (see HTTP::Daemon::get_request documentation)
 
 Better left to other modules
