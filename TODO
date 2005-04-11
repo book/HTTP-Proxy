@@ -16,6 +16,10 @@ Technical
   - auto flag utf-8 data ?
   - believe the Content-Type
   - autocheck with Encode if Content doesn't tell
+* add a new response match: status
+  (match on a scalar / list)
+  $p->push_filter( status => 401, response => $filter );
+  $p->push_filter( status => [ 301, 302 ],  response => $filter );
 
 Tests
 -----
