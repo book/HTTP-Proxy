@@ -21,3 +21,4 @@ CVS/.*
 ^_build/
 ^talks/
 ^.lwpcookies$
+^tmp/
