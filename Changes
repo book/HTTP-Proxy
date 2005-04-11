@@ -1,5 +1,32 @@
 Revision history for Perl extension HTTP::Proxy
 
+0.16  
+        [ENHANCEMENTS]
+        - the new HTTP::Proxy::Engine class and its subclasses
+          now handle the life and death of child processes
+        - no more annoying getsockname() on closed socket GEN0
+          warnings (they appeared in 0.14)
+        - the Content-Length header is now removed only if body
+          filters will be applied on the response body
+        [DEPRECATION]
+        - the maxchild, maxconn and maxserve accessors are now
+          deprecated. They will disappear in 0.17:
+          + maxchild has no replacement (should be handled by the engine)
+          + maxconn becomes max_connections
+          + maxserve becomes max_requests_per_child
+        - Information regarding the way the engine should behave
+          must passed in the constructor or directly to the engine
+        [NEW METHODS]
+        - $proxy->engine() return the HTTP::Proxy::Engine instance
+        - $proxy->new_connection() increase the TCP connections counter
+          (should only be used by HTTP::Proxy::Engine object)
+        [Win32 SUPPORT]
+        - Win32 is now correctly supported! badly supported, but
+          supported...
+        - until someone writes a decent engine for Win32, the default
+          Win32 engine will be HTTP::Proxy::Engine::NoFork, which
+          can only handle a single TCP connection at a time
+        
 0.15  Tue Apr  5 21:17:40 CEST 2005
         [ENHANCEMENTS]
         - added support for WebDAV methods (requested by Christian Laursen)
