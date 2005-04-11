@@ -984,6 +984,7 @@ by the C<:log> tag. They can also be exported one by one.
 Internal. False when the main loop is about to be broken.
 
 =item max_clients
+
 =item maxchild
 
 The maximum number of child process the HTTP::Proxy object will spawn
@@ -992,6 +993,7 @@ to handle client requests (default: depends on the engine).
 This method is actually delegated to the HTTP::Proxy::Engine object.
 
 =item max_connections
+
 =item maxconn
 
 The maximum number of TCP connections the proxy will accept before
@@ -1001,6 +1003,7 @@ connections.
 C<maxconn> is deprecated.
 
 =item max_requests_per_child
+
 =item maxserve
 
 The maximum number of requests the proxy will serve in a single connection.
