@@ -8,6 +8,7 @@ WriteMakefile(
         HTTP::Daemon   => 1.25,
         LWP::UserAgent => 2,
     },
+    PL_FILES => {},
     ABSTRACT_FROM => 'lib/HTTP/Proxy.pm',
     AUTHOR        => 'Philippe "BooK" Bruhat <book@cpan.org>',
 );
