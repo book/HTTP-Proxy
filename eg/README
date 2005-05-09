@@ -105,3 +105,10 @@ command-line. Example: ./proxy.pl port 3128 host 0.0.0.0
             HTTP::Proxy::Body::simple
             HTTP::Proxy::Body::save
 
+ * yahoogroups.pl
+
+   Removes the advertisment interruptions from Yahoo! Groups
+
+   Filter: HTTP::Proxy::HeaderFilter::simple
+
+
