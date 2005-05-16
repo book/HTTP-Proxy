@@ -66,7 +66,7 @@ sub new {
         logfh    => *STDERR,
         logmask  => NONE,
         max_connections => 0,
-        max_requests_per_child => 10,
+        max_keep_alive_requests => 10,
         port     => 8080,
         timeout  => 60,
         via      => hostname() . " (HTTP::Proxy/$VERSION)",
@@ -81,7 +81,7 @@ sub new {
         my %convert = (
             maxchild => 'max_clients',
             maxconn  => 'max_connections',
-            maxserve => 'max_requests_per_child',
+            maxserve => 'max_keep_alive_requests',
         );
         while( my ($old, $new) = each %convert ) {
             if( exists $params{$old} ) {
@@ -125,7 +125,7 @@ sub url {
 for my $attr ( qw(
     agent chunk daemon host logfh port request response hop_headers
     logmask via x_forwarded_for client_headers engine
-    max_connections max_requests_per_child
+    max_connections max_keep_alive_requests
     )
   )
 {
@@ -151,7 +151,7 @@ sub max_clients { shift->engine->max_clients( @_ ) }
     my %convert = (
         maxchild => 'max_clients',
         maxconn  => 'max_connections',
-        maxserve => 'max_requests_per_child',
+        maxserve => 'max_keep_alive_requests',
     );
     while ( my ( $old, $new ) = each %convert ) {
         no strict 'refs';
@@ -434,11 +434,11 @@ sub serve_connections {
              and $response->is_success;
 
         $self->log( SOCKET, "SOCKET", "Connection closed by the proxy" ), last
-          if $last || $served >= $self->max_requests_per_child;
+          if $last || $served >= $self->max_keep_alive_requests;
     }
     $self->log( SOCKET, "SOCKET", "Connection closed by the client" )
       if !$last
-      and $served < $self->max_requests_per_child;
+      and $served < $self->max_keep_alive_requests;
     $self->log( PROCESS, "PROCESS", "Served $served requests" );
     $conn->close;
 }
@@ -481,7 +481,7 @@ sub _send_response_headers {
                 $chunked++;
                 $response->push_header( "Transfer-Encoding" => "chunked" );
                 $response->push_header( "Connection"        => "close" )
-                  if $served >= $self->max_requests_per_child;
+                  if $served >= $self->max_keep_alive_requests;
             }
             else {
                 $last++;
@@ -986,7 +986,9 @@ Internal. False when the main loop is about to be broken.
 The maximum number of child process the HTTP::Proxy object will spawn
 to handle client requests (default: depends on the engine).
 
-This method is actually delegated to the HTTP::Proxy::Engine object.
+This method is currently delegated to the HTTP::Proxy::Engine object.
+
+C<maxchild> is deprecated and will disappear.
 
 =item max_connections
 
@@ -998,7 +1000,11 @@ connections.
 
 C<maxconn> is deprecated.
 
-=item max_requests_per_child
+Note: C<max_connections> will be deprecated soon, for two reasons: 1)
+it is more of an HTTP::Proxy::Engine attribute, 2) not all engines will
+support it.
+
+=item max_keep_alive_requests
 
 =item maxserve
 

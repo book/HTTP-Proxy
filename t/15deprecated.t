@@ -9,7 +9,7 @@ my @deprecated = (
     [ maxconn  => qr/^maxconn is deprecated, please use max_connections/ ],
     [
         maxserve =>
-          qr/^maxserve is deprecated, please use max_requests_per_child/
+          qr/^maxserve is deprecated, please use max_keep_alive_requests/
     ],
 );
 
@@ -53,8 +53,8 @@ unlink $errfile or diag "Can't unlink $errfile: $!";
 # check that the real method was called
 is( $p1->max_clients, 1, "max_clients called for maxchild" );
 is( $p1->max_connections, 3, "max_connections called for maxconn" );
-is( $p1->max_requests_per_child, 5, "max_requests_per_child called for maxserve" );
+is( $p1->max_keep_alive_requests, 5, "max_keep_alive_requests called for maxserve" );
 
 is( $p2->max_clients, 9, "max_clients called for maxchild" );
 is( $p2->max_connections, 8, "max_connections called for maxconn" );
-is( $p2->max_requests_per_child, 7, "max_requests_per_child called for maxserve" );
+is( $p2->max_keep_alive_requests, 7, "max_keep_alive_requests called for maxserve" );

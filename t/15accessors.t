@@ -19,7 +19,7 @@ my %meth = (
     #maxconn         => 0,
     max_connections => 0,
     #maxserve        => 10,
-    max_requests_per_child => 10,
+    max_keep_alive_requests => 10,
     port            => 8080,
     request         => undef,
     response        => undef,
@@ -43,7 +43,7 @@ like( $proxy->via(), qr!\(HTTP::Proxy/$HTTP::Proxy::VERSION\)$!,
 
 # test deprecated accessors
 $proxy = HTTP::Proxy->new( maxserve => 127,  maxconn => 255 );
-is( $proxy->max_requests_per_child, 127, "deprecated maxserve");
+is( $proxy->max_keep_alive_requests, 127, "deprecated maxserve");
 is( $proxy->max_connections, 255, "deprecated maxconn");
 
 #

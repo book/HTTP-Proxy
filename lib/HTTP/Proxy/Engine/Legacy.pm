@@ -27,7 +27,7 @@ sub run {
 
         # single-process proxy (useful for debugging)
         if ( $self->max_clients == 0 ) {
-            $proxy->max_requests_per_child(1);  # do not block simultaneous connections
+            $proxy->max_keep_alive_requests(1);  # do not block simultaneous connections
             $proxy->log( HTTP::Proxy::PROCESS, "PROCESS",
                         "No fork allowed, serving the connection" );
             $proxy->serve_connections($fh->accept);

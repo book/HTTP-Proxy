@@ -11,7 +11,7 @@ sub start {
     $self->select( IO::Select->new( $proxy->daemon ) );
 
     # clients will not block the proxy by keeping the connection open
-    $proxy->max_requests_per_child( 1 );
+    $proxy->max_keep_alive_requests( 1 );
 }
 
 sub run {
