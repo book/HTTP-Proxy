@@ -835,10 +835,6 @@ HTTP::Proxy - A pure Perl HTTP proxy
     my $proxy = HTTP::Proxy->new;
     $proxy->port( 3128 ); # the classical accessors are here!
 
-    # you can also use your own UserAgent
-    my $agent = LWP::RobotUA->new;
-    $proxy->agent( $agent );
-
     # this is a MainLoop-like method
     $proxy->start;
 
