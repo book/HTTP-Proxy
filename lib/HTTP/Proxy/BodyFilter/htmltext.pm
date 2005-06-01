@@ -62,7 +62,7 @@ HTTP::Proxy::BodyFilter::htmltext - A filter to transmogrify HTML text
     # could it be any simpler?
     $proxy->push_filter(
         mime     => 'text/html',
-        response => HTTP::Proxy::BodyFilter::tags,
+        response => HTTP::Proxy::BodyFilter::tags->new,
         response => HTTP::Proxy::BodyFilter::htmltext->new(
             sub { tr/a-zA-z/n-za-mN-ZA-M/ }
         )
