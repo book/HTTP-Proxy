@@ -111,4 +111,12 @@ command-line. Example: ./proxy.pl port 3128 host 0.0.0.0
 
    Filter: HTTP::Proxy::HeaderFilter::simple
 
+ * https.pl
+
+   Modify https:// links to http:// links that the proxy will
+   recognise. The proxy will download the pages using SSL and
+   will then be able to modify them with its filter stacks.
+
+   Filters: HTTP::Proxy::HeaderFilter::simple
+            HTTP::Proxy::BodyFilter::htmlparser
 
