@@ -20,7 +20,6 @@ Technical
   (match on a scalar / list)
   $p->push_filter( status => 401, response => $filter );
   $p->push_filter( status => [ 301, 302 ],  response => $filter );
-* Look at the test daemon in WWW::Mechanize
 
 Tests
 -----
