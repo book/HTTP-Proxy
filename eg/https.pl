@@ -6,6 +6,9 @@ use HTTP::Proxy::BodyFilter::htmltext;
 use HTML::Parser;
 use strict;
 
+# where to find URI in tag attributes
+# (it actually a little more complicated, since some tags can have
+# several attributes that require an URI)
 my %links = (
     a      => 'href',
     area   => 'href',
