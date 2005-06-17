@@ -44,6 +44,7 @@ use constant ALL     => 255;   # All of the above
 @METHODS = (
     qw( OPTIONS GET HEAD POST PUT DELETE TRACE CONNECT ), # HTTP
     qw( PROPFIND COPY MOVE ),                             # WEBDAV
+    qw( REPORT ),                                         # SUBVERSION
 );
 
 # useful regexes (from RFC 2616 BNF grammar)
