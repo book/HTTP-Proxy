@@ -66,13 +66,25 @@ sub print_headers {
 
 # create and start the proxy
 my $proxy = HTTP::Proxy->new(@ARGV);
-for (@peek) {
+
+# if we want to look at SOME sites
+if (@peek) {
+    for (@peek) {
+        $proxy->push_filter(
+            host    => $_,
+            method  => 'POST',
+            request => $post_filter
+        );
+        $proxy->push_filter( host => $_, response => $get_filter );
+    }
+}
+# otherwise, peek at all sites
+else {
     $proxy->push_filter(
-        host    => $_,
         method  => 'POST',
         request => $post_filter
     );
-    $proxy->push_filter( host => $_, response => $get_filter );
+    $proxy->push_filter( response => $get_filter );
 }
 $proxy->start;
 
