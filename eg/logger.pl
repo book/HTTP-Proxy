@@ -28,7 +28,7 @@ my @clt_hdr = qw( Cookie Cookie2 Referer Referrer Authorization );
 my $post_filter = HTTP::Proxy::BodyFilter::simple->new(
     sub {
         my ( $self, $dataref, $message, $protocol, $buffer ) = @_;
-        print STDOUT $message->method, " ", $message->uri, "\n";
+        print STDOUT "\n", $message->method, " ", $message->uri, "\n";
         print_headers( $message, @clt_hdr );
 
         # this is from CGI.pm, method parse_params
@@ -47,7 +47,7 @@ my $get_filter = HTTP::Proxy::HeaderFilter::simple->new(
         my ( $self, $headers, $message ) = @_;
         my $req = $message->request;
         if ( $req->method ne 'POST' ) {
-            print STDOUT $req->method, " ", $req->uri, "\n";
+            print STDOUT "\n", $req->method, " ", $req->uri, "\n";
             print_headers( $req, @clt_hdr );
         }
         print STDOUT "    ", $message->status_line, "\n";
