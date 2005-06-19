@@ -6,12 +6,16 @@ use HTTP::Proxy::BodyFilter::simple;
 use CGI::Util qw( unescape );
 
 # get the command-line parameters
-my @peek;
+my %args = (
+   peek    => [],
+   header  => [],
+);
 {
+    my $args = '(' . join('|', keys %args ) . ')';
     my $i = 0;
     while ( $i < @ARGV ) {
-        if ( $ARGV[$i] eq 'peek' ) {
-            push @peek, $ARGV[ $i + 1 ];
+        if ( $ARGV[$i] =~ /$args/o ) {
+            push @{$args{$1}}, $ARGV[ $i + 1 ];
             splice( @ARGV, $i, 2 );
             next;
         }
@@ -20,9 +24,12 @@ my @peek;
 }
 
 # the headers we want to see
-my @srv_hdr = qw( Content-Type Set-Cookie Set-Cookie2 WWW-Authenticate
-  Location );
-my @clt_hdr = qw( Cookie Cookie2 Referer Referrer Authorization );
+my @srv_hdr = (
+    qw( Content-Type Set-Cookie Set-Cookie2 WWW-Authenticate Location ),
+    @{ $args{hdr} }
+);
+my @clt_hdr =
+  ( qw( Cookie Cookie2 Referer Referrer Authorization ), @{ $args{hdr} } );
 
 # NOTE: Body request filters always receive the request body in one pass
 my $post_filter = HTTP::Proxy::BodyFilter::simple->new(
@@ -68,8 +75,8 @@ sub print_headers {
 my $proxy = HTTP::Proxy->new(@ARGV);
 
 # if we want to look at SOME sites
-if (@peek) {
-    for (@peek) {
+if (@{$args{peek}}) {
+    for (@{$args{peek}}) {
         $proxy->push_filter(
             host    => $_,
             method  => 'POST',
