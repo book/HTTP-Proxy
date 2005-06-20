@@ -20,6 +20,11 @@ Technical
   (match on a scalar / list)
   $p->push_filter( status => 401, response => $filter );
   $p->push_filter( status => [ 301, 302 ],  response => $filter );
+* Look at the test daemon in WWW::Mechanize
+* push_filter should:
+  1) handle negative criteria (nohost => 'foo\\.com' );
+  2) compute the match sub as an eval string so a to be faster
+     (less useless tests)
 
 Tests
 -----
