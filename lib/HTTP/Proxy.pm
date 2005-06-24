@@ -848,9 +848,22 @@ client connections, and a LWP::UserAgent to ask for the requested pages.
 The most interesting feature of this proxy object is its ability to
 filter the HTTP requests and responses through user-defined filters.
 
+Once the proxy is created, with the C<new()> method, it is possible
+to alter its behaviour by adding so-called "filters". This is
+done by the C<push_filter()> method. Once the filter is ready to
+run, it can be launched, with the C<start()> method. This method
+does not normally return until the proxy is killed or otherwise
+stopped.
+
+An important thing to note is that the proxy is (except when running
+the C<NoFork> engine) a I<forking> proxy: it doesn't support passing
+information between child processes, and you can count on reliable
+information passing only during a single HTTP connection (request +
+response).
+
 =head1 METHODS
 
-=head2 Constructor and initilisation
+=head2 Constructor and initialisation
 
 =over 4
 
@@ -1231,6 +1244,7 @@ logging constants.
 =head1 BUGS
 
 FIXME 
+
 This module does not work under Windows, but I can't see why, and do not
 have a development platform under that system. Patches and explanations
 very welcome.
