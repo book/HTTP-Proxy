@@ -1091,12 +1091,14 @@ to the proxy.
 
 =head1 FILTERS
 
-You can alter the way the default HTTP::Proxy works by pluging callbacks
-at different stages of the request/response handling.
+You can alter the way the default HTTP::Proxy works by plugging callbacks
+(filter objects, actually) at different stages of the request/response
+handling.
 
 When a request is received by the HTTP::Proxy object, it is filtered through
 a standard filter that transform this request accordingly to RFC 2616
-(by adding the Via: header, and a few other transformations).
+(by adding the C<Via:> header, and a few other transformations). This is
+the default, bare minimum behaviour.
 
 The response is also filtered in the same manner. There is a total of four
 filter chains: C<request-headers>, C<request-body>, C<reponse-headers> and
@@ -1105,14 +1107,14 @@ C<response-body>.
 =head2 push_filter()
 
 You can add your own filters to the default ones with the
-push_filter() method. The method push a filter on the appropriate
+C<push_filter()> method. The method pushes a filter on the appropriate
 filter stack.
 
     $proxy->push_filter( response => $filter );
 
-The headers/body category is determined by the type of the filter.
+The headers/body category is determined by the base class of the filter.
 There are two base classes for filters, which are
-HTTP::Proxy::HeaderFilter and HTTP::Proxy::BodyFilter (the names
+C<HTTP::Proxy::HeaderFilter> and C<HTTP::Proxy::BodyFilter> (the names
 are self-explanatory). See the documentation of those two classes
 to find out how to write your own header or body filters.
 
@@ -1128,23 +1130,23 @@ they were pushed on their filter stack.
 
 Named parameters can be used to create the match routine. They are: 
 
-    mime   - the MIME type (for a response-body filter)
     method - the request method
     scheme - the URI scheme         
     host   - the URI authority (host:port)
     path   - the URI path
     query  - the URI query string
+    mime   - the MIME type (for a response-body filter)
 
 The filters are applied only when all the the parameters match the
 request or the response. All these named parameters have default values,
 which are:
 
-    mime   => 'text/*'
     method => 'OPTIONS,GET,HEAD,POST,PUT,DELETE,TRACE,CONNECT'
     scheme => 'http'
     host   => ''
     path   => ''
     query  => ''
+    mime   => 'text/*'
 
 The C<mime> parameter is a glob-like string, with a required C</>
 character and a C<*> as a joker. Thus, C<*/*> matches I<all> responses,
@@ -1169,11 +1171,11 @@ the same match subroutine:
         mime     => 'text/html',
         response => HTTP::Proxy::BodyFilter::tags->new(),
         response =>
-        HTTP::Proxy::BodyFilter::simple->new( sub { s!(</?)i>!$1b>!ig } )
+          HTTP::Proxy::BodyFilter::simple->new( sub { s!(</?)i>!$1b>!ig } )
     );
 
 For more details regarding the creation of new filters, check the
-HTTP::Proxy::HeaderFilter and HTTP::Proxy::BodyFilter documentation.
+C<HTTP::Proxy::HeaderFilter> and C<HTTP::Proxy::BodyFilter> documentation.
 
 Here's an example of subclassing a base filter class:
 
@@ -1191,8 +1193,8 @@ Here's an example of subclassing a base filter class:
     $proxy->push_filter( response => FilterPerl->new() );
 
 Other examples can be found in the documentation for
-HTTP::Proxy::HeaderFilter, HTTP::Proxy::BodyFilter,
-HTTP::Proxy::HeaderFilter::simple, HTTP::Proxy::BodyFilter::simple.
+C<HTTP::Proxy::HeaderFilter>, C<HTTP::Proxy::BodyFilter>,
+C<HTTP::Proxy::HeaderFilter::simple>, C<HTTP::Proxy::BodyFilter::simple>.
 
     # a simple anonymiser
     # see eg/anonymiser.pl for the complete code
@@ -1206,10 +1208,13 @@ HTTP::Proxy::HeaderFilter::simple, HTTP::Proxy::BodyFilter::simple.
         )
     );
 
-IMPORTANT: If you use your own LWP::UserAgent, you must install it
-before your calls to push_filter(), otherwise
+IMPORTANT: If you use your own C<LWP::UserAgent>, you must install it
+before your calls to C<push_filter()>, otherwise
 the match method will make wrong assumptions about the schemes your
 agent supports.
+
+NOTE: It is likely that possibility of changing the agent or the daemon
+may disappear in future versions.
 
 =head2 Other methods
 
@@ -1232,7 +1237,7 @@ each line starting with C<$prefix>.
 =item new_connection()
 
 Increase the proxy's TCP connections counter. Only used by
-HTTP::Proxy::Engine objects.
+C<HTTP::Proxy::Engine> objects.
 
 =back
 
@@ -1249,8 +1254,7 @@ This module does not work under Windows, but I can't see why, and do not
 have a development platform under that system. Patches and explanations
 very welcome.
 
-I guess it is because fork() is not well supported. You can try to use
-the following workaround to prevent forking:
+I guess it is because C<fork()> is not well supported.
 
     $proxy->maxchild(0);
 
@@ -1263,31 +1267,39 @@ work on WinXP ActiveState Perl 5.8.
 
 =back
 
+As from version 0.16, the default engine is C<HTTP::Proxy::Engine::NoFork>.
+Let me know if it works better.
+
 =head1 SEE ALSO
 
 L<HTTP::Proxy::Engine>, L<HTTP::Proxy::BodyFilter>,
-L<HTTP::Proxy::HeaderFilter>, the examples in eg/.
+L<HTTP::Proxy::HeaderFilter>, the examples in F<eg/>.
 
 =head1 AUTHOR
 
 Philippe "BooK" Bruhat, E<lt>book@cpan.orgE<gt>.
 
-The module has its own web page at http://http-proxy.mongueurs.net/
+The module has its own web page at L<http://http-proxy.mongueurs.net/>
 complete with older versions and repository snapshot.
 
 There are also two mailing-lists: http-proxy@mongueurs.net for general
-discussion about HTTP::Proxy and http-proxy-cvs@mongueurs.net for
-CVS commits.
+discussion about C<HTTP::Proxy> and http-proxy-cvs@mongueurs.net for
+CVS commits emails.
 
 =head1 THANKS
 
 Many people helped me during the development of this module, either on
-mailing-lists, irc or over a beer in a pub...
+mailing-lists, IRC or over a beer in a pub...
 
-So, in no particular order, thanks to the libwww-perl team for such
-a terrific suite of modules, Michael Schwern (tips for testing while
-forking), the Paris.pm folks (forking processes, chunked encoding)
-and my growing user base... C<;-)>
+So, in no particular order, thanks to the libwww-perl team for such a
+terrific suite of modules, perl-qa (tips for testing), the French Perl
+I<Mongueurs> (for code tricks, beers and encouragements) and my growing
+user base... C<;-)>
+
+I'd like to particularly thank Dan Grigsby, who's been using
+C<HTTP::Proxy> since 2003 (before the filter classes even existed).  He is
+apparently making a living from a product based on C<HTTP::Proxy>. Thanks
+a lot for your confidence in my work!
 
 =head1 COPYRIGHT
 
