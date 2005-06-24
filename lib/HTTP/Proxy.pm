@@ -861,6 +861,133 @@ information between child processes, and you can count on reliable
 information passing only during a single HTTP connection (request +
 response).
 
+=head1 FILTERS
+
+You can alter the way the default HTTP::Proxy works by plugging callbacks
+(filter objects, actually) at different stages of the request/response
+handling.
+
+When a request is received by the HTTP::Proxy object, it is filtered through
+a standard filter that transform this request accordingly to RFC 2616
+(by adding the C<Via:> header, and a few other transformations). This is
+the default, bare minimum behaviour.
+
+The response is also filtered in the same manner. There is a total of four
+filter chains: C<request-headers>, C<request-body>, C<reponse-headers> and
+C<response-body>.
+
+=head2 push_filter()
+
+You can add your own filters to the default ones with the
+C<push_filter()> method. The method pushes a filter on the appropriate
+filter stack.
+
+    $proxy->push_filter( response => $filter );
+
+The headers/body category is determined by the base class of the filter.
+There are two base classes for filters, which are
+C<HTTP::Proxy::HeaderFilter> and C<HTTP::Proxy::BodyFilter> (the names
+are self-explanatory). See the documentation of those two classes
+to find out how to write your own header or body filters.
+
+The named parameter is used to determine the request/response part.
+
+It is possible to push the same filter on the request and response
+stacks, as in the following example:
+
+    $proxy->push_filter( request => $filter, response => $filter );
+
+If several filters match the message, they will be applied in the order
+they were pushed on their filter stack.
+
+Named parameters can be used to create the match routine. They are: 
+
+    method - the request method
+    scheme - the URI scheme         
+    host   - the URI authority (host:port)
+    path   - the URI path
+    query  - the URI query string
+    mime   - the MIME type (for a response-body filter)
+
+The filters are applied only when all the the parameters match the
+request or the response. All these named parameters have default values,
+which are:
+
+    method => 'OPTIONS,GET,HEAD,POST,PUT,DELETE,TRACE,CONNECT'
+    scheme => 'http'
+    host   => ''
+    path   => ''
+    query  => ''
+    mime   => 'text/*'
+
+The C<mime> parameter is a glob-like string, with a required C</>
+character and a C<*> as a joker. Thus, C<*/*> matches I<all> responses,
+and C<""> those with no C<Content-Type:> header. To match any
+reponse (with or without a C<Content-Type:> header), use C<undef>.
+
+The C<mime> parameter is only meaningful with the C<response-body>
+filter stack. It is ignored if passed to any other filter stack.
+
+The C<method> and C<scheme> parameters are strings consisting of
+comma-separated values. The C<host> and C<path> parameters are regular
+expressions.
+
+A match routine is compiled by the proxy and used to check if a particular
+request or response must be filtered through a particular filter.
+
+It is also possible to push several filters on the same stack with
+the same match subroutine:
+
+    # convert italics to bold
+    $proxy->push_filter(
+        mime     => 'text/html',
+        response => HTTP::Proxy::BodyFilter::tags->new(),
+        response =>
+          HTTP::Proxy::BodyFilter::simple->new( sub { s!(</?)i>!$1b>!ig } )
+    );
+
+For more details regarding the creation of new filters, check the
+C<HTTP::Proxy::HeaderFilter> and C<HTTP::Proxy::BodyFilter> documentation.
+
+Here's an example of subclassing a base filter class:
+
+    # fixes a common typo ;-)
+    # but chances are that this will modify a correct URL
+    {
+        package FilterPerl;
+        use base qw( HTTP::Proxy::BodyFilter );
+
+        sub filter {
+            my ( $self, $dataref, $message, $protocol, $buffer ) = @_;
+            $$dataref =~ s/PERL/Perl/g;
+        }
+    }
+    $proxy->push_filter( response => FilterPerl->new() );
+
+Other examples can be found in the documentation for
+C<HTTP::Proxy::HeaderFilter>, C<HTTP::Proxy::BodyFilter>,
+C<HTTP::Proxy::HeaderFilter::simple>, C<HTTP::Proxy::BodyFilter::simple>.
+
+    # a simple anonymiser
+    # see eg/anonymiser.pl for the complete code
+    $proxy->push_filter(
+        mime    => undef,
+        request => HTTP::Proxy::HeaderFilter::simple->new(
+            sub { $_[0]->remove_header(qw( User-Agent From Referer Cookie )) },
+        ),
+        response => HTTP::Proxy::HeaderFilter::simple->new(
+            sub { $_[0]->remove_header(qw( Set-Cookie )); },
+        )
+    );
+
+IMPORTANT: If you use your own C<LWP::UserAgent>, you must install it
+before your calls to C<push_filter()>, otherwise
+the match method will make wrong assumptions about the schemes your
+agent supports.
+
+NOTE: It is likely that possibility of changing the agent or the daemon
+may disappear in future versions.
+
 =head1 METHODS
 
 =head2 Constructor and initialisation
@@ -1088,133 +1215,6 @@ This is the internal method used to handle each new TCP connection
 to the proxy.
 
 =back
-
-=head1 FILTERS
-
-You can alter the way the default HTTP::Proxy works by plugging callbacks
-(filter objects, actually) at different stages of the request/response
-handling.
-
-When a request is received by the HTTP::Proxy object, it is filtered through
-a standard filter that transform this request accordingly to RFC 2616
-(by adding the C<Via:> header, and a few other transformations). This is
-the default, bare minimum behaviour.
-
-The response is also filtered in the same manner. There is a total of four
-filter chains: C<request-headers>, C<request-body>, C<reponse-headers> and
-C<response-body>.
-
-=head2 push_filter()
-
-You can add your own filters to the default ones with the
-C<push_filter()> method. The method pushes a filter on the appropriate
-filter stack.
-
-    $proxy->push_filter( response => $filter );
-
-The headers/body category is determined by the base class of the filter.
-There are two base classes for filters, which are
-C<HTTP::Proxy::HeaderFilter> and C<HTTP::Proxy::BodyFilter> (the names
-are self-explanatory). See the documentation of those two classes
-to find out how to write your own header or body filters.
-
-The named parameter is used to determine the request/response part.
-
-It is possible to push the same filter on the request and response
-stacks, as in the following example:
-
-    $proxy->push_filter( request => $filter, response => $filter );
-
-If several filters match the message, they will be applied in the order
-they were pushed on their filter stack.
-
-Named parameters can be used to create the match routine. They are: 
-
-    method - the request method
-    scheme - the URI scheme         
-    host   - the URI authority (host:port)
-    path   - the URI path
-    query  - the URI query string
-    mime   - the MIME type (for a response-body filter)
-
-The filters are applied only when all the the parameters match the
-request or the response. All these named parameters have default values,
-which are:
-
-    method => 'OPTIONS,GET,HEAD,POST,PUT,DELETE,TRACE,CONNECT'
-    scheme => 'http'
-    host   => ''
-    path   => ''
-    query  => ''
-    mime   => 'text/*'
-
-The C<mime> parameter is a glob-like string, with a required C</>
-character and a C<*> as a joker. Thus, C<*/*> matches I<all> responses,
-and C<""> those with no C<Content-Type:> header. To match any
-reponse (with or without a C<Content-Type:> header), use C<undef>.
-
-The C<mime> parameter is only meaningful with the C<response-body>
-filter stack. It is ignored if passed to any other filter stack.
-
-The C<method> and C<scheme> parameters are strings consisting of
-comma-separated values. The C<host> and C<path> parameters are regular
-expressions.
-
-A match routine is compiled by the proxy and used to check if a particular
-request or response must be filtered through a particular filter.
-
-It is also possible to push several filters on the same stack with
-the same match subroutine:
-
-    # convert italics to bold
-    $proxy->push_filter(
-        mime     => 'text/html',
-        response => HTTP::Proxy::BodyFilter::tags->new(),
-        response =>
-          HTTP::Proxy::BodyFilter::simple->new( sub { s!(</?)i>!$1b>!ig } )
-    );
-
-For more details regarding the creation of new filters, check the
-C<HTTP::Proxy::HeaderFilter> and C<HTTP::Proxy::BodyFilter> documentation.
-
-Here's an example of subclassing a base filter class:
-
-    # fixes a common typo ;-)
-    # but chances are that this will modify a correct URL
-    {
-        package FilterPerl;
-        use base qw( HTTP::Proxy::BodyFilter );
-
-        sub filter {
-            my ( $self, $dataref, $message, $protocol, $buffer ) = @_;
-            $$dataref =~ s/PERL/Perl/g;
-        }
-    }
-    $proxy->push_filter( response => FilterPerl->new() );
-
-Other examples can be found in the documentation for
-C<HTTP::Proxy::HeaderFilter>, C<HTTP::Proxy::BodyFilter>,
-C<HTTP::Proxy::HeaderFilter::simple>, C<HTTP::Proxy::BodyFilter::simple>.
-
-    # a simple anonymiser
-    # see eg/anonymiser.pl for the complete code
-    $proxy->push_filter(
-        mime    => undef,
-        request => HTTP::Proxy::HeaderFilter::simple->new(
-            sub { $_[0]->remove_header(qw( User-Agent From Referer Cookie )) },
-        ),
-        response => HTTP::Proxy::HeaderFilter::simple->new(
-            sub { $_[0]->remove_header(qw( Set-Cookie )); },
-        )
-    );
-
-IMPORTANT: If you use your own C<LWP::UserAgent>, you must install it
-before your calls to C<push_filter()>, otherwise
-the match method will make wrong assumptions about the schemes your
-agent supports.
-
-NOTE: It is likely that possibility of changing the agent or the daemon
-may disappear in future versions.
 
 =head2 Other methods
 
