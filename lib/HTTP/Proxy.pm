@@ -876,8 +876,6 @@ The response is also filtered in the same manner. There is a total of four
 filter chains: C<request-headers>, C<request-body>, C<reponse-headers> and
 C<response-body>.
 
-=head2 push_filter()
-
 You can add your own filters to the default ones with the
 C<push_filter()> method. The method pushes a filter on the appropriate
 filter stack.
@@ -996,18 +994,23 @@ may disappear in future versions.
 
 =item new()
 
-The new() method creates a new HTTP::Proxy object. All attributes can
+The C<new()> method creates a new HTTP::Proxy object. All attributes can
 be passed as parameters to replace the default.
 
-Parameters that are not HTTP::Proxy attribute will be ignored and
-passed to the HTTP::Proxy::Engine object.
+Parameters that are not C<HTTP::Proxy> attributes will be ignored and
+passed to the chosen C<HTTP::Proxy::Engine> object.
 
 =item init()
 
-init() initialise the proxy without starting it. It is usually not
+C<init()> initialise the proxy without starting it. It is usually not
 needed.
 
-This method is called by start() if needed.
+This method is called by C<start()> if needed.
+
+=item push_filter()
+
+The C<push_filter()> method is used to add filters to the proxy.
+It is fully described in section L<FILTERS>.
 
 =back
 
@@ -1151,13 +1154,13 @@ support it.
 =item maxserve
 
 The maximum number of requests the proxy will serve in a single connection.
-(same as MaxRequestsPerChild in Apache)
+(same as C<MaxRequestsPerChild> in Apache)
 
 C<maxserve> is deprecated.
 
 =item port
 
-The proxy HTTP::Daemon port (default: 8080).
+The proxy C<HTTP::Daemon> port (default: 8080).
 
 =item request
 
@@ -1187,11 +1190,11 @@ The url where the proxy can be reached.
 =item via
 
 The content of the Via: header. Setting it to an empty string will
-prevent its addition. (default: $hostname (HTTP::Proxy/$VERSION))
+prevent its addition. (default: C<$hostname (HTTP::Proxy/$VERSION)>)
 
 =item x_forwarded_for
 
-If set to a true value, the proxy will send the X-Forwarded-For header.
+If set to a true value, the proxy will send the C<X-Forwarded-For:> header.
 (default: true)
 
 =back
@@ -1203,9 +1206,9 @@ If set to a true value, the proxy will send the X-Forwarded-For header.
 =item start()
 
 This method works like Tk's C<MainLoop>: you hand over control to the
-HTTP::Proxy object you created and configured.
+C<HTTP::Proxy> object you created and configured.
 
-If C<maxconn> is not zero, start() will return after accepting
+If C<maxconn> is not zero, C<start()> will return after accepting
 at most that many connections. It will return the total number of
 connexions.
 
@@ -1222,16 +1225,16 @@ to the proxy.
 
 =item log( $level, $prefix, $message )
 
-Adds $message at the end of C<logfh>, if $level matches C<logmask>.
-The log() method also prints a timestamp.
+Adds C<$message> at the end of C<logfh>, if $level matches C<logmask>.
+The C<log()> method also prints a timestamp.
 
 The output looks like:
 
     [Thu Dec  5 12:30:12 2002] ($$) $prefix: $message
 
-where $$ is the current processus pid.
+where C<$$> is the current processus id.
 
-If $message is a multiline string, several log lines will be output,
+If C<$message> is a multiline string, several log lines will be output,
 each line starting with C<$prefix>.
 
 =item new_connection()
