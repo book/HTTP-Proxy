@@ -582,7 +582,7 @@ sub push_filter {
 
     # parse parameters
     for( my $i = 0; $i < @_ ; $i += 2 ) {
-        next if $_[$i] !~ /^(mime|method|scheme|host|path)$/;
+        next if $_[$i] !~ /^(mime|method|scheme|host|path|query)$/;
         $arg{$_[$i]} = $_[$i+1];
         splice @_, $i, 2;
         $i -= 2;
