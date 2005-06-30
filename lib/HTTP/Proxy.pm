@@ -1244,6 +1244,18 @@ C<HTTP::Proxy::Engine> objects.
 
 =back
 
+=head2 Apache-like attributes
+
+    start_servers
+    max_clients
+    max_requests_per_child
+    min_spare_servers
+    max_spare_servers
+    
+    keep_alive
+    max_keep_alive_requests
+    keep_alive_timeout
+
 =head1 EXPORTED SYMBOLS
 
 No symbols are exported by default. The C<:log> tag exports all the
