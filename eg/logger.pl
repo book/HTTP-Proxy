@@ -11,15 +11,13 @@ my %args = (
    header  => [],
 );
 {
-    my $args = '(' . join('|', keys %args ) . ')';
-    my $i = 0;
-    while ( $i < @ARGV ) {
+    my $args = '(' . join( '|', keys %args ) . ')';
+    for ( my $i = 0 ; $i < @ARGV ; $i += 2 ) {
         if ( $ARGV[$i] =~ /$args/o ) {
-            push @{$args{$1}}, $ARGV[ $i + 1 ];
+            push @{ $args{$1} }, $ARGV[ $i + 1 ];
             splice( @ARGV, $i, 2 );
-            next;
+            redo;
         }
-        $i += 2;
     }
 }
 
@@ -38,13 +36,13 @@ my $post_filter = HTTP::Proxy::BodyFilter::simple->new(
         print STDOUT "\n", $message->method, " ", $message->uri, "\n";
         print_headers( $message, @clt_hdr );
 
-        # this is from CGI.pm, method parse_params
+        # this is from CGI.pm, method parse_params()
         my (@pairs) = split( /[&;]/, $$dataref );
         for (@pairs) {
             my ( $param, $value ) = split( '=', $_, 2 );
             $param = unescape($param);
             $value = unescape($value);
-            printf STDOUT "    %-30s => %s\n", $param, $value;
+            printf STDOUT "    %-20s => %s\n", $param, $value;
         }
     }
 );
@@ -57,7 +55,7 @@ my $get_filter = HTTP::Proxy::HeaderFilter::simple->new(
             print STDOUT "\n", $req->method, " ", $req->uri, "\n";
             print_headers( $req, @clt_hdr );
         }
-        print STDOUT "    ", $message->status_line, "\n";
+        print STDOUT $message->status_line, "\n";
         print_headers( $message, @srv_hdr );
     }
 );
@@ -93,5 +91,6 @@ else {
     );
     $proxy->push_filter( response => $get_filter );
 }
+
 $proxy->start;
 
