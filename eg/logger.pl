@@ -24,10 +24,10 @@ my %args = (
 # the headers we want to see
 my @srv_hdr = (
     qw( Content-Type Set-Cookie Set-Cookie2 WWW-Authenticate Location ),
-    @{ $args{hdr} }
+    @{ $args{header} }
 );
 my @clt_hdr =
-  ( qw( Cookie Cookie2 Referer Referrer Authorization ), @{ $args{hdr} } );
+  ( qw( Cookie Cookie2 Referer Referrer Authorization ), @{ $args{header} } );
 
 # NOTE: Body request filters always receive the request body in one pass
 my $post_filter = HTTP::Proxy::BodyFilter::simple->new(
