@@ -16,7 +16,7 @@ my %args = (
         if ( $ARGV[$i] =~ /$args/o ) {
             push @{ $args{$1} }, $ARGV[ $i + 1 ];
             splice( @ARGV, $i, 2 );
-            redo;
+            redo if $i < @ARGV;
         }
     }
 }
