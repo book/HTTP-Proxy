@@ -66,12 +66,26 @@ $proxy->push_filter(
     request => HTTP::Proxy::HeaderFilter::simple->new(
         sub {
             my ( $self, $headers, $message ) = @_;
+
+            # find out the actual https site
             my $uri = $message->uri;
             if ( $uri =~ m!^http://this_is_ssl\.! ) {
                 $uri->scheme("https");
                 my $host = $uri->host;
                 $host =~ s!^this_is_ssl\.!!;
                 $uri->host($host);
+            }
+        }
+    ),
+    response => HTTP::Proxy::HeaderFilter::simple->new(
+        sub {
+            my ( $self, $headers, $message ) = @_;
+
+            # modify Location: headers in the response
+            my $location = $headers->header( 'Location' );
+            if( $location =~ m!^https://! ) {
+                $location =~ s!^https://!http://this_is_ssl.!;
+                $headers->header( Location => $location );
             }
         }
     ),
