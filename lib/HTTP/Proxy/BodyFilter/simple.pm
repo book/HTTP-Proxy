@@ -59,7 +59,7 @@ HTTP::Proxy::BodyFilter::simple - A class for creating simple filters
 
     # a simple s/// filter
     my $filter = HTTP::Proxy::BodyFilter::simple->new(
-        sub { ${ $_[0] } =~ s/foo/bar/g; }
+        sub { ${ $_[1] } =~ s/foo/bar/g; }
     );
     $proxy->push_filter( response => $filter );
 
