@@ -1101,17 +1101,20 @@ A filehandle to a logfile (default: *STDERR).
 
 Be verbose in the logs (default: NONE).
 
-Here are the various elements that can be added to the mask:
- NONE    - Log only errors
- STATUS  - Requested URL, reponse status and total number
-           of connections processed
- PROCESS - Subprocesses information (fork, wait, etc.)
- SOCKET  - Information about low-level sockets
- HEADERS - Full request and response headers are sent along
- FILTERS - Filter information
- DATA    - Data received by the filters
- CONNECT - Data transmitted by the CONNECT method
- ALL     - Log all of the above
+Here are the various elements that can be added to the mask (their values
+are powers of 2, starting from 0 and listed here in ascending order):
+
+    NONE    - Log only errors
+    PROXY   - Proxy information
+    STATUS  - Requested URL, reponse status and total number
+              of connections processed
+    PROCESS - Subprocesses information (fork, wait, etc.)
+    SOCKET  - Information about low-level sockets
+    HEADERS - Full request and response headers are sent along
+    FILTERS - Filter information
+    DATA    - Data received by the filters
+    CONNECT - Data transmitted by the CONNECT method
+    ALL     - Log all of the above
 
 If you only want status and process information, you can use:
 
@@ -1326,4 +1329,5 @@ This module is free software; you can redistribute it or modify it under
 the same terms as Perl itself.
 
 =cut
+
 
