@@ -1286,6 +1286,20 @@ where C<$$> is the current processus id.
 If C<$message> is a multiline string, several log lines will be output,
 each line starting with C<$prefix>.
 
+=item is_protocol_supported( $scheme )
+
+Returns a boolean indicating if $scheme is supported by the proxy.
+
+This method is only used internaly.
+
+It is essential to allow HTTP::Proxy users to create "pseudo-schemes"
+that LWP doesn't know about, but that one of the proxy filters can handle
+directly. New schemes are added as follows:
+
+    $proxy->init();    # required to get an agent
+    $proxy->agent->protocols_allowed(
+        [ @{ $proxy->agent->protocols_allowed }, 'myhttp' ] );
+
 =item new_connection()
 
 Increase the proxy's TCP connections counter. Only used by
