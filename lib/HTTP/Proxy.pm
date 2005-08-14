@@ -312,7 +312,7 @@ sub serve_connections {
         }
 
         # can we serve this protocol?
-        if ( !$self->agent->is_protocol_supported( my $s = $req->uri->scheme ) )
+        if ( !$self->is_protocol_supported( my $s = $req->uri->scheme ) )
         {
             # should this be 400 Bad Request?
             $response = HTTP::Response->new( 501, 'Not Implemented' );
@@ -620,7 +620,7 @@ sub push_filter {
     my @scheme = split /\s*,\s*/, $scheme;
     for (@scheme) {
         croak "Unsupported scheme: $_"
-          if !$self->agent->is_protocol_supported($_);
+          if !$self->is_protocol_supported($_);
     }
     $scheme = @scheme ? '(?:' . join ( '|', @scheme ) . ')' : '';
     $scheme = qr/$scheme/;
@@ -666,6 +666,19 @@ sub push_filter {
         $self->{$stack}{$message}->push( [ $match, $filter ] );
         $filter->proxy( $self );
     }
+}
+
+sub is_protocol_supported {
+    my ( $self, $scheme ) = @_;
+    my $ok = 1;
+    if ( !$self->agent->is_protocol_supported($scheme) ) {
+
+        # double check, in case a dummy scheme was added
+        # to be handled directly by a filter
+        $ok = 0;
+        $scheme eq $_ && $ok++ for @{ $self->agent->protocols_allowed };
+    }
+    $ok;
 }
 
 sub log {
