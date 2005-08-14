@@ -70,6 +70,7 @@ sub new {
         max_connections => 0,
         max_keep_alive_requests => 10,
         port     => 8080,
+        stash    => {},
         timeout  => 60,
         via      => hostname() . " (HTTP::Proxy/$VERSION)",
         x_forwarded_for => 1,
@@ -162,6 +163,13 @@ sub max_clients { shift->engine->max_clients( @_ ) }
             goto \&$new;
         };
     }
+}
+
+sub stash {
+    my $stash = shift->{stash};
+    return $stash unless @_;
+    return $stash->{ $_[0] } if @_ == 1;
+    return $stash->{ $_[0] } = $_[1];
 }
 
 sub new_connection { ++$_[0]{conn} }
@@ -1181,6 +1189,29 @@ the request/response scheme, and the proxy will return this response
 (which is NOT filtered through the response filter stacks) instead of
 the expected origin server response. This is useful for caching (though
 Squid does it much better) and proxy authentication, for example.
+
+=item stash
+
+The stash is a hash where filters can store data to share between them.
+
+The stash() method can be used to set the whole hash (with a HASH reference).
+To access individual keys simply do:
+
+    $proxy->stash( 'bloop' );
+
+To set it, type:
+
+    $proxy->stash( bloop => 'owww' );
+
+It's also possibly to get a reference to the stash:
+
+    my $s = $filter->proxy->stash();
+    $s->{bang} = 'bam';
+
+    # $proxy->stash( 'bang' ) will now return 'bam'
+
+B<Warning:> since the proxy forks for each TCP connection, the data is
+only shared between filters in the same child process.
 
 =item timeout
 
