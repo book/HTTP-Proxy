@@ -345,6 +345,8 @@ sub serve_connections {
         # FIXME should the response header and body be filtered?
         goto SEND if defined $self->response;
 
+        # FIXME - don't forward requests to ourselves!
+
         # pop a response
         my ( $sent, $chunked ) = ( 0, 0 );
         $response = $self->agent->simple_request(
