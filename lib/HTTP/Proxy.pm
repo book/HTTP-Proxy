@@ -1309,15 +1309,54 @@ C<HTTP::Proxy::Engine> objects.
 
 =head2 Apache-like attributes
 
-    start_servers
-    max_clients
-    max_requests_per_child
-    min_spare_servers
-    max_spare_servers
-    
-    keep_alive
-    max_keep_alive_requests
-    keep_alive_timeout
+C<HTTP::Proxy> has several Apache-like attributes that control the
+way the HTTP and TCP connections are handled.
+
+The following attributes control the TCP connection. They are passed to
+the underlying C<HTTP::Proxy::Engine>, which may (or may not) use them
+to change its behaviour.
+
+=over 4
+
+=item start_servers
+
+Number of child process to fork at the beginning.
+
+=item max_clients
+
+Maximum number of concurrent TCP connections (i.e. child processes).
+
+=item max_requests_per_child
+
+Maximum number of TCP connections handled by the smae child process.
+
+=item min_spare_servers
+
+Minimum number of inactive child processes.
+
+=item max_spare_servers
+
+Maximum number of inactive child processes.
+
+=back
+
+Those attributes control the HTTP connection:
+
+=over 4
+
+=item keep_alive
+
+Support for keep alive HTTP connections.
+
+=item max_keep_alive_requests
+
+Maximum number of HTTP connections within a single TCP connection.
+
+=item keep_alive_timeout
+
+Timeout for keep-alive connection.
+
+=back
 
 =head1 EXPORTED SYMBOLS
 
@@ -1325,8 +1364,6 @@ No symbols are exported by default. The C<:log> tag exports all the
 logging constants.
 
 =head1 BUGS
-
-FIXME 
 
 This module does not work under Windows, but I can't see why, and do not
 have a development platform under that system. Patches and explanations
@@ -1344,6 +1381,9 @@ This did not work for me under WinXP - ActiveState Perl 5.6, but it DOES
 work on WinXP ActiveState Perl 5.8. 
 
 =back
+
+Several people have tried to help, but we haven't found a way to make it work
+correctly yet.
 
 As from version 0.16, the default engine is C<HTTP::Proxy::Engine::NoFork>.
 Let me know if it works better.
