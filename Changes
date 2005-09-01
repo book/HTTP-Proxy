@@ -1,32 +1,50 @@
 Revision history for Perl extension HTTP::Proxy
 
-0.16  
+0.16  Thu Sep  1 19:13:55 CEST 2005
         [ENHANCEMENTS]
         - the new HTTP::Proxy::Engine class and its subclasses
           now handle the life and death of child processes
-        - no more annoying getsockname() on closed socket GEN0
-          warnings (they appeared in 0.14)
         - the Content-Length header is now removed only if body
           filters will be applied on the response body
+        - HTTP::Proxy now supports some Apache-like attributes
+          (start_servers, max_clients, max_requests_per_child,
+          min_spare_servers, max_spare_servers, keep_alive,
+          max_keep_alive_requests, keep_alive_timeout)
+        - added support for ALL WebDAV/DeltaV methods
+        - the query argument to push_filter(), added in 0.14, should
+          now work (thanks to Simon Cozens for spotting the problem)
+        - the proxy now has a stash, which is a hash where filters can
+          store data (possibly to share it). (Requested by Mark Fowler)
+          Warning: since the proxy forks for each TCP connection, the
+          data is only shared between filters in the same child process.
         [DEPRECATION]
         - the maxchild, maxconn and maxserve accessors are now
           deprecated. They will disappear in 0.17:
           + maxchild has no replacement (should be handled by the engine)
           + maxconn becomes max_connections
-          + maxserve becomes max_requests_per_child
+          + maxserve becomes max_keep_alive_requests
         - Information regarding the way the engine should behave
           must passed in the constructor or directly to the engine
         [NEW METHODS]
         - $proxy->engine() return the HTTP::Proxy::Engine instance
         - $proxy->new_connection() increase the TCP connections counter
           (should only be used by HTTP::Proxy::Engine object)
+        [FIXES]
+        - Makefile.PL was not playing nice with Build.PL in the
+          previous distributions. This has been fixed. Sorry for the
+          inconvenience
+        - no more annoying "getsockname() on closed socket GEN0"
+          warnings (they appeared in 0.14)
         [Win32 SUPPORT]
-        - Win32 is now correctly supported! badly supported, but
-          supported...
+        - Win32 is now supported! badly supported, but supported...
         - until someone writes a decent engine for Win32, the default
           Win32 engine will be HTTP::Proxy::Engine::NoFork, which
           can only handle a single TCP connection at a time
-        
+        [EXAMPLES]
+        - eg/yahoogroups.pl - removes ad interruptions from Yahoo! Groups
+        - eg/https.pl       - peek/poke at encrypted web pages
+        - eg/logger.pl      - improved the logger script
+
 0.15  Tue Apr  5 21:17:40 CEST 2005
         [ENHANCEMENTS]
         - added support for WebDAV methods (requested by Christian Laursen)
