@@ -6,6 +6,7 @@ eg/ayb.pl
 eg/bork.pl
 eg/dragon.pl
 eg/fudd.pl
+eg/https.pl
 eg/javascript.pl
 eg/js.pl
 eg/leet.pl
@@ -49,6 +50,7 @@ t/05new.t
 t/10init.t
 t/15accessors.t
 t/15deprecated.t
+t/16stash.t
 t/17fstack.t
 t/18engine.t
 t/20dummy.t
