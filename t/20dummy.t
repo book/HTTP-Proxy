@@ -29,7 +29,7 @@ $test->no_ending(1);
 my $server = server_start();
 my $serverurl = $server->url;
 
-my $proxy = HTTP::Proxy->new( port => 0, maxconn => scalar @requests );
+my $proxy = HTTP::Proxy->new( port => 0, max_connections => scalar @requests );
 $proxy->init;    # required to access the url later
 $proxy->agent->no_proxy( URI->new( $server->url )->host );
 my $proxyurl = $proxy->url;

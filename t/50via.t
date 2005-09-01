@@ -26,7 +26,7 @@ my $server = server_start();
 
 # create and fork the proxy
 # the proxy itself will not fork
-my $proxy = HTTP::Proxy->new( port => 0, maxconn => 1, maxchild => 0 );
+my $proxy = HTTP::Proxy->new( port => 0, max_connections => 1, max_clients => 0 );
 $proxy->init;    # required to access the url later
 $proxy->agent->no_proxy( URI->new( $server->url )->host );
 push @pids, fork_proxy($proxy);

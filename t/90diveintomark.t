@@ -43,7 +43,7 @@ SKIP:
 
     # $tests + 2, because of the duplicate 401
     my $proxy =
-      HTTP::Proxy->new( port => 0, maxserve => $tests + 2, maxconn => 1 );
+      HTTP::Proxy->new( port => 0, max_keep_alive_requests => $tests + 2, max_connections => 1 );
     $proxy->init;
 
     # the auto-authenticating client

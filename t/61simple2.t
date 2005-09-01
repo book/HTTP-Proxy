@@ -19,10 +19,10 @@ my $filter = HTTP::Proxy::BodyFilter::simple->new($sub);
 
 # create the proxy
 my $proxy = HTTP::Proxy->new(
-    port     => 0,
-    maxchild => 0,
-    maxserve => 1,
-    maxconn  => 1,
+    port                    => 0,
+    max_clients             => 0,
+    max_keep_alive_requests => 1,
+    max_connections         => 1,
 );
 $proxy->init;
 $proxy->agent->protocols_allowed(undef);

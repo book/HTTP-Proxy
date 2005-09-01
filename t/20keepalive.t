@@ -28,8 +28,8 @@ my $server = server_start();
 # create a HTTP::Proxy
 my $proxy = HTTP::Proxy->new(
     port     => 0,
-    maxserve => 3,    # no more than 3 requests per connection
-    maxconn  => 3,    # no more than 3 connections
+    max_keep_alive_requests => 3,    # no more than 3 requests per connection
+    max_connections  => 3,    # no more than 3 connections
 );
 $proxy->init;    # required to access the url later
 $proxy->agent->no_proxy( URI->new( $server->url )->host );

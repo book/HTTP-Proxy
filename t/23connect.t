@@ -21,7 +21,7 @@ SKIP:
     my $banner = <$sock>;
     close $sock;
     
-    my $proxy = HTTP::Proxy->new( port => 0, maxconn => 1 );
+    my $proxy = HTTP::Proxy->new( port => 0, max_connections => 1 );
     $proxy->init;    # required to access the url later
 
     # fork a HTTP proxy

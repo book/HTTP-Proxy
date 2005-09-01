@@ -26,7 +26,7 @@ my $test = Test::Builder->new;
 $test->use_numbers(0);
 $test->no_ending(1);
 
-my $proxy = HTTP::Proxy->new( port => 9990, maxconn => @requests * $web_ok + 1 );
+my $proxy = HTTP::Proxy->new( port => 9990, max_connections => @requests * $web_ok + 1 );
 $proxy->init;    # required to access the url later
 
 # fork a HTTP proxy

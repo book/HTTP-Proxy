@@ -23,7 +23,7 @@ $test->no_ending(1);
 my $server = server_start();
 
 # create and fork the proxy
-my $proxy = HTTP::Proxy->new( port => 0, maxconn => 5 );
+my $proxy = HTTP::Proxy->new( port => 0, max_connections => 5 );
 $proxy->init;    # required to access the url later
 $proxy->agent->no_proxy( URI->new( $server->url )->host );
 push @pids, fork_proxy($proxy);
@@ -129,7 +129,7 @@ $res = $ua->simple_request($req);
 is( $res->header( 'X-Forwarded-For' ), undef, "No X-Forwarded-For sent back" );
 
 # yet another proxy
-$proxy = HTTP::Proxy->new( port => 0, maxconn => 1, x_forwarded_for => 0 );
+$proxy = HTTP::Proxy->new( port => 0, max_connections => 1, x_forwarded_for => 0 );
 $proxy->init;    # required to access the url later
 $proxy->agent->no_proxy( URI->new( $server->url )->host );
 $proxy->push_filter( response => HTTP::Proxy::HeaderFilter::simple->new(

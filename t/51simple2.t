@@ -15,8 +15,8 @@ my $filter = HTTP::Proxy::HeaderFilter::simple->new($sub);
 # create the proxy
 my $proxy = HTTP::Proxy->new(
     port     => 0,
-    maxchild => 0,
-    maxconn  => 2,
+    max_clients => 0,
+    max_connections  => 2,
 );
 
 # prepare the proxy and server

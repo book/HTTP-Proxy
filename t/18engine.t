@@ -43,8 +43,7 @@ $e = HTTP::Proxy::Engine->new( proxy => $p, engine => Legacy );
 is( $e->proxy, $p, "proxy() get" );
 
 # check subclasses accessors
-$e =
-  HTTP::Proxy::Engine->new( proxy => $p, engine => Legacy, select => 2 );
+$e = HTTP::Proxy::Engine->new( proxy => $p, engine => Legacy, select => 2 );
 is( $e->select,    2, "subclass get()" );
 is( $e->select(4), 4, "subclass set()" );
 is( $e->select,    4, "subclass get()" );
@@ -59,6 +58,6 @@ is( *{HTTP::Proxy::Engine::select}{CODE},
     undef, "code not in the base class" );
 is( ref *{HTTP::Proxy::Engine::select}{CODE},
     '', "code not in the base class" );
+my $c = \&HTTP::Proxy::Engine::Legacy::select; # remove "used only once" warning
 is( ref *{HTTP::Proxy::Engine::Legacy::select}{CODE},
     'CODE', "code in the subclass" );
-

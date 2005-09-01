@@ -27,7 +27,7 @@ SKIP: {
     $test->use_numbers(0);
     $test->no_ending(1);
 
-    my $proxy = HTTP::Proxy->new( port => 0, maxconn => scalar @requests );
+    my $proxy = HTTP::Proxy->new( port => 0, max_connections => scalar @requests );
     $proxy->init;    # required to access the url later
 
     # fork a HTTP proxy
