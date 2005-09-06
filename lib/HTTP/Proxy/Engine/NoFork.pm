@@ -1,4 +1,5 @@
 package HTTP::Proxy::Engine::NoFork;
+use strict;
 
 our @ISA = qw( HTTP::Proxy::Engine );
 
@@ -6,7 +7,7 @@ __PACKAGE__->make_accessors( 'select' );
 
 sub start {
     my $self = shift;
-    $proxy = $self->proxy;
+    my $proxy = $self->proxy;
 
     $self->select( IO::Select->new( $proxy->daemon ) );
 
