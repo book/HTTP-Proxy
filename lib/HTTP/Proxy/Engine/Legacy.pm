@@ -1,6 +1,6 @@
 package HTTP::Proxy::Engine::Legacy;
 use strict;
-use POSIX ":sys_wait_h";    # WNOHANG
+use POSIX 'WNOHANG';
 use HTTP::Proxy;
 
 our @ISA = qw( HTTP::Proxy::Engine );
@@ -89,7 +89,7 @@ sub reap_zombies {
     my $proxy = $self->proxy;
 
     while (1) {
-        my $pid = waitpid( -1, &WNOHANG );
+        my $pid = waitpid( -1, WNOHANG );
         last if $pid == 0 || $pid == -1;    # AS/Win32 returns negative PIDs
         @$kids = grep { $_ != $pid } @$kids;
         $proxy->{conn}++;    # Cannot use the interface for RO attributes
@@ -108,7 +108,7 @@ HTTP::Proxy::Engine::Legacy - The "older" HTTP::Proxy engine
 
 =head1 SYNOPSIS
 
-
+    my $proxy = HTTP::Proxy->new( engine => 'Legacy' );
 
 =head1 DESCRIPTION
 
