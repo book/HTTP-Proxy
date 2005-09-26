@@ -43,11 +43,11 @@ sub start {
     $self->scoreboard( '' );
 }
 
+my %status = ( A => 'Acccept', B => 'Busy', I => 'Idle' );
 sub run {
     my $self  = shift;
     my $proxy = $self->proxy();
     my $kids  = $self->kids();
-    my %status = ( A => 'Acccept', B => 'Busy', I => 'Idle' );
 
     ## first phase: update scoreboard
     if ( $self->select()->can_read(1) ) {
@@ -55,7 +55,7 @@ sub run {
           or die "bad read"; # FIXME
         while ( length $buf ) {
             my ( $pid, $status ) = unpack "NA", substr( $buf, 0, 5, "" );
-            $proxy->log( HTTP::Proxy::PROCESS, 'PROCESS',
+            $proxy->log( HTTP::Proxy::ENGINE, 'ENGINE',
                 "Child process $pid updated to $status ($status{$status})" );
             $kids->{$pid} = $status;
         }
@@ -65,7 +65,7 @@ sub run {
     {
         my $new = join "", values %$kids;
         if ( $new ne $self->scoreboard() ) {
-            $proxy->log( HTTP::Proxy::PROCESS, 'PROCESS', "ScoreBoard: $new" );
+            $proxy->log( HTTP::Proxy::ENGINE, 'ENGINE', "ScoreBoard: $new" );
             $self->scoreboard($new);
         }
     }

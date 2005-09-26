@@ -38,7 +38,8 @@ use constant HEADERS => 16;    # HTTP headers
 use constant FILTERS => 32;    # Messages from filters
 use constant DATA    => 64;    # Data received by the filters
 use constant CONNECT => 128;   # Data transmitted by the CONNECT method
-use constant ALL     => 255;   # All of the above
+use constant ENGINE  => 256;   # Internal information from the Engine
+use constant ALL     => 511;   # All of the above
 
 # Methods we can forward
 @METHODS = (
