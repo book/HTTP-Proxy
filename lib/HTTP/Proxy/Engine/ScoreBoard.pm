@@ -65,7 +65,7 @@ sub run {
     {
         my $new = join "", values %$kids;
         if ( $new ne $self->scoreboard() ) {
-            $proxy->log( HTTP::Proxy::ENGINE, 'ENGINE', "ScoreBoard: $new" );
+            $proxy->log( HTTP::Proxy::ENGINE, 'ENGINE', "ScoreBoard = $new" );
             $self->scoreboard($new);
         }
     }
@@ -86,7 +86,7 @@ sub run {
             next if kill 0, $kid;
 
             # shouldn't happen normally
-            $proxy->log( HTTP::Proxy::ERROR, "PROCESS",
+            $proxy->log( HTTP::Proxy::ERROR, "ENGINE",
                 "Child process $kid found missing" );
             delete $kids->{$kid};
         }
@@ -131,7 +131,7 @@ sub run {
       )
     {
         my $victim = $idlers[ rand @idlers ];
-        $proxy->log( HTTP::Proxy::PROCESS, "PROCESS",
+        $proxy->log( HTTP::Proxy::ENGINE, "ENGINE",
             "Killing idle child process $victim" );
         kill INT => $victim;                        # pick one at random
         $self->last_active_time(time);
