@@ -156,7 +156,7 @@ sub stop {
         $proxy->log( HTTP::Proxy::PROCESS, "PROCESS",
             "Reaped child process $pid" );
         $proxy->log( HTTP::Proxy::PROCESS, "PROCESS",
-            "Remaining kids: @$kids" );
+            "Remaining kids: @{[ keys %$kids ]}" );
     }
 }
 
