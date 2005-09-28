@@ -179,7 +179,7 @@ sub start {
     my $self = shift;
 
     $self->init;
-    $SIG{INT} = $SIG{KILL} = sub { $self->{loop} = 0 };
+    $SIG{INT} = $SIG{TERM} = sub { $self->{loop} = 0 };
 
     # the main loop
     my $engine = $self->engine;
@@ -271,7 +271,13 @@ sub serve_connections {
                       . ":" . $conn->peerport );
 
     my ( $last, $served ) = ( 0, 0 );
-    while ( my $req = $conn->get_request() ) {
+
+    while ( $self->loop() ) {
+        my $req;
+        {
+            local $SIG{INT} = local $SIG{TERM} = 'DEFAULT';
+            $req = $conn->get_request();
+        }
 
         $served++;
 
