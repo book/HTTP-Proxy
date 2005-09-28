@@ -149,9 +149,10 @@ sub stop {
     # wait for remaining children
     while (%$kids) {
         my $pid = waitpid( -1, WNOHANG );
-        last if $pid == 0 || $pid == -1;    # AS/Win32 returns negative PIDs
+        next unless $pid;
 
-        $proxy->{conn}++;  # Cannot use the interface for RO attributes
+        $proxy->{conn}++;  # WRONG for this engine!
+
         delete $kids->{$pid};
         $proxy->log( HTTP::Proxy::PROCESS, "PROCESS",
             "Reaped child process $pid" );
@@ -162,35 +163,50 @@ sub stop {
 
 sub _run_child {
     my $self = shift;
+    my $proxy = $self->proxy();
 
-    my $daemon       = $self->proxy()->daemon();
+    my $daemon       = $proxy->daemon();
     my $status_write = $self->status_write();
 
     my $config = IO::Handle->new;
-    open $config, __FILE__ or die "Cannot open lock file: $!";
-
-    $SIG{HUP} = $SIG{INT} = $SIG{TERM} = 'DEFAULT';
+    open $config, __FILE__ or do {
+        $proxy->log( HTTP::Proxy::ERROR, "ERROR", "Cannot open lock file: $!" );
+        exit;
+    };
 
     my $did = 0;    # processed count
 
     while ( ++$did <= $self->max_requests_per_child() ) {
-        flock $config, LOCK_EX or die "Cannot get flock: $!";
+
+        flock $config, LOCK_EX or do {
+            $proxy->log( HTTP::Proxy::ERROR, "ERROR", "Cannot get flock: $!" );
+            exit;
+        };
+
+        last unless $proxy->loop();
 
         5 == syswrite $status_write, pack "NA", $$, "A"    # go accept
-          or warn "status A: short write";
-        my $slave = $daemon->accept() or die "accept: $!";
-        flock $config, LOCK_UN or die "Cannot unflock: $!";
+          or $proxy->log( HTTP::Proxy::ERROR, "ERROR", "status A: short write");
+
+        my $slave = $daemon->accept() or do {
+           $proxy->log( HTTP::Proxy::ERROR, "ERROR", "Cannot accept: $!");
+           exit;
+        };
+
+        flock $config, LOCK_UN or do {
+            $proxy->log( HTTP::Proxy::ERROR, "ERROR", "Cannot unflock: $!" );
+            exit;
+        };
 
         5 == syswrite $status_write, pack "NA", $$, "B"    # go busy
-          or warn "status B: short write";
+          or $proxy->log( HTTP::Proxy::ERROR, "ERROR", "status B: short write");
         $slave->autoflush(1);
         
-        $SIG{INT} = 'DEFAULT';
-        $self->proxy()->serve_connections($slave);
+        $proxy->serve_connections($slave);    # the real work is done here
 
         close $slave;
         5 == syswrite $status_write, pack "NA", $$, "I"    # go idle
-          or warn "status I: short write";
+          or $proxy->log( HTTP::Proxy::ERROR, "ERROR", "status I: short write");
     }
 }
 
