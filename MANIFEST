@@ -36,6 +36,7 @@ lib/HTTP/Proxy/BodyFilter/tags.pm
 lib/HTTP/Proxy/Engine.pm
 lib/HTTP/Proxy/Engine/Legacy.pm
 lib/HTTP/Proxy/Engine/NoFork.pm
+lib/HTTP/Proxy/Engine/ScoreBoard.pm
 lib/HTTP/Proxy/HeaderFilter.pm
 lib/HTTP/Proxy/HeaderFilter/simple.pm
 lib/HTTP/Proxy/HeaderFilter/standard.pm
