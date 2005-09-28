@@ -1,5 +1,11 @@
 Revision history for Perl extension HTTP::Proxy
 
+0.17 Wed Sep 28 23:25:17 CEST 2005
+        [ENHANCEMENTS]
+        - Thanks to Randal Schwartz, a new HTTP::Proxy::Engine::ScoreBoard
+          engine is available. I've benchmarked a twofold speed increase.
+          This engine is still beta, you must enable it by hand.
+
 0.16  Thu Sep  1 19:13:55 CEST 2005
         [ENHANCEMENTS]
         - the new HTTP::Proxy::Engine class and its subclasses
@@ -19,7 +25,7 @@ Revision history for Perl extension HTTP::Proxy
           data is only shared between filters in the same child process.
         [DEPRECATION]
         - the maxchild, maxconn and maxserve accessors are now
-          deprecated. They will disappear in 0.17:
+          deprecated. They will disappear in the future:
           + maxchild has no replacement (should be handled by the engine)
           + maxconn becomes max_connections
           + maxserve becomes max_keep_alive_requests
