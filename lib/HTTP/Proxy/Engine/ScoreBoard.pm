@@ -3,6 +3,7 @@ use strict;
 use POSIX ":sys_wait_h";    # WNOHANG
 use Fcntl qw(LOCK_UN LOCK_EX);
 use IO::Handle;
+use File::Temp;
 use HTTP::Proxy;
 
 our @ISA = qw( HTTP::Proxy::Engine );
@@ -17,7 +18,7 @@ our %defaults = (
 
 __PACKAGE__->make_accessors(
     qw(
-      kids select status_read status_write scoreboard
+      kids select status_read status_write scoreboard tempfile
       verify_live_kids_time last_active_time last_fork_time
       ),
     keys %defaults
@@ -41,6 +42,12 @@ sub start {
     $self->last_active_time( time );
     $self->last_fork_time( time );
     $self->scoreboard( '' );
+
+    # lockfile information
+    $self->tempfile(
+        File::Temp->new( UNLINK => 0, TEMPLATE => 'http-proxy-XXXX' ) );
+    $self->proxy()->log( HTTP::Proxy::ENGINE, "ENGINE",
+        "Using " . $self->tempfile()->filename() . " as lockfile" );
 }
 
 my %status = ( A => 'Acccept', B => 'Busy', I => 'Idle' );
@@ -159,6 +166,12 @@ sub stop {
         $proxy->log( HTTP::Proxy::PROCESS, "PROCESS",
             "Remaining kids: @{[ keys %$kids ]}" );
     }
+
+    # remove the temporary file
+    unlink $self->tempfile()->filename() or do {
+        $proxy->log( HTTP::Proxy::ERROR, "ERROR",
+            "Can't unlink @{[ $self->tempfile()->filename() ]}: $!" );
+    };
 }
 
 sub _run_child {
@@ -168,8 +181,7 @@ sub _run_child {
     my $daemon       = $proxy->daemon();
     my $status_write = $self->status_write();
 
-    my $config = IO::Handle->new;
-    open $config, __FILE__ or do {
+    open my $lockfh, $self->tempfile()->filename() or do {
         $proxy->log( HTTP::Proxy::ERROR, "ERROR", "Cannot open lock file: $!" );
         exit;
     };
@@ -178,7 +190,7 @@ sub _run_child {
 
     while ( ++$did <= $self->max_requests_per_child() ) {
 
-        flock $config, LOCK_EX or do {
+        flock $lockfh, LOCK_EX or do {
             $proxy->log( HTTP::Proxy::ERROR, "ERROR", "Cannot get flock: $!" );
             exit;
         };
@@ -193,7 +205,7 @@ sub _run_child {
            exit;
         };
 
-        flock $config, LOCK_UN or do {
+        flock $lockfh, LOCK_UN or do {
             $proxy->log( HTTP::Proxy::ERROR, "ERROR", "Cannot unflock: $!" );
             exit;
         };
