@@ -22,7 +22,7 @@ sub init {
          prefix     => '',
          filename   => undef,
          multiple   => 1,
-         keep_old   => 1, # no_clobber in wget parlance
+         keep_old   => 0, # no_clobber in wget parlance
          timestamp  => 0,
          status     => [ 200 ],
          @_
