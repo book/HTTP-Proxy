@@ -28,7 +28,7 @@ my %meth = (
     # loop is not used/internal for now
 );
 
-plan tests => 11 + keys %meth;
+plan tests => 15 + keys %meth;
 
 for my $key ( sort keys %meth ) {
     no strict 'refs';
@@ -85,3 +85,28 @@ $proxy->_init_agent;
 is( $proxy->agent->timeout, 60, "Default agent timeout of 60 secs" );
 is( $proxy->timeout(120), 60, "timeout() returns the old value" );
 is( $proxy->agent->timeout, 120, "New agent timeout value of 120 secs" );
+
+#
+# the known_methods() method
+#
+my @all  = $proxy->known_methods();
+my @http = $proxy->known_methods('HTTP');
+is_deeply(
+    \@http,
+    [ $proxy->known_methods('http') ],
+    'known_methods() is case insensitive'
+);
+my %dav   = map { $_ => 1 } $proxy->known_methods('webdav');
+my %delta = map { $_ => 1 } $proxy->known_methods('DelTaV');
+is( scalar grep( { $dav{$_} } @http ), scalar @http, 'WebDAV contains HTTP' );
+is( scalar grep( { $delta{$_} } keys %dav ),
+    scalar keys %dav,
+    'DeltaV contains WebDAV'
+);
+my %all = ( %dav, %delta, map { $_ => 1 } @http );
+is_deeply(
+    [ sort keys %all ],
+    [ sort @all ],
+    'know_methods() returns all methods'
+);
+
