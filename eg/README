@@ -120,3 +120,14 @@ command-line. Example: ./proxy.pl port 3128 host 0.0.0.0
    Filters: HTTP::Proxy::HeaderFilter::simple
             HTTP::Proxy::BodyFilter::htmlparser
 
+ * perlmonks.pl
+
+   Redirect all requests to perlmonks.com and perlmonks.org
+   to perlmonks.org, thus keeping connection information intact
+   (all cookies will point to a single web site).
+
+   This code was used as a starting point for the "Rewrite the web"
+   hack in Perl Hacks (O'Reilly 2006).
+
+   Filter:  HTTP::Proxy::HeaderFilter::simple
+
