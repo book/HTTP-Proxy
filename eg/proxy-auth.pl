@@ -7,8 +7,7 @@ use strict;
 # the encoded user:password pair
 # login:  http
 # passwd: proxy
-my $token = "Basic " . encode_base64( "http:proxy" );
-chomp $token;    # grr
+my $token = "Basic " . encode_base64( "http:proxy", '' );
 
 # a very simple proxy that requires authentication
 my $proxy = HTTP::Proxy->new(@ARGV);
