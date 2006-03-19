@@ -1144,6 +1144,7 @@ are powers of 2, starting from 0 and listed here in ascending order):
     FILTERS - Filter information
     DATA    - Data received by the filters
     CONNECT - Data transmitted by the CONNECT method
+    ENGINE  - Engine information
     ALL     - Log all of the above
 
 If you only want status and process information, you can use:
