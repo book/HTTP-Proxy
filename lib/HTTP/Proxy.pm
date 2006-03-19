@@ -42,12 +42,26 @@ use constant ENGINE  => 256;   # Internal information from the Engine
 use constant ALL     => 511;   # All of the above
 
 # Methods we can forward
-@METHODS = (
-    qw( CONNECT DELETE GET HEAD OPTIONS POST PUT TRACE ), # HTTP (RFC 2616)
-    qw( COPY LOCK MKCOL MOVE PROPFIND PROPPATCH UNLOCK ), # WebDAV (RFC 2518)
-    qw( BASELINE-CONTROL CHECKIN CHECKOUT LABEL MERGE MKACTIVITY MKWORKSPACE
-        REPORT UNCHECKOUT UPDATE VERSION-CONTROL ),       # Delta-V (RFC 3253)
-);
+my %METHODS;
+
+# HTTP (RFC 2616)
+$METHODS{http} = [qw( CONNECT DELETE GET HEAD OPTIONS POST PUT TRACE )];
+
+# WebDAV (RFC 2518)
+$METHODS{webdav} = [
+    @{ $METHODS{http} },
+    qw( COPY LOCK MKCOL MOVE PROPFIND PROPPATCH UNLOCK )
+];
+
+# Delta-V (RFC 3253)
+$METHODS{deltav} = [
+    @{ $METHODS{webdav} },
+    qw( BASELINE-CONTROL CHECKIN CHECKOUT LABEL MERGE MKACTIVITY
+        MKWORKSPACE REPORT UNCHECKOUT UPDATE VERSION-CONTROL ),
+];
+
+# the whole method list
+@METHODS = HTTP::Proxy->known_methods();
 
 # useful regexes (from RFC 2616 BNF grammar)
 my %RX;
@@ -104,6 +118,16 @@ sub new {
     $self->log( PROXY, "PROXY", "Selected engine " . ref $self->{engine} );
 
     return $self;
+}
+
+sub known_methods {
+    my ( $class, @args ) = @_;
+
+    @args = map { lc } @args ? @args : ( keys %METHODS );
+    exists $METHODS{$_} || carp "Method group $_ doesn't exist"
+        for @args;
+    my %seen;
+    return grep { !$seen{$_}++ } map { @{ $METHODS{$_} || [] } } @args;
 }
 
 sub timeout {
@@ -1122,6 +1146,16 @@ for any interface.
 
 This default prevents your proxy to be used as an anonymous proxy
 by script kiddies.
+
+=item known_methods( @groups ) (read-only)
+
+This method returns all HTTP (and extensions to HTTP) known to
+C<HTTP::Proxy>. Methods are grouped by type. Known method groups are:
+C<HTTP>, C<WebDAV> and C<DeltaV>.
+
+Called with an empty list, this method will return all known methods.
+This method is case-insensitive, and will C<carp()> if an unknown
+group name is passed.
 
 =item logfh
 
