@@ -1,5 +1,17 @@
 Revision history for Perl extension HTTP::Proxy
 
+0.18 Sun Mar 19 23:49:38 CET 2006
+        [ENHANCEMENTS]
+        - close RT ticket #14898 by using a per-parent lockfile for
+          HTTP::Proxy::Engine::ScoreBoard (Chris Dolan)
+        - close RT ticket #18243 by adding missing DeltaV methods
+          (Stephen Steneker)
+        - the new known_methods() method can return all method
+          names know to HTTP::Proxy (can be helpful with the
+          method parameter of push_filter())
+        [EXAMPLES]
+        - eg/perlmonks.pl   - redirect perlmonks.com to perlmonks.org
+
 0.17 Wed Sep 28 23:25:17 CEST 2005
         [ENHANCEMENTS]
         - Thanks to Randal Schwartz, a new HTTP::Proxy::Engine::ScoreBoard
