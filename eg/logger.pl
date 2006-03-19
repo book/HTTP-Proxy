@@ -80,7 +80,11 @@ if (@{$args{peek}}) {
             method  => 'POST',
             request => $post_filter
         );
-        $proxy->push_filter( host => $_, response => $get_filter );
+        $proxy->push_filter(
+            host     => $_,
+            response => $get_filter,
+            mime     => 'text/*'
+        );
     }
 }
 # otherwise, peek at all sites
@@ -89,7 +93,7 @@ else {
         method  => 'POST',
         request => $post_filter
     );
-    $proxy->push_filter( response => $get_filter );
+    $proxy->push_filter( response => $get_filter, mime => 'text/*' );
 }
 
 $proxy->start;
