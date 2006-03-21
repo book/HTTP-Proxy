@@ -197,6 +197,9 @@ in the stack, the saved data can be more or less modified.
 
 This filter I<will> create directories if it needs to!
 
+I<Note:> Remember that the default C<mime> parameter for C<push_filter()>
+is C<text/*> and that you may need to change it for other MIME types.
+
 =head2 Constructor
 
 The constructor accepts quite a few options. Most of them control
@@ -395,6 +398,9 @@ irc while coding the nasty C<begin()> method. C<;-)>
 Thanks to Howard Jones for the inspiration and initial patch for the
 C<filename> option. Lucas Gonze provided a patch to make C<status>
 actually work.
+
+Thanks to Max Maischein for detecting a bug in the paramerter validation
+for C<filename>.
 
 =head1 COPYRIGHT
 
