@@ -35,7 +35,7 @@ sub init {
     croak "status must contain only HTTP codes"
       if grep { !/^[12345]\d\d$/ } @{ $args{status} };
     croak "filename must be a code reference"
-      if defined $args{filename} && UNIVERSAL::isa($args{filename}, 'CODE');
+      if defined $args{filename} && !UNIVERSAL::isa( $args{filename}, 'CODE' );
 
     $self->{"_hpbf_save_$_"} = $args{$_}
       for qw( template no_host no_dirs cut_dirs prefix
