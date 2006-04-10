@@ -17,7 +17,8 @@ use vars qw( $VERSION $AUTOLOAD @METHODS
 require Exporter;
 @ISA    = qw(Exporter);
 @EXPORT = ();               # no export by default
-@EXPORT_OK = qw( NONE ERROR STATUS PROCESS SOCKET HEADERS FILTERS CONNECT ALL );
+@EXPORT_OK = qw( ERROR NONE    PROXY  STATUS PROCESS SOCKET HEADERS FILTERS
+                 DATA  CONNECT ENGINE ALL );
 %EXPORT_TAGS = ( log => [@EXPORT_OK] );    # only one tag
 
 $VERSION = '0.18';
@@ -717,7 +718,7 @@ sub log {
     my $level = shift;
     my $fh    = $self->logfh;
 
-    return unless $self->logmask & $level;
+    return unless $self->logmask & $level || $level == ERROR;
 
     my ( $prefix, $msg ) = ( @_, '' );
     my @lines = split /\n/, $msg;
