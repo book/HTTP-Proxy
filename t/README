@@ -42,6 +42,7 @@ The tests are prefixed with a number, which indicates several categories:
 
 1x - Minimal functionnality tests
      t/10init.t         - the proxy initialisation
+     t/11log.t          - the log() and logmask() methods
      t/15accessors.t    - the proxy accessors
      t/17fstack.t       - the internal HTTP::Proxy::FilterStack object
 
