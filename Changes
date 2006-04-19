@@ -8,16 +8,22 @@ Revision history for Perl extension HTTP::Proxy
 	- HTTP::Proxy::(Body|Header)Filter::simple now provide a default
 	  filter() that does nothing if their constructor is not given one
 	  (thanks to Merijn Brand)
+        - close RT ticket #14548 by correcting the 'filename' check
+          in HTTP::Proxy::BodyFilter::save (Max Maischein)
+        - ERROR messages are always logged (Mark Tilford)
+        [TESTS]
+        - more tests for log() and logmask() in t/11log.t
 
 0.18 Sun Mar 19 23:49:38 CET 2006
         [ENHANCEMENTS]
+        - the new known_methods() method can return all method
+          names know to HTTP::Proxy (can be helpful with the
+          method parameter of push_filter())
+        [FIXES]
         - close RT ticket #14898 by using a per-parent lockfile for
           HTTP::Proxy::Engine::ScoreBoard (Chris Dolan)
         - close RT ticket #18243 by adding missing DeltaV methods
           (Stephen Steneker)
-        - the new known_methods() method can return all method
-          names know to HTTP::Proxy (can be helpful with the
-          method parameter of push_filter())
         [EXAMPLES]
         - eg/perlmonks.pl   - redirect perlmonks.com to perlmonks.org
 
