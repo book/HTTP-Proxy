@@ -6,7 +6,7 @@ use HTTP::Proxy::HeaderFilter;
 use vars qw( @ISA );
 @ISA = qw( HTTP::Proxy::HeaderFilter );
 
-my $methods = join '|', qw( begin filter );
+my $methods = join '|', qw( begin filter end );
 $methods = qr/^(?:$methods)$/;
 
 sub init {
@@ -35,6 +35,7 @@ sub init {
 # transparently call the actual methods
 sub begin       { goto &{ $_[0]{_begin} }; }
 sub filter      { goto &{ $_[0]{_filter} }; }
+sub end         { goto &{ $_[0]{_end} }; }
 
 sub can {
     my ( $self, $method ) = @_;
