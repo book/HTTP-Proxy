@@ -19,6 +19,7 @@ sub init {
         $self->{_filter} = $_[0];
     }
     else {
+        $self->{_filter} = sub { };    # default
         while (@_) {
             my ( $name, $code ) = splice @_, 0, 2;
 
