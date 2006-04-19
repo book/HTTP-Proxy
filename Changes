@@ -1,5 +1,14 @@
 Revision history for Perl extension HTTP::Proxy
 
+0.19
+        [ENHANCEMENTS]
+	- HTTP::Proxy::HeaderFilter::simple now lets one define an
+	  end() method as well
+	[FIXES]
+	- HTTP::Proxy::(Body|Header)Filter::simple now provide a default
+	  filter() that does nothing if their constructor is not given one
+	  (thanks to Merijn Brand)
+
 0.18 Sun Mar 19 23:49:38 CET 2006
         [ENHANCEMENTS]
         - close RT ticket #14898 by using a per-parent lockfile for
