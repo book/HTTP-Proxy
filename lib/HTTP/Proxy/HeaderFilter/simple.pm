@@ -92,6 +92,8 @@ passed to the constructor. These "proxy" methods are:
 
 =item begin()
 
+=item end()
+
 =back
 
 Two other methods are actually HTTP::Proxy::HeaderFilter::simple methods,
