@@ -50,6 +50,7 @@ t/01pod.t
 t/02pod-coverage.t
 t/05new.t
 t/10init.t
+t/11log.t
 t/15accessors.t
 t/15deprecated.t
 t/16stash.t
