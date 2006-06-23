@@ -513,7 +513,7 @@ sub _send_response_headers {
     else {
         my $code = $response->code;
         $conn->send_status_line( $code, $response->message,
-            $response->protocol );
+            $self->request()->protocol() );
         if ( $code =~ /^(1\d\d|[23]04)$/ ) {
 
             # make sure content is empty
