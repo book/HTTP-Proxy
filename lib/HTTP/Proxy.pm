@@ -502,7 +502,7 @@ sub _send_response_headers {
 
     # correct headers
     $response->remove_header("Content-Length")
-      if $self->{body}{response}->active;
+      if $self->{body}{response}->will_modify();
     $response->header( Server => "HTTP::Proxy/$VERSION" )
       unless $response->header( 'Server' );
     $response->header( Date => time2str(time) )
