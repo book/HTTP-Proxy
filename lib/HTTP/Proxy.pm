@@ -315,7 +315,9 @@ sub serve_connections {
 
         # Got a request?
         unless ( defined $req ) {
-            $self->log( ERROR, "ERROR", "Getting request failed:", $conn->reason );
+            $self->log( ERROR, "ERROR",
+                "Getting request failed: " . $conn->reason )
+                if $conn->reason ne 'No more requests from this connection';
             return;
         }
         $self->log( STATUS, "REQUEST", $req->method . ' '
