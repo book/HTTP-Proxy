@@ -19,6 +19,8 @@ sub filter {
     croak "HTTP::Proxy::HeaderFilter cannot be used as a filter";
 }
 
+sub will_modify { 1 } # by default, we expect the filter to modify data
+
 1;
 
 __END__
@@ -129,6 +131,13 @@ It's called once per HTTP message handled by the filter, after all data
 processing is done.
 
 This method does not expect any parameters.
+
+=item will_modify()
+
+This method return a boolean value that indicate if the filter will
+modify the body data on the fly.
+
+The default implementation returns a I<true> value.
 
 =back
 
