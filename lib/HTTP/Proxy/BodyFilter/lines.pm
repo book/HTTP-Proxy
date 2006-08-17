@@ -51,6 +51,8 @@ sub filter {
     }
 }
 
+sub will_modify { 0 }
+
 1;
 
 __END__
@@ -111,6 +113,11 @@ Initialise the filter with the EOL information.
 =item filter()
 
 Keeps unfinished lines for later.
+
+=item will_modify()
+
+This method returns a I<false> value, thus indicating to the system
+that it will not modify data passing through.
 
 =back
 

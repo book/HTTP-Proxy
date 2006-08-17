@@ -15,6 +15,8 @@ sub filter {
     $$dataref = "";
 }
 
+sub will_modify { 0 }
+
 1;
 
 __END__
@@ -66,7 +68,7 @@ run out of memory.
 
 =head1 METHOD
 
-This filter has only one method, called automatically:
+This filter defines two methods, called automatically:
 
 =over 4
 
@@ -74,6 +76,11 @@ This filter has only one method, called automatically:
 
 Stores the incoming data in memory until the last moment. The data
 is then released to the subsequent filters in the chain.
+
+=item will_modify()
+
+This method returns a I<false> value, thus indicating to the system
+that it will not modify data passing through.
 
 =back
 
@@ -88,7 +95,7 @@ the same time. C<;-)>
 
 =head1 COPYRIGHT
 
-Copyright 2004-2005, Philippe Bruhat.
+Copyright 2004-2006, Philippe Bruhat.
 
 =head1 LICENSE
 

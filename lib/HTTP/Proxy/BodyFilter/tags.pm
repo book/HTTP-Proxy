@@ -17,6 +17,8 @@ sub filter {
     }
 }
 
+sub will_modify { 0 }
+
 1;
 
 __END__
@@ -47,7 +49,7 @@ in the filter chain will only receive complete tags.
 
 =head1 METHOD
 
-This class defines a single method, that is called automatically:
+This class defines two methods, that are called automatically:
 
 =over 4
 
@@ -55,6 +57,11 @@ This class defines a single method, that is called automatically:
 
 Buffer incomplete tags to ensure that subsequent filters will only
 receive complete HTML tags.
+
+=item will_modify()
+
+This method returns a I<false> value, thus indicating to the system
+that it will not modify data passing through.
 
 =back
 
