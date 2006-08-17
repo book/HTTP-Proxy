@@ -46,7 +46,7 @@ sub push {
 }
 
 sub all    { return @{ $_[0]->{filters} }; }
-sub active { return @{ $_[0]->{current} }; }
+sub will_modify { return $_[0]->{will_modify}; }
 
 #
 # select the filters that will be used on the message
@@ -74,6 +74,11 @@ sub select_filters {
                 $_->proxy->log( HTTP::Proxy::ERROR(), "DEPRECATION", "The start() filter method is *deprecated* and disappeared in 0.15!\nUse begin() in your filters instead!" );
             }
         }
+
+        # compute the "will_modify" value
+        $self->{will_modify} = $self->{body}
+            ? grep { $_->will_modify() } @{ $self->{current} }
+            : 0;
     }
 }
 
