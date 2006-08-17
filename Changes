@@ -2,12 +2,12 @@ Revision history for Perl extension HTTP::Proxy
 
 0.19 Fri Apr 28 19:55:41 CEST 2006
         [ENHANCEMENTS]
-	- HTTP::Proxy::HeaderFilter::simple now lets one define an
-	  end() method as well
-	[FIXES]
-	- HTTP::Proxy::(Body|Header)Filter::simple now provide a default
-	  filter() that does nothing if their constructor is not given one
-	  (thanks to Merijn Brand)
+        - HTTP::Proxy::HeaderFilter::simple now lets one define an
+          end() method as well
+        [FIXES]
+        - HTTP::Proxy::(Body|Header)Filter::simple now provide a default
+          filter() that does nothing if their constructor is not given one
+          (thanks to Merijn Brand)
         - close RT ticket #14548 by correcting the 'filename' check
           in HTTP::Proxy::BodyFilter::save (Max Maischein)
         - ERROR messages are always logged (Mark Tilford)
