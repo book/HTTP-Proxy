@@ -7,7 +7,7 @@ BEGIN {
         [ 'http://www.mongueurs.net/',    200 ],
         [ 'http://httpd.apache.org/docs', 301 ],
         [ 'http://www.google.com/testing/', 404 ],
-        [ 'http://www.error.zzz/',        500 ],
+        [ 'http://www.error.zzz/',        qr/^5\d\d$/ ],
     );
 }
 
@@ -46,7 +46,8 @@ SKIP: {
     for (@requests) {
         my $req = HTTP::Request->new( GET => $_->[0] );
         my $rep = $ua->simple_request($req);
-        is( $rep->code, $_->[1], "Got an answer (@{[$rep->code]})" );
+        my $sub = ref($_->[1]) ? \&like : \&is;
+        $sub->( $rep->code, $_->[1], "Got an answer (@{[$rep->code]})" );
     }
 
     # make sure the kid is dead

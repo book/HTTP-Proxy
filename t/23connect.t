@@ -16,7 +16,7 @@ my $host = 'www.perl.org:22';
 SKIP:
 {
     # check if we can actually connect
-    my $sock = IO::Socket::INET->new( PeerAddr => $host )
+    my $sock = IO::Socket::INET->new( PeerAddr => $host, Timeout => 5 )
       or skip "Direct connection to $host impossible", 4;
     my $banner = <$sock>;
     close $sock;
