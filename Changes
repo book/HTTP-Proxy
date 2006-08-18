@@ -1,5 +1,32 @@
 Revision history for Perl extension HTTP::Proxy
 
+0.20 Fri Aug 18 10:25:11 CEST 2006
+        [ENHANCEMENTS]
+        - Added a will_modify() method to HTTP::Proxy::BodyFilter, that
+          lets the proxy know if a filter may modify the content length,
+          thus closing RT ticket #21051 (Chris Dolan)
+        - If no filter in the current stack will modify the content length,
+          then the header is not removed
+        [FIXES]
+        - closed RT tickets #3184 and #20251 (chunked encoding was enforced
+          while transfering data between a client and server using
+          different versions of HTTP, causing unwanted garbage to appear
+          in the data)
+        - removed useless "ERROR: Getting request failed:" messages
+          when there are simply "No more requests from this connection"
+        [INTERNALS]
+        - Removed the HTTP::Proxy::FilterStack class from inside HTTP::Proxy
+          and put it in its own module file
+        - renamed HTTP::Proxy::FilterStack::active() as will_modify() for
+          consistency reasons
+        [TESTS]
+        - updated t/22http.t and t/23connect.t following Ken Williams'
+          recommandations in RT ticket #19986
+        [DOCUMENTATION]
+        - patched a small inconsistency in HTTP::Proxy::BodyFilter's
+          documentation (and closed RT ticket #20303)
+        - fully documented HTTP::Proxy::FilterStack
+
 0.19 Fri Apr 28 19:55:41 CEST 2006
         [ENHANCEMENTS]
         - HTTP::Proxy::HeaderFilter::simple now lets one define an
