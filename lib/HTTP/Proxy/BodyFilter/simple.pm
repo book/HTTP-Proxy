@@ -13,6 +13,9 @@ sub init {
     my $self = shift;
 
     croak "Constructor called without argument" unless @_;
+
+    $self->{_will_modify} = 1;
+
     if ( @_ == 1 ) {
         croak "Single parameter must be a CODE reference"
           unless ref $_[0] eq 'CODE';
