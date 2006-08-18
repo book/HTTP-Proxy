@@ -1,4 +1,4 @@
-use Test::More tests => 11;
+use Test::More tests => 12;
 use strict;
 use HTTP::Proxy::BodyFilter::simple;
 
@@ -31,6 +31,7 @@ $sub = sub {
 
 $filter = HTTP::Proxy::BodyFilter::simple->new($sub);
 is( $filter->can('filter'), $sub, "filter() runs the correct filter" );
+ok( $filter->will_modify(), 'will_modify() defaults to true' );
 
 # will_modify()
 $filter = HTTP::Proxy::BodyFilter::simple->new( filter => $sub,
