@@ -1,4 +1,5 @@
 CVS/.*
+.svn
 \.bak$
 \.sw[a-z]$
 \.tar$
@@ -22,3 +23,5 @@ CVS/.*
 ^talks/
 ^.lwpcookies$
 ^tmp/
+^http-proxy
+^HTTP-Proxy-
