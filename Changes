@@ -1,5 +1,12 @@
 Revision history for Perl extension HTTP::Proxy
 
+0.21
+        [ENHANCEMENTS]
+        - HTTP::Proxy::Engine::ScoreBoard is the default Engine
+        - HTTP::Proxy::Engine::Legacy and HTTP::Proxy::Engine::ScoreBoard
+          log the number of remaining child processes (in addition to
+          their pids), thanks to Amos Shapira.
+
 0.20 Fri Aug 18 10:25:11 CEST 2006
         [ENHANCEMENTS]
         - Added a will_modify() method to HTTP::Proxy::BodyFilter, that
