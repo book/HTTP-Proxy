@@ -61,8 +61,7 @@ SKIP: {
                 # contact the proxy anyway
                 $ua->simple_request(
                     HTTP::Request->new( GET => 'http://localhost/' ) );
-                skip "Our DNS shouldn't resolve " . $uri->host, 1
-                    if $dns_fail;
+                skip "Our DNS shouldn't resolve " . $uri->host, 1;
             }
             else {
 
