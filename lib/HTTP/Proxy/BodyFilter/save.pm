@@ -58,7 +58,7 @@ sub begin {
     my $file = '';
     if( defined $self->{_hpbf_save_filename} ) {
         # use the user-provided callback
-        $file = &{ $self->{_hpbf_save_filename} }->($message);
+        $file = $self->{_hpbf_save_filename}->($message);
         unless ( defined $file and $file ne '' ) {
             $self->proxy->log( HTTP::Proxy::FILTERS, "HTBF::save",
                                "Filter will not save $uri" );
