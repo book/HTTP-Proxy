@@ -6,6 +6,10 @@ Revision history for Perl extension HTTP::Proxy
         - HTTP::Proxy::Engine::Legacy and HTTP::Proxy::Engine::ScoreBoard
           log the number of remaining child processes (in addition to
           their pids), thanks to Amos Shapira.
+        [FIXES]
+        - HTTP::Proxy::BofyFilter::save had a bug that prevented the
+          'filename' parameter to be correctly used to compute the 
+          filename to save to.
 
 0.20 Fri Aug 18 10:25:11 CEST 2006
         [ENHANCEMENTS]
