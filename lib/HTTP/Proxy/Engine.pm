@@ -4,7 +4,7 @@ use Carp;
 
 my %engines = (
     MSWin32 => 'NoFork',
-    default => 'ScoreBoard',
+    default => 'Legacy',
 );
 
 # required accessors

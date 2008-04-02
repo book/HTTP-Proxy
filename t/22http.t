@@ -33,7 +33,6 @@ SKIP: {
     my $proxy = HTTP::Proxy->new(
         port            => 0,
         max_connections => scalar @requests,
-        engine          => 'Legacy'
     );
     $proxy->init;    # required to access the url later
 

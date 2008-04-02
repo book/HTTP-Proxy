@@ -46,7 +46,6 @@ SKIP:
         port                    => 0,
         max_keep_alive_requests => $tests + 2,
         max_connections         => 1,
-        engine                  => 'Legacy'
     );
     $proxy->init;
 

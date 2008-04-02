@@ -32,7 +32,6 @@ $test->no_ending(1);
 my $proxy = HTTP::Proxy->new(
     port            => 0,
     max_connections => @requests * $web_ok + 1,
-    engine          => 'Legacy',
 );
 $proxy->init;    # required to access the url later
 
