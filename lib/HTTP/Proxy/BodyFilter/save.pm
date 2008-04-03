@@ -37,9 +37,9 @@ sub init {
     croak "filename must be a code reference"
       if defined $args{filename} && !UNIVERSAL::isa( $args{filename}, 'CODE' );
 
+    $self->{"_hpbf_save_filename_code"} = $args{filename};
     $self->{"_hpbf_save_$_"} = $args{$_}
       for qw( template no_host no_dirs cut_dirs prefix
-              filename
               multiple keep_old timestamp status );
 }
 
@@ -56,9 +56,9 @@ sub begin {
     }
     
     my $file = '';
-    if( defined $self->{_hpbf_save_filename} ) {
+    if( defined $self->{_hpbf_save_filename_code} ) {
         # use the user-provided callback
-        $file = $self->{_hpbf_save_filename}->($message);
+        $file = $self->{_hpbf_save_filename_code}->($message);
         unless ( defined $file and $file ne '' ) {
             $self->proxy->log( HTTP::Proxy::FILTERS, "HTBF::save",
                                "Filter will not save $uri" );
