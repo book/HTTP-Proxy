@@ -22,11 +22,15 @@ my @data = (
     'necessitatibus lorem aperiam facere consequuntur incididunt similique'
 );
 
-plan tests => 2 * @errors + 1 + 6 * @data;
+plan tests => 2 * @errors    # error checking
+    + 1                      # simple test
+    + 7 * 2                  # filename tests: 2 that save
+    + 5 * 2                  # filename tests: 2 that don't
+    ;
 
 # some variables
 my $proxy = HTTP::Proxy->new( port => 0 );
-my ( $filter, $req, $res, $data, $file, $buffer, $fh );
+my ( $filter, $req, $res, $data, $file, $buffer );
 
 # test the save filter
 # 1) errors in new
@@ -44,9 +48,10 @@ $filter->proxy($proxy);
 # simple check
 ok( !$filter->will_modify, 'Filter does not modify content' );
 
-# loop on two requests
-for my $name (qw( zlonk.pod kayo.html )) {
-    $file = "$dir/$name";
+# loop on four requests
+# two that save, and two that won't
+for my $name ( qw( zlonk.pod kayo.html ), undef, '' ) {
+    $file = $name ? "$dir/$name" : $name;
 
     $req = HTTP::Request->new( GET => 'http://www.example.com/' );
     ok( eval {
@@ -55,11 +60,22 @@ for my $name (qw( zlonk.pod kayo.html )) {
         },
         'Initialized filter without error'
     );
-    is( $filter->{_hpbf_save_filename}, $file, "Got filename $file" );
-    ok( $filter->{_hpbf_save_fh}->opened, 'Filehandle opened' );
+
+    {
+        no warnings 'uninitialized';
+        is( $filter->{_hpbf_save_filename}, $file, "Got filename $file" );
+    }
+
+    my $filter_fh;
+    if ($name) {
+        ok( $filter->{_hpbf_save_fh}->opened, 'Filehandle opened' );
+        $filter_fh = $filter->{_hpbf_save_fh};
+    }
+    else {
+        ok( !exists $filter->{_hpbf_save_fh}, 'No filehandle' );
+    }
 
     # add some data
-
     $buffer = '';
     ok( eval {
             $filter->filter( \$data[0], $req, '', \$buffer );
@@ -71,12 +87,15 @@ for my $name (qw( zlonk.pod kayo.html )) {
     );
 
     # file closed now
-    ok( !$filter->{_hpbf_save_fh}->opened, 'Filehandle closed' );
+    ok( !exists $filter->{_hpbf_save_fh}, 'No filehandle' );
+    if ($filter_fh) {
+        ok( !$filter_fh->opened, 'Filehandle closed' );
 
-    # check the data
-    open $fh, $file or diag "Can't open $file: $!";
-    is( join( '', <$fh> ), join( '', @data ), 'All data saved' );
-    close $fh;
+        # check the data
+        open my $fh, $file or diag "Can't open $file: $!";
+        is( join( '', <$fh> ), join( '', @data ), 'All data saved' );
+        close $fh;
+    }
 
 }
 
