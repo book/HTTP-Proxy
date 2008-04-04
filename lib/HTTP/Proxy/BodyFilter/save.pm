@@ -46,6 +46,9 @@ sub init {
 sub begin {
     my ( $self, $message ) = @_;
 
+    # internal data initialisation
+    delete @{$self}{qw( _hpbf_save_filename _hpbf_save_fh )};
+
     my $uri = $message->isa( 'HTTP::Request' )
             ? $message->uri : $message->request->uri;
 
@@ -90,10 +93,6 @@ sub begin {
         $file =~ s/%(.)/$vars{$1}/g;
     }
     $file = File::Spec->rel2abs( $file );
-
-    # internal data initialisation
-    $self->{_hpbf_save_filename} = "";
-    $self->{_hpbf_save_fh} = undef;
 
     # create the directory
     my $dir = File::Spec->catdir( (File::Spec->splitpath($file))[ 0, 1 ] );
@@ -154,6 +153,7 @@ sub end {
     # close file
     if( $self->{_hpbf_save_fh} ) {
         $self->{_hpbf_save_fh}->close; # FIXME error handling
+        delete $self->{_hpbf_save_fh};
     }
 }
 
