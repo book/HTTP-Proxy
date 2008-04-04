@@ -61,8 +61,12 @@ for my $name ( qw( zlonk.pod kayo.html ), undef, '' ) {
         'Initialized filter without error'
     );
 
-    is( $filter->{_hpbf_save_filename},
-        $file, $file ? "Got filename ($file)" : "No filename" );
+    if ($file) {
+        is( $filter->{_hpbf_save_filename}, $file, "Got filename ($file)" );
+    }
+    else {
+        ok( !$filter->{_hpbf_save_filename}, 'No filename' );
+    }
 
     my $filter_fh;
     if ($name) {
@@ -86,7 +90,7 @@ for my $name ( qw( zlonk.pod kayo.html ), undef, '' ) {
     diag $@ if $@;
 
     # file closed now
-    ok( ! defined $filter->{_hpbf_save_fh}, 'No filehandle' );
+    ok( !defined $filter->{_hpbf_save_fh}, 'No filehandle' );
     if ($filter_fh) {
         ok( !$filter_fh->opened, 'Filehandle closed' );
 
