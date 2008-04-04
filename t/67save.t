@@ -82,6 +82,7 @@ for my $name ( qw( zlonk.pod kayo.html ), undef, '' ) {
         },
         'Filtered data without error'
     );
+    diag $@ if $@;
 
     # file closed now
     ok( ! defined $filter->{_hpbf_save_fh}, 'No filehandle' );
