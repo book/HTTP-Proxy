@@ -51,7 +51,7 @@ ok( !$filter->will_modify, 'Filter does not modify content' );
 # loop on four requests
 # two that save, and two that won't
 for my $name ( qw( zlonk.pod kayo.html ), undef, '' ) {
-    $file = $name ? "$dir/$name" : $name;
+    $file = $name ? "$dir/$name" : '';
 
     $req = HTTP::Request->new( GET => 'http://www.example.com/' );
     ok( eval {
@@ -61,10 +61,7 @@ for my $name ( qw( zlonk.pod kayo.html ), undef, '' ) {
         'Initialized filter without error'
     );
 
-    {
-        no warnings 'uninitialized';
-        is( $filter->{_hpbf_save_filename}, $file, "Got filename $file" );
-    }
+    is( $filter->{_hpbf_save_filename}, $file, "Got filename ($file)" );
 
     my $filter_fh;
     if ($name) {
@@ -87,7 +84,7 @@ for my $name ( qw( zlonk.pod kayo.html ), undef, '' ) {
     );
 
     # file closed now
-    ok( !exists $filter->{_hpbf_save_fh}, 'No filehandle' );
+    ok( ! defined $filter->{_hpbf_save_fh}, 'No filehandle' );
     if ($filter_fh) {
         ok( !$filter_fh->opened, 'Filehandle closed' );
 
