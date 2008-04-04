@@ -48,7 +48,7 @@ ok( !$filter->will_modify, 'Filter does not modify content' );
 for my $name (qw( zlonk.pod kayo.html )) {
     $file = "$dir/$name";
 
-    $req = HTTP::Request->new();
+    $req = HTTP::Request->new( GET => 'http://www.example.com/' );
     ok( eval {
             $filter->begin($req);
             1;
