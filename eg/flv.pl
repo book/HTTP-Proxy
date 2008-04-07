@@ -4,6 +4,7 @@ use warnings;
 use HTTP::Proxy;
 use HTTP::Proxy::BodyFilter::save;
 use Digest::MD5 qw( md5_hex);
+use POSIX qw( strftime );
 
 my $proxy = HTTP::Proxy->new(@ARGV);
 
@@ -19,7 +20,7 @@ my $flv_filter = HTTP::Proxy::BodyFilter::save->new(
 
         # compute the filename (including the base site name)
         my ($host) = $uri->host =~ /([^.]+\.[^.]+)$/;
-        my $file = "flv/${host}_$id.flv";
+        my $file = strftime "flv/%Y-%m-%d/${host}_$id.flv", localtime;
 
         # ignore it if we already have it
         return if -e $file && -s $file == $message->content_length;
