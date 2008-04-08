@@ -21,20 +21,41 @@ my @data = (
     'recusandae veritatis illum quos tempor aut quidem',
     'necessitatibus lorem aperiam facere consequuntur incididunt similique'
 );
-my @defaults = ( prefix => $dir );
+my @d = ( prefix => $dir );    # defaults
 my @templates = (
 
     # args, URL => filename
-    [ [], 'http://bam.fr/zok/awk.html' => "$dir/bam.fr/zok/awk.html" ],
-    [ [], 'http://bam.fr/zok/awk.html' => "$dir/bam.fr/zok/awk.html.1" ],
-    [ [ no_host => 1 ], 'http://bam.fr/zok/awk.html' => "$dir/zok/awk.html" ],
-    [   [ no_dirs => 1 ],
+    [ [@d], 'http://bam.fr/zok/awk.html' => "$dir/bam.fr/zok/awk.html" ],
+    [ [@d], 'http://bam.fr/zok/awk.html' => "$dir/bam.fr/zok/awk.html.1" ],
+    [   [ @d, no_host => 1 ],
+        'http://bam.fr/zok/awk.html' => "$dir/zok/awk.html"
+    ],
+    [   [ @d, no_dirs => 1 ],
         'http://bam.fr/zok/awk.html' => "$dir/bam.fr/awk.html"
     ],
-    [   [ no_host => 1, no_dirs => 1 ],
+    [   [ @d, no_host => 1, no_dirs => 1 ],
         'http://bam.fr/zok/awk.html' => "$dir/awk.html"
     ],
-    [ [ no_dirs => 1 ], 'http://bam.fr/zok/' => "$dir/bam.fr/index.html" ],
+    [   [ @d, no_dirs => 1 ], 'http://bam.fr/zok/' => "$dir/bam.fr/index.html"
+    ],
+    [   [ template => "$dir/%p" ],
+        'http://bam.fr/pow/zok.html' => "$dir/pow/zok.html"
+    ],
+    [   [ template => "$dir/%f" ],
+        'http://bam.fr/pow/zok.html' => "$dir/zok.html"
+    ],
+    [   [ template => "$dir/%p" ],
+        'http://bam.fr/zam.html?q=pow' => "$dir/zam.html"
+    ],
+    [   [ template => "$dir/%P" ],
+        'http://bam.fr/zam.html?q=pow' => "$dir/zam.html?q=pow"
+    ],
+    [   [ @d, cut_dirs => 2 ],
+        'http://bam.fr/a/b/c/d/e.html' => "$dir/bam.fr/c/d/e.html"
+    ],
+    [   [ @d, cut_dirs => 2, no_host => 1 ],
+        'http://bam.fr/a/b/c/d/e.html' => "$dir/c/d/e.html"
+    ],
 );
 
 plan tests => 2 * @errors    # error checking
@@ -122,7 +143,7 @@ for my $name ( qw( zlonk.pod kayo.html ), undef, '' ) {
 # 3) the multiple templating cases
 for my $t (@templates) {
     my ( $args, $url, $filename ) = @$t;
-    my $filter = HTTP::Proxy::BodyFilter::save->new( @defaults, @$args );
+    my $filter = HTTP::Proxy::BodyFilter::save->new(@$args);
     $filter->proxy($proxy);
     my $req = HTTP::Request->new( GET => $url );
 
