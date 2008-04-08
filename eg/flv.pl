@@ -15,7 +15,7 @@ my $flv_filter = HTTP::Proxy::BodyFilter::save->new(
         my $uri = $message->request->uri;
 
         # get the id, or fallback to some md5 hash
-        my ($id) = $uri->query =~ /id=([^&;]+)/i;
+        my ($id) = ( $uri->query || '' ) =~ /id=([^&;]+)/i;
         $id = md5_hex($uri) unless $id;
 
         # compute the filename (including the base site name)
