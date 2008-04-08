@@ -21,11 +21,27 @@ my @data = (
     'recusandae veritatis illum quos tempor aut quidem',
     'necessitatibus lorem aperiam facere consequuntur incididunt similique'
 );
+my @defaults = ( prefix => $dir );
+my @templates = (
+
+    # args, URL => filename
+    [ [], 'http://bam.fr/zok/awk.html' => "$dir/bam.fr/zok/awk.html" ],
+    [ [], 'http://bam.fr/zok/awk.html' => "$dir/bam.fr/zok/awk.html.1" ],
+    [ [ no_host => 1 ], 'http://bam.fr/zok/awk.html' => "$dir/zok/awk.html" ],
+    [   [ no_dirs => 1 ],
+        'http://bam.fr/zok/awk.html' => "$dir/bam.fr/awk.html"
+    ],
+    [   [ no_host => 1, no_dirs => 1 ],
+        'http://bam.fr/zok/awk.html' => "$dir/awk.html"
+    ],
+    [ [ no_dirs => 1 ], 'http://bam.fr/zok/' => "$dir/bam.fr/index.html" ],
+);
 
 plan tests => 2 * @errors    # error checking
     + 1                      # simple test
     + 7 * 2                  # filename tests: 2 that save
     + 5 * 2                  # filename tests: 2 that don't
+    + 2 * @templates         # all template tests
     ;
 
 # some variables
@@ -54,12 +70,13 @@ for my $name ( qw( zlonk.pod kayo.html ), undef, '' ) {
     $file = $name ? "$dir/$name" : $name;
 
     $req = HTTP::Request->new( GET => 'http://www.example.com/' );
-    ok( eval {
+    ok( my $ok = eval {
             $filter->begin($req);
             1;
         },
         'Initialized filter without error'
     );
+    diag $@ if !$ok;
 
     if ($file) {
         is( $filter->{_hpbf_save_filename}, $file, "Got filename ($file)" );
@@ -102,6 +119,23 @@ for my $name ( qw( zlonk.pod kayo.html ), undef, '' ) {
 
 }
 
-# 3) multiple calls to the same filter
-# 4) the multiple templating cases
+# 3) the multiple templating cases
+for my $t (@templates) {
+    my ( $args, $url, $filename ) = @$t;
+    my $filter = HTTP::Proxy::BodyFilter::save->new( @defaults, @$args );
+    $filter->proxy($proxy);
+    my $req = HTTP::Request->new( GET => $url );
+
+    # filter initialisation
+    ok( my $ok = eval {
+            $filter->begin($req);
+            1;
+        },
+        'Initialized filter without error'
+    );
+    diag $@ if !$ok;
+    is( $filter->{_hpbf_save_filename}, $filename, "$url => $filename" );
+}
+
+# 4) some cases that depend on the response
 
