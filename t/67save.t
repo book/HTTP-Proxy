@@ -56,6 +56,9 @@ my @templates = (
     [   [ @d, cut_dirs => 2, no_host => 1 ],
         'http://bam.fr/a/b/c/d/e.html' => "$dir/c/d/e.html"
     ],
+    [   [ @d, cut_dirs => 5, no_host => 1 ],
+        'http://bam.fr/a/b/c/d/e.html' => "$dir/e.html"
+    ],
 );
 
 plan tests => 2 * @errors    # error checking
