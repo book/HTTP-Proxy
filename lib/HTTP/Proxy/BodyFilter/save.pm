@@ -72,7 +72,7 @@ sub begin {
         # set the template variables from the URI
         my @segs = $uri->path_segments; # starts with an empty string
         shift @segs;
-        splice(@segs, 1, $self->{_hpbf_save_cut_dirs} >= @segs
+        splice(@segs, 0, $self->{_hpbf_save_cut_dirs} >= @segs
                          ? @segs - 1 : $self->{_hpbf_save_cut_dirs} );
         my %vars = (
              '%' => '%',
