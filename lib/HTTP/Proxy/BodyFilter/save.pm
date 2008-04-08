@@ -83,8 +83,10 @@ sub begin {
              q   => $uri->query,
         );
         pop @segs;
-        $vars{d} = $self->{_hpbf_save_no_dirs} ? ''
-                                               : File::Spec->catfile(@segs);
+        $vars{d}
+            = $self->{_hpbf_save_no_dirs} ? ''
+            : @segs                       ? File::Spec->catfile(@segs)
+            :                               '';
         $vars{P} = $vars{p} . ( $vars{q} ? "?$vars{q}" : '' );
     
         # create the filename
