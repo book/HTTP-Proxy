@@ -26,6 +26,9 @@ my @templates = (
 
     # args, URL => filename
     [ [@d], 'http://bam.fr/zok/awk.html' => "$dir/bam.fr/zok/awk.html" ],
+    [   [ @d, multiple => 0 ],
+        'http://bam.fr/zok/awk.html' => "$dir/bam.fr/zok/awk.html"
+    ],
     [ [@d], 'http://bam.fr/zok/awk.html' => "$dir/bam.fr/zok/awk.html.1" ],
     [   [ @d, no_host => 1 ],
         'http://bam.fr/zok/awk.html' => "$dir/zok/awk.html"
@@ -38,6 +41,7 @@ my @templates = (
     ],
     [   [ @d, no_dirs => 1 ], 'http://bam.fr/zok/' => "$dir/bam.fr/index.html"
     ],
+    #[ [@d], 'http://bam.fr/zok/' => "$dir/bam.fr/index.html" ],
     [   [ template => "$dir/%p" ],
         'http://bam.fr/pow/zok.html' => "$dir/pow/zok.html"
     ],
@@ -59,6 +63,15 @@ my @templates = (
     [   [ @d, cut_dirs => 5, no_host => 1 ],
         'http://bam.fr/a/b/c/d/e.html' => "$dir/e.html"
     ],
+    #[ [ @d, keep_old => 1 ], 'http://bam.fr/zok/awk.html' => '' ],
+);
+my @responses = (
+    [ [@d], 'http://bam.fr/a.html' => 200, "$dir/bam.fr/a.html" ],
+    [ [@d], 'http://bam.fr/b.html' => 404, undef ],
+    [   [ @d, status => [ 200, 404 ] ],
+        'http://bam.fr/c.html' => 404,
+        "$dir/bam.fr/c.html"
+    ],
 );
 
 plan tests => 2 * @errors    # error checking
@@ -66,11 +79,12 @@ plan tests => 2 * @errors    # error checking
     + 7 * 2                  # filename tests: 2 that save
     + 5 * 2                  # filename tests: 2 that don't
     + 2 * @templates         # all template tests
+    + 2 * @responses         # all responses tests
     ;
 
 # some variables
 my $proxy = HTTP::Proxy->new( port => 0 );
-my ( $filter, $req, $res, $data, $file, $buffer );
+my ( $filter, $data, $file, $buffer );
 
 # test the save filter
 # 1) errors in new
@@ -93,7 +107,7 @@ ok( !$filter->will_modify, 'Filter does not modify content' );
 for my $name ( qw( zlonk.pod kayo.html ), undef, '' ) {
     $file = $name ? "$dir/$name" : $name;
 
-    $req = HTTP::Request->new( GET => 'http://www.example.com/' );
+    my $req = HTTP::Request->new( GET => 'http://www.example.com/' );
     ok( my $ok = eval {
             $filter->begin($req);
             1;
@@ -162,4 +176,27 @@ for my $t (@templates) {
 }
 
 # 4) some cases that depend on the response
+for my $t (@responses) {
+    my ( $args, $url, $status, $filename ) = @$t;
+    my $filter = HTTP::Proxy::BodyFilter::save->new(@$args);
+    $filter->proxy($proxy);
+    my $res = HTTP::Response->new($status);
+    $res->request( HTTP::Request->new( GET => $url ) );
+
+    ok( my $ok = eval {
+            $filter->begin($res);
+            1;
+        },
+        'Initialized filter without error'
+    );
+    diag $@ if !$ok;
+    if ($filename) {
+        is( $filter->{_hpbf_save_filename},
+            $filename, "$url ($status) => $filename" );
+    }
+    else {
+        ok( !$filter->{_hpbf_save_filename},
+            "$url ($status) => No filename" );
+    }
+}
 
