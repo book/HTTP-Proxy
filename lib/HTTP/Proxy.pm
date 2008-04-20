@@ -20,7 +20,7 @@ require Exporter;
                  DATA  CONNECT ENGINE ALL );
 %EXPORT_TAGS = ( log => [@EXPORT_OK] );    # only one tag
 
-$VERSION = '0.20';
+$VERSION = '0.21';
 
 my $CRLF = "\015\012";                     # "\r\n" is not portable
 
