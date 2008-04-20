@@ -304,8 +304,8 @@ Other options help the filter decide where and when to save:
 
 With the B<multiple> option, saving the same file in the same directory
 will result in the original copy of file being preserved and the second
-copy being named file.1. If that a file is saved yet again with the same
-name, the third copy will be named file.2, and so on.
+copy being named F<file.1>. If that a file is saved yet again with the same
+name, the third copy will be named F<file.2>, and so on.
 
 Default is I<true>.
 
@@ -322,6 +322,8 @@ The file is saved only if the date given in the C<Last-Modified> is more
 recent than the local file's timestamp.
 
 Default is I<false>.
+
+B<This option is not implemented.>
 
 =item B<keep_old> => I<boolean>
 
@@ -414,12 +416,21 @@ Thanks to Howard Jones for the inspiration and initial patch for the
 C<filename> option. Lucas Gonze provided a patch to make C<status>
 actually work.
 
-Thanks to Max Maischein for detecting a bug in the paramerter validation
-for C<filename>.
+Thanks to Max Maischein for detecting a bug in the parameter validation
+for C<filename> (L<http://rt.cpan.org/Ticket/Display.html?id=14548>).
+
+Thanks to Mark Tilford, who found out that the
+C<filename> option was incorrectly used internally
+(L<http://rt.cpan.org/Ticket/Display.html?id=18644>).
+
+Thanks to Roland Stigge and Gunnar Wolf for
+reporting and forwarding Debian bug #433951 to CPAN RT
+(L<http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=433951>,
+L<http://rt.cpan.org/Ticket/Display.html?id=33018>).
 
 =head1 COPYRIGHT
 
-Copyright 2004-2006, Philippe Bruhat.
+Copyright 2004-2008, Philippe Bruhat.
 
 =head1 LICENSE
 
