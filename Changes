@@ -1,5 +1,9 @@
 Revision history for Perl extension HTTP::Proxy
 
+0.22
+        [TESTS]
+        - t/23connect.t doesn't need an Internet connection any more
+
 0.21 Sun Apr 20 04:34:47 CEST 2008
         [ENHANCEMENTS]
         - HTTP::Proxy::Engine::Legacy and HTTP::Proxy::Engine::ScoreBoard
