@@ -109,10 +109,23 @@ sub begin {
                            "Created directory $dir" );
     }
 
+    # keep old file?
+    if ( -e $file ) {
+        if ( $self->{_hpbf_save_timestamp} ) {
+            # FIXME timestamp
+        }
+        elsif ( $self->{_hpbf_save_keep_old} ) {
+            $self->proxy->log( HTTP::Proxy::FILTERS, "HPBF::save",
+                "Skip saving $uri" );
+            delete $self->{_hpbf_save_fh};    # it's a closed filehandle
+            return;
+        }
+    }
+
     # open and lock the file
     my ( $ext, $n, $i ) = ( "", 0 );
-    while( ! sysopen( $self->{_hpbf_save_fh}, "$file$ext",
-                      O_WRONLY | O_EXCL | O_CREAT ) ) {
+    my $flags = O_WRONLY | O_EXCL | O_CREAT;
+    while( ! sysopen( $self->{_hpbf_save_fh}, "$file$ext", $flags ) ) {
         $self->proxy->log( HTTP::Proxy::ERROR, "HPBF::save",
                            "Too many errors opening $file$ext" ), return
           if $i++ - $n == 10; # should be ok now
@@ -120,15 +133,8 @@ sub begin {
             $ext = "." . ++$n while -e $file.$ext;
             next;
         }
-        if( $self->{_hpbf_save_timestamp} ) {
-            # FIXME timestamp
-        } elsif( $self->{_hpbf_save_keep_old} ) {
-            $self->proxy->log( HTTP::Proxy::FILTERS, "HPBF::save",
-                               "Skip saving $uri" );
-            delete $self->{_hpbf_save_fh}; # it's a closed filehandle
-            return;
-        } else {
-            unlink $file; # FIXME error ?
+        else {
+            $flags = O_WRONLY | O_CREAT;
         }
     }
 
