@@ -63,7 +63,9 @@ my @templates = (
     [   [ @d, cut_dirs => 5, no_host => 1 ],
         'http://bam.fr/a/b/c/d/e.html' => "$dir/e.html"
     ],
-    #[ [ @d, keep_old => 1 ], 'http://bam.fr/zok/awk.html' => '' ],
+
+    # won't save
+    [ [ @d, keep_old => 1 ], 'http://bam.fr/zok/awk.html' => undef ],
 );
 my @responses = (
     [ [@d], 'http://bam.fr/a.html' => 200, "$dir/bam.fr/a.html" ],
@@ -172,7 +174,8 @@ for my $t (@templates) {
         'Initialized filter without error'
     );
     diag $@ if !$ok;
-    is( $filter->{_hpbf_save_filename}, $filename, "$url => $filename" );
+    my $mesg = defined $filename ? "$url => $filename" : "Won't save $url";
+    is( $filter->{_hpbf_save_filename}, $filename, $mesg );
 }
 
 # 4) some cases that depend on the response
