@@ -5,6 +5,7 @@ eg/anonymiser.pl
 eg/ayb.pl
 eg/bork.pl
 eg/dragon.pl
+eg/flv.pl
 eg/fudd.pl
 eg/https.pl
 eg/javascript.pl
@@ -77,6 +78,7 @@ t/64htmltext.t
 t/64lines.t
 t/64tags.t
 t/66htmlparser.t
+t/67save.t
 t/71rot13.t
 t/90diveintomark.t
 t/README
