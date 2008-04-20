@@ -1,14 +1,22 @@
 Revision history for Perl extension HTTP::Proxy
 
-0.21
+0.21 Sun Apr 20 04:29:03 CEST 2008
         [ENHANCEMENTS]
         - HTTP::Proxy::Engine::Legacy and HTTP::Proxy::Engine::ScoreBoard
           log the number of remaining child processes (in addition to
           their pids), thanks to Amos Shapira.
         [FIXES]
-        - HTTP::Proxy::BofyFilter::save had a bug that prevented the
+        - HTTP::Proxy::BodyFilter::save had a bug that prevented the
           'filename' parameter to be correctly used to compute the 
-          filename to save to.
+          filename to save to, and that made the proxy die the second
+          time the filter was called.
+          This fix allowed to close RT tickets #14548 (Max Maischein),
+          #18644 (Mark Tilford) and #33018 (Roland Stigge and Gunnar Wolf).
+        - HTTP::Proxy::BodyFilter::save had many other bugs, which the
+          test suite allowed to spot and fix.
+        [TESTS]
+        - t/67save.t provides 96% coverage of HTTP::Proxy::BodyFilter::save,
+          and helped fix many bugs in it.
 
 0.20 Fri Aug 18 10:25:11 CEST 2006
         [ENHANCEMENTS]
