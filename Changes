@@ -17,6 +17,8 @@ Revision history for Perl extension HTTP::Proxy
         [TESTS]
         - t/67save.t provides 96% coverage of HTTP::Proxy::BodyFilter::save,
           and helped fix many bugs in it.
+        - fixed t/22http.t and t/22transparent.t not to break when the
+          DNS wrongly resolves an invalid address.
         [DOCUMENTATION]
         - closed RT ticket #25295 (Matsuno Tokuhiro) with a doc patch.
 
