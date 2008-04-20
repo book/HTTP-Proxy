@@ -856,8 +856,9 @@ the same match subroutine:
     $proxy->push_filter(
         mime     => 'text/html',
         response => HTTP::Proxy::BodyFilter::tags->new(),
-        response =>
-          HTTP::Proxy::BodyFilter::simple->new( sub { s!(</?)i>!$1b>!ig } )
+        response => HTTP::Proxy::BodyFilter::simple->new(
+            sub { ${ $_[1] } =~ s!(</?)i>!$1b>!ig }
+        )
     );
 
 For more details regarding the creation of new filters, check the
