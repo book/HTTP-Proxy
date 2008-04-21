@@ -2,7 +2,10 @@ Revision history for Perl extension HTTP::Proxy
 
 0.22
         [TESTS]
-        - t/23connect.t doesn't need an Internet connection any more
+        - t/23connect.t doesn't need an Internet connection any more.
+        [DOCUMENTATION]
+        - closed RT ticket #33465 (Jimbo), by explaining in a little
+          more detail how HTTP::Proxy::BodyFilter::complete works.
 
 0.21 Sun Apr 20 04:34:47 CEST 2008
         [ENHANCEMENTS]
