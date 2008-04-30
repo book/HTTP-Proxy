@@ -62,3 +62,5 @@ $proxy->{body}{response}->select_filters( $res );
 ok( $proxy->{body}{response}->will_modify( $res ),
     q{Filters admit they will change something}
 );
+
+unlink( 'www.zlonk.com' ); # cleanup file created by HPBF::save
