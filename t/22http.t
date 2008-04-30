@@ -10,7 +10,7 @@ BEGIN {
         [ 'http://www.mongueurs.net/',      200 ],
         [ 'http://httpd.apache.org/docs',   301 ],
         [ 'http://www.google.com/testing/', 404 ],
-        [ 'http://www.error.zzz/', qr/^5\d\d$/, 1 ],
+        [ 'http://www.error.zzz/', '5..', 1 ],
     );
 }
 
@@ -67,9 +67,8 @@ SKIP: {
                 # the real test
                 my $req = HTTP::Request->new( GET => $uri );
                 my $rep = $ua->simple_request($req);
-                my $sub = ref( $_->[1] ) ? \&like : \&is;
-                $sub->(
-                    $rep->code, $_->[1], "Got an answer (@{[$rep->code]})"
+                like(
+                    $rep->code, qr/^$code$/, "Got an answer (@{[$rep->code]})"
                 );
             }
         }

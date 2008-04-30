@@ -11,7 +11,7 @@ my @requests = (
     [ 'www.mongueurs.net', '/',         200 ],
     [ 'httpd.apache.org',  '/docs',     301 ],
     [ 'www.google.com',    '/testing/', 404 ],
-    [ 'www.error.zzz', '/', 500, 1 ],
+    [ 'www.error.zzz', '/', '5..', 1 ],
 );
 
 if ( $^O eq 'MSWin32' ) {
@@ -68,7 +68,7 @@ SKIP: {
                 $content = bare_request( $path,
                     HTTP::Headers->new( Host => $host ), $proxy );
                 ($code) = $content =~ m!^HTTP/\d+\.\d+ (\d\d\d) !g;
-                is( $code, $status, "Got an answer ($code)" );
+                like( $code, qr/^$status$/, "Got an answer ($code)" );
             }
         }
     }
