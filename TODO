@@ -1,6 +1,26 @@
 TODO
 ====
 
+Open Bugs
+---------
+
+* filter called after end
+  https://rt.cpan.org/Ticket/Display.html?id=34409
+* RE: [HTTP-Proxy] Re: Broken Pipe Error with IE and NoFork
+  https://rt.cpan.org/Ticket/Display.html?id=22060
+* test 22http.t hangs on Win32
+  https://rt.cpan.org/Ticket/Display.html?id=21220
+* Cannot select source address to use for outgoing connection
+  https://rt.cpan.org/Ticket/Display.html?id=19098
+* I need a way to specify my own match subroutine in push_filter()
+  https://rt.cpan.org/Ticket/Display.html?id=18637
+* Allow buffers in filter_last
+  https://rt.cpan.org/Ticket/Display.html?id=13877
+* $response->content(\&coderef)
+  https://rt.cpan.org/Ticket/Display.html?id=11480
+* HTTP-Proxy-0.13 installaion stops at t\20dummy......
+  https://rt.cpan.org/Ticket/Display.html?id=7860
+
 Technical
 ---------
 
