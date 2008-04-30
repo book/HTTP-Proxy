@@ -49,7 +49,7 @@ plan tests => 4;
     );
 
     # wait for the server and proxy to be ready
-    sleep 1;
+    sleep 4;
 
     # run a client
     my $ua = LWP::UserAgent->new;
