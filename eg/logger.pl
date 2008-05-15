@@ -37,10 +37,17 @@ my @clt_hdr =
 
 # NOTE: Body request filters always receive the request body in one pass
 my $post_filter = HTTP::Proxy::BodyFilter::simple->new(
-    sub {
+    begin  => sub { $_[0]->{binary} = 0; },
+    filter => sub {
         my ( $self, $dataref, $message, $protocol, $buffer ) = @_;
         print STDOUT "\n", $message->method, " ", $message->uri, "\n";
         print_headers( $message, @clt_hdr );
+
+        if ( $self->{binary} || $$dataref =~ /\0/ ) {
+            $self->{binary} = 1;
+            print STDOUT "    (not printing binary data)\n";
+            return;
+        }
 
         # this is from CGI.pm, method parse_params()
         my (@pairs) = split( /[&;]/, $$dataref );
