@@ -9,12 +9,18 @@ use CGI::Util qw( unescape );
 my %args = (
    peek    => [],
    header  => [],
+   mime    => 'text/*',
 );
 {
     my $args = '(' . join( '|', keys %args ) . ')';
     for ( my $i = 0 ; $i < @ARGV ; $i += 2 ) {
         if ( $ARGV[$i] =~ /$args/o ) {
-            push @{ $args{$1} }, $ARGV[ $i + 1 ];
+            if ( ref $args{$1} ) {
+                push @{ $args{$1} }, $ARGV[ $i + 1 ];
+            }
+            else {
+                $args{$1} = $ARGV[ $i + 1 ];
+            }
             splice( @ARGV, $i, 2 );
             redo if $i < @ARGV;
         }
@@ -83,7 +89,7 @@ if (@{$args{peek}}) {
         $proxy->push_filter(
             host     => $_,
             response => $get_filter,
-            mime     => 'text/*'
+            mime     => $args{mime},
         );
     }
 }
@@ -93,7 +99,7 @@ else {
         method  => 'POST',
         request => $post_filter
     );
-    $proxy->push_filter( response => $get_filter, mime => 'text/*' );
+    $proxy->push_filter( response => $get_filter, mime => $args{mime} );
 }
 
 $proxy->start;
