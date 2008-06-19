@@ -97,7 +97,7 @@ sub begin {
     $file = File::Spec->rel2abs( $file );
 
     # create the directory
-    my $dir = File::Spec->catpath( (File::Spec->splitpath($file))[ 0, 1 ] );
+    my $dir = File::Spec->catpath( (File::Spec->splitpath($file))[ 0, 1 ], '' );
     if( ! -e $dir ) {
         eval { mkpath( $dir ) };
         if ($@) {
