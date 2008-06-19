@@ -45,6 +45,9 @@ Technical
   1) handle negative criteria (nohost => 'foo\\.com' );
   2) compute the match sub as an eval string so a to be faster
      (less useless tests)
+* support for pipeline (sending serveral requests in a row, and receiving
+  the answers likewise. Answers are determined either by content-length
+  or using chunked encoding
 
 Tests
 -----
