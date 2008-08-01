@@ -553,7 +553,20 @@ sub _handle_CONNECT {
 
     my $conn = $self->client_socket;
     my $req  = $self->request;
-    my $upstream = IO::Socket::INET->new( PeerAddr => $req->uri->host_port );
+    my $upstream;
+
+    # connect upstream
+    if ( $self->agent->proxy('http') ) {    # forward to the upstream proxy
+        $self->log( PROXY, "PROXY",
+            "Forwarding CONNECT request to next proxy: "
+                . $self->agent->proxy('http') );
+        my $response = $self->agent->simple_request($req);
+        $upstream = $response->{client_socket};
+    }
+    else {                                  # direct connection
+        $upstream = IO::Socket::INET->new( PeerAddr => $req->uri->host_port );
+    }
+
     unless( $upstream and $upstream->connected ) {
         # 502 Bad Gateway / 504 Gateway Timeout
         # Note to implementors: some deployed proxies are known to
