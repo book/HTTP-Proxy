@@ -583,18 +583,6 @@ sub _handle_CONNECT {
         return $last;
     }
 
-    # we obtained an unconnected upstream socket
-    # FIXME - is this code really used?
-    if( ! $upstream->connected ) {
-        # 502 Bad Gateway / 504 Gateway Timeout
-        # Note to implementors: some deployed proxies are known to
-        # return 400 or 500 when DNS lookups time out.
-        my $response = HTTP::Response->new( 200 );
-        $response->content_type( "text/plain" );
-        $self->response($response);
-        return $last;
-    }
-
     # send the response headers (FIXME more headers required?)
     my $response = HTTP::Response->new(200);
     $self->response($response);
