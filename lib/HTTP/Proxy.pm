@@ -556,14 +556,30 @@ sub _handle_CONNECT {
     my $upstream;
 
     # connect upstream
-    if ( $self->agent->proxy('http') ) {    # forward to the upstream proxy
+    if ( my $up = $self->agent->proxy('http') ) {
+
+        # clean up authentication info from proxy URL
+        $up =~ s{^http://[^/\@]*\@}{http://};
+
+        # forward to upstream proxy
         $self->log( PROXY, "PROXY",
-            "Forwarding CONNECT request to next proxy: "
-                . $self->agent->proxy('http') );
+            "Forwarding CONNECT request to next proxy: $up" );
         my $response = $self->agent->simple_request($req);
 
-        # forward the upstream proxy's response
-        if ( $response->code != 200 ) {
+        # check the upstream proxy's response
+        my $code = $response->code;
+        if ( $code == 407 ) {    # don't forward Proxy Authentication requests
+            my $response_407 = $response->as_string;
+            $response_407 =~ s/^Client-.*$//mg;
+            $response = HTTP::Response->new(502);
+            $response->content_type("text/plain");
+            $response->content( "Upstream proxy ($up) "
+                    . "requested authentication:\n\n"
+                    . $response_407 );
+            $self->response($response);
+            return $last;
+        }
+        elsif ( $code != 200 ) {    # forward every other failure
             $self->response($response);
             return $last;
         }
