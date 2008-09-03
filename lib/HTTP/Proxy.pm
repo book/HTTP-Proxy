@@ -561,13 +561,31 @@ sub _handle_CONNECT {
             "Forwarding CONNECT request to next proxy: "
                 . $self->agent->proxy('http') );
         my $response = $self->agent->simple_request($req);
+
+        # forward the upstream proxy's response
+        if ( $response->code != 200 ) {
+            $self->response($response);
+            return $last;
+        }
+
         $upstream = $response->{client_socket};
     }
     else {                                  # direct connection
         $upstream = IO::Socket::INET->new( PeerAddr => $req->uri->host_port );
     }
 
-    unless( $upstream and $upstream->connected ) {
+    # no upstream socket obtained
+    if( !$upstream ) {
+        my $response = HTTP::Response->new( 500 );
+        $response->content_type( "text/plain" );
+        $response->content( "CONNECT failed: $@");
+        $self->response($response);
+        return $last;
+    }
+
+    # we obtained an unconnected upstream socket
+    # FIXME - is this code really used?
+    if( ! $upstream->connected ) {
         # 502 Bad Gateway / 504 Gateway Timeout
         # Note to implementors: some deployed proxies are known to
         # return 400 or 500 when DNS lookups time out.
