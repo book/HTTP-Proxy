@@ -184,13 +184,13 @@ HTTP::Proxy::BodyFilter::save - A filter that saves transfered data to a file
 
     # save RFC files as we browse them
     $proxy->push_filter(
-        path => qr!/rfc\d+.txt!,
-        mime => 'text/plain',
+        path     => qr!/rfc\d+.txt!,
+        mime     => 'text/plain',
         response => HTTP::Proxy::BodyFilter::save->new(
             template => '%f',
             prefix   => 'rfc',
             keep_old => 1,
-        );
+        )
     );
 
     $proxy->start;
