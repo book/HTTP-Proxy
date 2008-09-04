@@ -1,5 +1,15 @@
 Revision history for Perl extension HTTP::Proxy
 
+0.23 Thu Sep  4 02:29:47 CEST 2008
+        [ENHANCEMENTS]
+        - HTTP::Proxy::BodyFilter::save had an issue with cygwin because
+          of an incorrect use of File::Spec's catdir(). This is fixed.
+        - CONNECT requests are now forwarded to the upstream proxy, if there
+          is one. Errors from the upstream proxy are relayed to the client.
+        [TESTS]
+        - t/23connect.t does not use sysread() anymore. This time the test
+          should pass about everywhere.
+
 0.22 Thu May  1 00:18:38 CEST 2008
         [TESTS]
         - increased test coverage
