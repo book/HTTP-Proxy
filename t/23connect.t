@@ -31,7 +31,7 @@ my $banner = "President_of_Earth Barbarella Professor_Ping Stomoxys Dildano\n";
     if ( !$pid ) {
         my $sock = $server->accept;
         $sock->print($banner);
-        sleep 1;
+        sleep 2;
         $sock->close;
         exit;
     }
