@@ -8,7 +8,7 @@ plan skip_all => "This test fails on MSWin32. HTTP::Proxy is usable on Win32 wit
   if $^O eq 'MSWin32';
 
 # make sure we inherit no upstream proxy
-delete $ENV{$_} for qw( http_proxy HTTP_PROXY );
+delete $ENV{$_} for qw( http_proxy HTTP_PROXY https_proxy HTTPS_PROXY );
 
 # test CONNECT
 my $test = Test::Builder->new;
