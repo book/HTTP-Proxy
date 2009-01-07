@@ -464,8 +464,6 @@ sub serve_connections {
         # (empty body or error)
         # FIXME some error response headers might not be filtered
         if ( !$sent ) {
-            $self->{$_}{response}->select_filters( $response )
-              for qw( headers body );
             ($last, $chunked) = $self->_send_response_headers( $served );
             my $content = $response->content;
             if ($chunked) {
