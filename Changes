@@ -1,5 +1,16 @@
 Revision history for Perl extension HTTP::Proxy
 
+0.24 Tue Jul 21 21:28:02 CEST 2009
+        [ENHANCEMENTS]
+        - When a short-circuit response was send, the next response
+          would not be filtered at all. This has been fixed.
+        [FIXES]
+        - yet another fix for t/23connect, proposed by Marek Rouchal
+          (closed RT ticket #38995) [test skipped for now]
+        - HTTP::Headers::Util's split_header_words() returns lower case
+          tokens/keys since October 6, 2008. Fix by Maurice Aubrey.
+          (closed RT tickets #43249, #43622)
+
 0.23 Thu Sep  4 02:29:47 CEST 2008
         [ENHANCEMENTS]
         - HTTP::Proxy::BodyFilter::save had an issue with cygwin because
