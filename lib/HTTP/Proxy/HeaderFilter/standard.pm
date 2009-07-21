@@ -35,7 +35,7 @@ sub filter {
     my %h2h = map { (lc) => 1 } @hopbyhop;
     my $hop = HTTP::Headers->new();
     my $client = HTTP::Headers->new();
-    $h2h{ $_->[0] } = 1
+    $h2h{ lc $_->[0] } = 1
       for map { split_header_words($_) } $headers->header('Connection');
 
     # hop-by-hop headers are set aside
