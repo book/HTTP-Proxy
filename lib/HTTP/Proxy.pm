@@ -921,10 +921,10 @@ C<HTTP::Proxy::HeaderFilter::simple>, C<HTTP::Proxy::BodyFilter::simple>.
     $proxy->push_filter(
         mime    => undef,
         request => HTTP::Proxy::HeaderFilter::simple->new(
-            sub { $_[0]->remove_header(qw( User-Agent From Referer Cookie )) },
+            sub { $_[1]->remove_header(qw( User-Agent From Referer Cookie )) },
         ),
         response => HTTP::Proxy::HeaderFilter::simple->new(
-            sub { $_[0]->remove_header(qw( Set-Cookie )); },
+            sub { $_[1]->remove_header(qw( Set-Cookie )); },
         )
     );
 
