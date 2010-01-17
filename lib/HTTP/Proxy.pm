@@ -422,6 +422,16 @@ sub serve_connections {
         # remove the header added by LWP::UA before it sends the response back
         $response->remove_header('Client-Date');
 
+        # the callback is not called by LWP::UA->request
+        # in some cases (HEAD, redirect, error responses have no body)
+        if ( !$sent ) {
+            $self->response($response);
+            $self->{$_}{response}->select_filters( $response )
+              for qw( headers body );
+            $self->{headers}{response}
+                 ->filter( $response->headers, $response );
+        }
+
         # do a last pass, in case there was something left in the buffers
         my $data = "";    # FIXME $protocol is undef here too
         $self->{body}{response}->filter_last( \$data, $response, undef );
@@ -435,16 +445,6 @@ sub serve_connections {
         # last chunk
         print $conn "0$CRLF$CRLF" if $chunked;    # no trailers either
         $self->response($response);
-
-        # the callback is not called by LWP::UA->request
-        # in some case (HEAD, error)
-        if ( !$sent ) {
-            $self->response($response);
-            $self->{$_}{response}->select_filters( $response )
-              for qw( headers body );
-            $self->{headers}{response}
-                 ->filter( $response->headers, $response );
-        }
 
         # what about X-Died and X-Content-Range?
         if( my $died = $response->header('X-Died') ) {
