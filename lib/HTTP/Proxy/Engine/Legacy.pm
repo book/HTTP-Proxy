@@ -114,6 +114,18 @@ HTTP::Proxy::Engine::Legacy - The "older" HTTP::Proxy engine
 
 This engine reproduces the older child creation algorithm of HTTP::Proxy.
 
+Angelos Karageorgiou C<< <angelos@unix.gr> >> reports:
+
+I<I got the Legacy engine to work really fast under C<Win32> with the following trick:>
+
+    max_keep_alive_requests(1);
+    max_clients(120);
+    $HTTP::VERSION(1.0); # just in case
+
+I<and it smokes.>
+
+I<It seems that forked children are really slow when calling select for handling C<keep-alive>d requests!>
+
 =head1 METHODS
 
 The module defines the following methods, used by HTTP::Proxy main loop:
