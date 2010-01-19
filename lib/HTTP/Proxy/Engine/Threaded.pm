@@ -63,3 +63,59 @@ sub worker {
 
 1;
 
+__END__
+
+=head1 NAME
+
+HTTP::Proxy::Engine::Threaded - A scoreboard-based HTTP::Proxy engine
+
+=head1 SYNOPSIS
+
+    my $proxy = HTTP::Proxy->new( engine => 'Threaded' );
+
+=head1 DESCRIPTION
+
+This module provides a threaded engine to HTTP::Proxy.
+
+=head1 METHODS
+
+The module defines the following methods, used by HTTP::Proxy main loop:
+
+=over 4
+
+=item start()
+
+Initialize the engine.
+
+=item run()
+
+Implements the forking logic: a new process is forked for each new
+incoming TCP connection.
+
+=item stop()
+
+Reap remaining child processes.
+
+=back
+
+=head1 SEE ALSO
+
+L<HTTP::Proxy>, L<HTTP::Proxy::Engine>.
+
+=head1 AUTHOR
+
+Angelos Karageorgiou C<< <angelos@unix.gr> >>. (Actual code)
+
+Philippe "BooK" Bruhat, C<< <book@cpan.org> >>. (Documentation)
+
+=head1 COPYRIGHT
+
+Copyright 2010, Philippe Bruhat.
+
+=head1 LICENSE
+
+This module is free software; you can redistribute it or modify it under
+the same terms as Perl itself.
+
+=cut
+
