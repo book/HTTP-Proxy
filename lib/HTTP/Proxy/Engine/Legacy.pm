@@ -130,7 +130,7 @@ I<It seems that forked children are really slow when calling select for handling
 
 The module defines the following methods, used by HTTP::Proxy main loop:
 
-=over 
+=over 4
 
 =item start()
 

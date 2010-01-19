@@ -232,7 +232,7 @@ HTTP::Proxy::Engine::ScoreBoard - A scoreboard-based HTTP::Proxy engine
 
 =head1 SYNOPSIS
 
-    my $proxy = HTTP::Proxy->new( engine => ScoreBoard );
+    my $proxy = HTTP::Proxy->new( engine => 'ScoreBoard' );
 
 =head1 DESCRIPTION
 
@@ -242,7 +242,7 @@ This module provides a scoreboard-based engine to HTTP::Proxy.
 
 The module defines the following methods, used by HTTP::Proxy main loop:
 
-=over 
+=over 4
 
 =item start()
 
