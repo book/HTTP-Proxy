@@ -90,7 +90,6 @@ sub new {
         port     => 8080,
         stash    => {},
         timeout  => 60,
-        via      => hostname() . " (HTTP::Proxy/$VERSION)",
         x_forwarded_for => 1,
     );
 
@@ -115,6 +114,10 @@ sub new {
     # get attributes
     $self->{$_} = exists $params{$_} ? delete( $params{$_} ) : $defaults{$_}
       for keys %defaults;
+
+    if (!defined $self->{via}) {
+	$self->{via} = hostname() . ($self->{port} != 80 ? ':' . $self->{port} : '') . " (HTTP::Proxy/$VERSION)";
+    }
 
     # choose an engine with the remaining parameters
     $self->{engine} = HTTP::Proxy::Engine->new( %params, proxy => $self );
