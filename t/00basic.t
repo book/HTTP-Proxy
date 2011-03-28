@@ -1,6 +1,7 @@
 use vars qw( @modules );
 
 BEGIN {
+    use Config;
     use File::Find;
     use vars qw( @modules );
 
@@ -9,5 +10,12 @@ BEGIN {
 
 use Test::More tests => scalar @modules;
 
-use_ok($_) for sort map { s!/!::!g; s/\.pm$//; s/^blib::lib:://; $_ } @modules;
+for ( sort map { s!/!::!g; s/\.pm$//; s/^blib::lib:://; $_ } @modules ) {
+SKIP:
+    {
+        skip "$^X is not a threaded Perl", 1
+            if /Thread/ && !$Config{usethreads};
+        use_ok($_);
+    }
+}
 
