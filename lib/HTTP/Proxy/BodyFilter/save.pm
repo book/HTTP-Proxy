@@ -285,14 +285,14 @@ other template-related options (C<no_host>, C<no_dirs>, C<cut_dirs>
 and C<prefix>) are ignored.
 
 The C<filename> option expects a reference to a subroutine. The subroutine
-will receive the HTTP::Message object and must return a string which
+will receive the C<HTTP::Message> object and must return a string which
 is the path of the file to be created (an absolute path is recommended,
 but a relative path is accepted).
 
 Returning C<""> or C<undef> will prevent the creation of the file.
 This lets a filter decide even more precisely what to save or not,
 even though this should be done in the match subroutine (see
-HTTP::Proxy's C<pushè_filte()> method).
+HTTP::Proxy's C<push_filter()> method).
 
 =back
 
