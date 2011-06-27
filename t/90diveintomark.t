@@ -30,12 +30,15 @@ BEGIN {
     $tests += @$_ - 1 for @url;
 }
 
-use Test::More tests => $tests;
+use Test::More;
 use HTTP::Proxy;
 use HTTP::Request::Common;
 use t::Utils;
 
 my $base = 'http://diveintomark.org/tests/client/http';
+
+plan skip_all => "$base seems to have stopped working";
+plan tests => $tests;
 
 SKIP:
 {
