@@ -25,3 +25,4 @@ CVS/.*
 ^tmp/
 ^http-proxy
 ^HTTP-Proxy-
+^MYMETA.yml$

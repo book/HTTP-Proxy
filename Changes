@@ -1,5 +1,12 @@
 Revision history for Perl extension HTTP::Proxy
 
+0.25 Sun Jul  3 00:28:10 CEST 2011
+        [ENHANCEMENTS]
+        - new Engine: HTTP::Proxy::Engine::Threaded, by Angelos Karageorgiou
+        [FIXES]
+        - Correctly call eod() when the response has no body
+          (closed RT ticket #48310)
+
 0.24 Tue Jul 21 21:28:02 CEST 2009
         [ENHANCEMENTS]
         - When a short-circuit response was send, the next response

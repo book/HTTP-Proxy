@@ -39,6 +39,7 @@ lib/HTTP/Proxy/Engine.pm
 lib/HTTP/Proxy/Engine/Legacy.pm
 lib/HTTP/Proxy/Engine/NoFork.pm
 lib/HTTP/Proxy/Engine/ScoreBoard.pm
+lib/HTTP/Proxy/Engine/Threaded.pm
 lib/HTTP/Proxy/FilterStack.pm
 lib/HTTP/Proxy/HeaderFilter.pm
 lib/HTTP/Proxy/HeaderFilter/simple.pm

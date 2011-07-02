@@ -1,20 +1,19 @@
 ---
-name: HTTP-Proxy
-version: 0.24
+abstract: 'A pure Perl HTTP proxy'
 author:
-  - 'Philippe "BooK" Bruhat <book@cpan.org>'
-abstract: A pure Perl HTTP proxy
+  - "Philippe \"BooK\" Bruhat <book@cpan.org>"
+configure_requires:
+  Module::Build: 0.36
+generated_by: 'Module::Build version 0.3607'
 license: perl
-resources:
-  license: http://dev.perl.org/licenses/
-requires:
-  HTTP::Daemon: 1.25
-  LWP::UserAgent: 2
-  Test::More: 0
+meta-spec:
+  url: http://module-build.sourceforge.net/META-spec-v1.4.html
+  version: 1.4
+name: HTTP-Proxy
 provides:
   HTTP::Proxy:
     file: lib/HTTP/Proxy.pm
-    version: 0.24
+    version: 0.25
   HTTP::Proxy::BodyFilter:
     file: lib/HTTP/Proxy/BodyFilter.pm
   HTTP::Proxy::BodyFilter::complete:
@@ -39,6 +38,8 @@ provides:
     file: lib/HTTP/Proxy/Engine/NoFork.pm
   HTTP::Proxy::Engine::ScoreBoard:
     file: lib/HTTP/Proxy/Engine/ScoreBoard.pm
+  HTTP::Proxy::Engine::Threaded:
+    file: lib/HTTP/Proxy/Engine/Threaded.pm
   HTTP::Proxy::FilterStack:
     file: lib/HTTP/Proxy/FilterStack.pm
   HTTP::Proxy::HeaderFilter:
@@ -47,7 +48,10 @@ provides:
     file: lib/HTTP/Proxy/HeaderFilter/simple.pm
   HTTP::Proxy::HeaderFilter::standard:
     file: lib/HTTP/Proxy/HeaderFilter/standard.pm
-generated_by: Module::Build version 0.280801
-meta-spec:
-  url: http://module-build.sourceforge.net/META-spec-v1.2.html
-  version: 1.2
+requires:
+  HTTP::Daemon: 1.25
+  LWP::UserAgent: 2
+  Test::More: 0
+resources:
+  license: http://dev.perl.org/licenses/
+version: 0.25
