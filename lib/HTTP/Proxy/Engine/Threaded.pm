@@ -34,7 +34,7 @@ sub run {
 
         # accept the new connection
         my $conn  = $fh->accept;
-	my $child=threads->new(\&worker,$proxy,$conn);
+	my $child=threads->new(\&_worker,$proxy,$conn);
         if ( !defined $child ) {
             $conn->close;
             $proxy->log( HTTP::Proxy::ERROR, "PROCESS", "Cannot spawn thread" );
@@ -53,7 +53,7 @@ sub stop {
    # not needed
 }
 
-sub worker {
+sub _worker {
 	my $proxy=shift;
 	my $conn=shift;
        $proxy->serve_connections($conn);
