@@ -44,8 +44,12 @@ if ( $pid == 0 ) {
     server_next($server,
         sub {
             my $req = shift;
-            is( $req->header("X-Forwarded-For"), '127.0.0.1',
-                "The daemon got X-Forwarded-For" );
+            SKIP: {
+                skip 'FreeBSD jail does not treat localhost as 127.0.0.1', 1
+                    if ($^O eq 'freebsd' && `sysctl -n security.jail.jailed` == 1);
+                is( $req->header("X-Forwarded-For"), '127.0.0.1',
+                    "The daemon got X-Forwarded-For" );
+            }
             return $res;
         }
     );
