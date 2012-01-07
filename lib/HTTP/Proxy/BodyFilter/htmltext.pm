@@ -32,7 +32,8 @@ sub filter {
         $$dataref =~ /\G(?=(<[^\s\/?%!a-z]))/cgi && goto TEXT;  # < in text
         $$dataref =~ /\G(?:<[^>]*>)+/cg          && redo SCAN;  # tags
         $$dataref =~ /\G(?:&[^\s;]*;?)+/cg       && redo SCAN;  # entities
-        $$dataref =~ /\G([^<>&]+)/cg             && do {        # text
+        $$dataref =~ /\G([^<>&]+)/cg             && goto TEXT;  # text
+        last SCAN;
           TEXT:
             redo SCAN if $self->{js};    # ignore protected
             {
@@ -42,7 +43,6 @@ sub filter {
                 pos($$dataref) = $pos + length($_);
             }
             redo SCAN;
-        };
     }
 }
 
