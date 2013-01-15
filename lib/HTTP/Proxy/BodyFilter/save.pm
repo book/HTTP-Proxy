@@ -171,6 +171,8 @@ sub will_modify { 0 }
 
 __END__
 
+=encoding utf8
+
 =head1 NAME
 
 HTTP::Proxy::BodyFilter::save - A filter that saves transfered data to a file
