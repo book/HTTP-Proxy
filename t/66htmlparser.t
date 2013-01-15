@@ -1,8 +1,15 @@
 use strict;
-use Test::More tests => 5;
+use Test::More;
 use HTTP::Proxy;
 use HTTP::Proxy::BodyFilter::htmlparser;
-use HTML::Parser;
+
+eval "use HTML::Parser";
+if ($@) {
+    plan skip_all => 'HTML::Parser not installed';
+}
+else {
+    plan tests => 5;
+}
 
 my @results = (
     [
