@@ -43,7 +43,7 @@ HTTP::Proxy::Engine::NoFork - A basic, non forking HTTP::Proxy engine
 
 =head1 DESCRIPTION
 
-The HTTP::Proxy::Engine::NoFork engine runs the proxy with forking.
+The HTTP::Proxy::Engine::NoFork engine runs the proxy without forking.
 
 This 
 
