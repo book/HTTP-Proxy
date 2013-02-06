@@ -1335,9 +1335,6 @@ L<HTTP::Proxy::HeaderFilter>, the examples in F<eg/>.
 
 Philippe "BooK" Bruhat, E<lt>book@cpan.orgE<gt>.
 
-The module has its own web page at L<http://http-proxy.mongueurs.net/>
-complete with older versions and repository snapshot.
-
 There is also a mailing-list: http-proxy@mongueurs.net for general
 discussion about L<HTTP::Proxy>.
 
