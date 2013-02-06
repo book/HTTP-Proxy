@@ -11,4 +11,9 @@ WriteMakefile(
     PL_FILES => {},
     ABSTRACT_FROM => 'lib/HTTP/Proxy.pm',
     AUTHOR        => 'Philippe "BooK" Bruhat <book@cpan.org>',
+    META_MERGE => {
+        resources => {
+            repository => 'http://github.com/book/HTTP-Proxy',
+        },
+    },
 );

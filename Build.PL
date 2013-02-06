@@ -13,6 +13,11 @@ my $builder = Module::Build->new(
         'LWP::UserAgent' => 2,
     },
     add_to_cleanup      => [ 'HTTP-Proxy-*' ],
+    meta_merge     => {
+        resources => {
+            repository => 'http://github.com/book/HTTP-Proxy',
+        },
+    },
 );
 
 $builder->create_build_script();
