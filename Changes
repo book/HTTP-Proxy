@@ -1,5 +1,16 @@
 Revision history for Perl extension HTTP::Proxy
 
+0.26 Wed Feb  6 2013
+        [IMPROVEMENTS]
+        - remove a "Use of "goto" to jump into a construct is deprecated"
+          warning (Tom Hukins)
+        [DOCUMENTATION]
+        - fix RT #77685 (Tom Hukins)
+        - improved the number of links to other modules from the documentation
+        [TEST]
+        - fix RT #71771 (Tom Hukins)
+        - fix test failures in POD tests (Tom Hukins)
+
 0.25 Sun Jul  3 00:28:10 CEST 2011
         [ENHANCEMENTS]
         - new Engine: HTTP::Proxy::Engine::Threaded, by Angelos Karageorgiou
