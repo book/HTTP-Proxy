@@ -3,12 +3,11 @@ use Test::More;
 use HTTP::Proxy;
 use HTTP::Proxy::BodyFilter::htmlparser;
 
-eval "use HTML::Parser";
-if ($@) {
-    plan skip_all => 'HTML::Parser not installed';
+if ( eval "use HTML::Parser; 1;" ) {
+    plan tests => 5;
 }
 else {
-    plan tests => 5;
+    plan skip_all => 'HTML::Parser not installed';
 }
 
 my @results = (
