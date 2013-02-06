@@ -70,7 +70,7 @@ HTTP::Proxy::BodyFilter::htmltext - A filter to transmogrify HTML text
 
 =head1 DESCRIPTION
 
-The HTTP::Proxy::BodyFilter::htmltext is a filter spawner that
+The L<HTTP::Proxy::BodyFilter::htmltext> is a filter spawner that
 calls the callback of your choice on any HTML text (outside 
 C<< <script> >> and C<< <style> >> tags, and entities).
 
@@ -110,7 +110,7 @@ Philippe "BooK" Bruhat, E<lt>book@cpan.orgE<gt>.
 
 =head1 COPYRIGHT
 
-Copyright 2003-2005, Philippe Bruhat.
+Copyright 2003-2013, Philippe Bruhat.
 
 =head1 LICENSE
 

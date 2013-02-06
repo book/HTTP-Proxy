@@ -119,7 +119,7 @@ This filter implements a single method that is called automatically:
 Enforce RFC 2616-compliant behaviour, by adding the C<Via:> and
 C<X-Forwarded-For:> headers (except when the proxy was instructed not
 to add them), decrementing the C<Max-Forwards:> header and removing
-the hop-by-hop and LWP::UserAgent headers.
+the hop-by-hop and L<LWP::UserAgent> headers.
 
 =back
 
@@ -136,7 +136,7 @@ hop-by-hop headers.
 
 =head1 COPYRIGHT
 
-Copyright 2003-2005, Philippe Bruhat.
+Copyright 2003-2013, Philippe Bruhat.
 
 =head1 LICENSE
 

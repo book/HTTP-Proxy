@@ -236,11 +236,11 @@ HTTP::Proxy::Engine::ScoreBoard - A scoreboard-based HTTP::Proxy engine
 
 =head1 DESCRIPTION
 
-This module provides a scoreboard-based engine to HTTP::Proxy.
+This module provides a scoreboard-based engine to L<HTTP::Proxy>.
 
 =head1 METHODS
 
-The module defines the following methods, used by HTTP::Proxy main loop:
+The module defines the following methods, used by L<HTTP::Proxy> main loop:
 
 =over 4
 
@@ -271,7 +271,7 @@ Many thanks to Randal L. Schwartz for his help in implementing this module.
 
 =head1 COPYRIGHT
 
-Copyright 2005, Philippe Bruhat.
+Copyright 2005-2013, Philippe Bruhat.
 
 =head1 LICENSE
 

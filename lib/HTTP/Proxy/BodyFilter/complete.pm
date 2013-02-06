@@ -50,7 +50,7 @@ HTTP::Proxy::BodyFilter::complete - A filter that passes on a complete body or n
 
 =head1 DESCRIPTION
 
-The HTTP::Proxy::BodyFilter::complete filter will ensure that the next
+The L<HTTP::Proxy::BodyFilter::complete> filter will ensure that the next
 filter in the filter chain will only receive complete message bodies
 (either request or response).
 
@@ -103,7 +103,7 @@ the same time. C<;-)>
 
 =head1 COPYRIGHT
 
-Copyright 2004-2008, Philippe Bruhat.
+Copyright 2004-2013, Philippe Bruhat.
 
 =head1 LICENSE
 

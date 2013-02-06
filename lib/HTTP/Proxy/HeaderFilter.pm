@@ -45,7 +45,7 @@ HTTP::Proxy::HeaderFilter - A base class for HTTP message header filters
 
 =head1 DESCRIPTION
 
-The HTTP::Proxy::HeaderFilter class is used to create filters for
+The L<HTTP::Proxy::HeaderFilter> class is used to create filters for
 HTTP request/response headers.
 
 =head2 Creating a HeaderFilter
@@ -58,24 +58,24 @@ C<filter()> B<must> be defined in the derived class.
 
 =item filter()
 
-The signature of the filter() method is the following:
+The signature of the C<filter()> method is the following:
 
     sub filter { my ( $self, $headers, $message) = @_; ... }
 
-where $self is the filter object, $headers is a HTTP::Headers object,
-and $message is either a HTTP::Request or a HTTP::Response object.
+where C<$self> is the filter object, C<$headers> is a L<HTTP::Headers> object,
+and $message is either a L<HTTP::Request> or a L<HTTP::Response> object.
 
-The $headers HTTP::Headers object is the one that will be sent to
+The $headers L<HTTP::Headers> object is the one that will be sent to
 the client (if the filter is on the response stack) or origin
-server (if the filter is on the request stack). If $headers is
+server (if the filter is on the request stack). If C<$headers> is
 modified by the filter, the modified headers will be sent to the
 client or server.
 
-The init() method (if it exists) is called by the new() constructeur
+The C<init()> method (if it exists) is called by the C<new()> constructeur
 to perform all initisalisation tasks. It's called once in the filter
 lifetime.
 
-A HTTP::Proxy::HeaderFilter object is a blessed hash, and the base class
+A L<HTTP::Proxy::HeaderFilter> object is a blessed hash, and the base class
 reserves only hash keys that start with C<_hphf>.
 
 =item new()
@@ -94,9 +94,9 @@ It receives all the parameters passed to C<new()>.
 
 =head2 Standard HeaderFilters
 
-Standard HTTP::Proxy::HeaderFilter classes are lowercase.
+Standard L<HTTP::Proxy::HeaderFilter> classes are lowercase.
 
-The following HeaderFilters are included in the HTTP::Proxy distribution:
+The following HeaderFilters are included in the L<HTTP::Proxy> distribution:
 
 =over 4
 
@@ -106,8 +106,8 @@ This class lets you create a simple header filter from a code reference.
 
 =item standard
 
-This is the filter that provides standard headers handling for HTTP::Proxy.
-It is loaded automatically by HTTP::Proxy.
+This is the filter that provides standard headers handling for L<HTTP::Proxy>.
+It is loaded automatically by L<HTTP::Proxy>.
 
 =back
 
@@ -116,14 +116,14 @@ Please read each filter's documentation for more details about their use.
 =head1 USEFUL METHODS FOR SUBCLASSES
 
 Some methods are available to filters, so that they can eventually use
-the little knowledge they might have of HTTP::Proxy's internals. They
+the little knowledge they might have of L<HTTP::Proxy>'s internals. They
 mostly are accessors.
 
 =over 4
 
 =item proxy()
 
-Gets a reference to the HTTP::Proxy objects that owns the filter.
+Gets a reference to the L<HTTP::Proxy> objects that owns the filter.
 This gives access to some of the proxy methods.
 
 =back
@@ -138,7 +138,7 @@ L<HTTP::Proxy>, L<HTTP::Proxy::BodyFilter>.
 
 =head1 COPYRIGHT
 
-Copyright 2003-2005, Philippe Bruhat.
+Copyright 2003-2013, Philippe Bruhat.
 
 =head1 LICENSE
 

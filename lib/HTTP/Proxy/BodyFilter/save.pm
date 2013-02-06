@@ -199,7 +199,7 @@ HTTP::Proxy::BodyFilter::save - A filter that saves transfered data to a file
 
 =head1 DESCRIPTION
 
-The HTTP::Proxy::BodyFilter::save filter can save HTTP messages (responses
+The L<HTTP::Proxy::BodyFilter::save> filter can save HTTP messages (responses
 or request) bodies to files. The name of the file is determined by a
 template and the URI of the request.
 
@@ -287,14 +287,14 @@ other template-related options (C<no_host>, C<no_dirs>, C<cut_dirs>
 and C<prefix>) are ignored.
 
 The C<filename> option expects a reference to a subroutine. The subroutine
-will receive the C<HTTP::Message> object and must return a string which
+will receive the L<HTTP::Message> object and must return a string which
 is the path of the file to be created (an absolute path is recommended,
 but a relative path is accepted).
 
 Returning C<""> or C<undef> will prevent the creation of the file.
 This lets a filter decide even more precisely what to save or not,
 even though this should be done in the match subroutine (see
-HTTP::Proxy's C<push_filter()> method).
+L<HTTP::Proxy>'s C<push_filter()> method).
 
 =back
 
@@ -432,7 +432,7 @@ L<http://rt.cpan.org/Ticket/Display.html?id=33018>).
 
 =head1 COPYRIGHT
 
-Copyright 2004-2008, Philippe Bruhat.
+Copyright 2004-2013, Philippe Bruhat.
 
 =head1 LICENSE
 

@@ -81,7 +81,7 @@ HTTP::Proxy::BodyFilter::lines - A filter that outputs only complete lines
 
 =head1 DESCRIPTION
 
-The HTTP::Proxy::BodyFilter::lines filter makes sure that the next filter
+The L<HTTP::Proxy::BodyFilter::lines> filter makes sure that the next filter
 in the filter chain will only receive complete lines. The "chunks"
 of data received by the following filters with either end with C<\n>
 or will be the last piece of data for the current HTTP message body.
@@ -92,12 +92,12 @@ is the default value.
 
     my $filter = HTTP::Proxy::BodyFilter::lines->new( $sep );
 
-This is similar to modifying $/ in a Perl program. In fact, this
+This is similar to modifying C<$/> in a Perl program. In fact, this
 filter has a behaviour so similar to modifying $/ that it also knows
 about "paragraph mode" and "record mode".
 
 Note that the "slurp" mode is not supported. Please use
-HTTP::Proxy::BodyFilter::complete to enable the generic store and forward
+L<HTTP::Proxy::BodyFilter::complete> to enable the generic store and forward
 filter mechanism.
 
 =head1 METHODS
@@ -131,7 +131,7 @@ Philippe "BooK" Bruhat, E<lt>book@cpan.orgE<gt>.
 
 =head1 COPYRIGHT
 
-Copyright 2003-2006, Philippe Bruhat.
+Copyright 2003-2013, Philippe Bruhat.
 
 =head1 LICENSE
 

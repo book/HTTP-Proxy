@@ -791,7 +791,7 @@ HTTP::Proxy - A pure Perl HTTP proxy
 
 =head1 DESCRIPTION
 
-This module implements a HTTP proxy, using a HTTP::Daemon to accept
+This module implements a HTTP proxy, using a L<HTTP::Daemon> to accept
 client connections, and a LWP::UserAgent to ask for the requested pages.
 
 The most interesting feature of this proxy object is its ability to
@@ -812,11 +812,11 @@ response).
 
 =head1 FILTERS
 
-You can alter the way the default HTTP::Proxy works by plugging callbacks
+You can alter the way the default L<HTTP::Proxy> works by plugging callbacks
 (filter objects, actually) at different stages of the request/response
 handling.
 
-When a request is received by the HTTP::Proxy object, it is filtered through
+When a request is received by the L<HTTP::Proxy> object, it is filtered through
 a standard filter that transform this request accordingly to RFC 2616
 (by adding the C<Via:> header, and a few other transformations). This is
 the default, bare minimum behaviour.
@@ -833,7 +833,7 @@ filter stack.
 
 The headers/body category is determined by the base class of the filter.
 There are two base classes for filters, which are
-C<HTTP::Proxy::HeaderFilter> and C<HTTP::Proxy::BodyFilter> (the names
+L<HTTP::Proxy::HeaderFilter> and L<HTTP::Proxy::BodyFilter> (the names
 are self-explanatory). See the documentation of those two classes
 to find out how to write your own header or body filters.
 
@@ -895,7 +895,7 @@ the same match subroutine:
     );
 
 For more details regarding the creation of new filters, check the
-C<HTTP::Proxy::HeaderFilter> and C<HTTP::Proxy::BodyFilter> documentation.
+L<HTTP::Proxy::HeaderFilter> and L<HTTP::Proxy::BodyFilter> documentation.
 
 Here's an example of subclassing a base filter class:
 
@@ -913,8 +913,8 @@ Here's an example of subclassing a base filter class:
     $proxy->push_filter( response => FilterPerl->new() );
 
 Other examples can be found in the documentation for
-C<HTTP::Proxy::HeaderFilter>, C<HTTP::Proxy::BodyFilter>,
-C<HTTP::Proxy::HeaderFilter::simple>, C<HTTP::Proxy::BodyFilter::simple>.
+L<HTTP::Proxy::HeaderFilter>, L<HTTP::Proxy::BodyFilter>,
+L<HTTP::Proxy::HeaderFilter::simple>, L<HTTP::Proxy::BodyFilter::simple>.
 
     # a simple anonymiser
     # see eg/anonymiser.pl for the complete code
@@ -928,7 +928,7 @@ C<HTTP::Proxy::HeaderFilter::simple>, C<HTTP::Proxy::BodyFilter::simple>.
         )
     );
 
-IMPORTANT: If you use your own C<LWP::UserAgent>, you must install it
+IMPORTANT: If you use your own L<LWP::UserAgent>, you must install it
 before your calls to C<push_filter()>, otherwise
 the match method will make wrong assumptions about the schemes your
 agent supports.
@@ -944,11 +944,11 @@ may disappear in future versions.
 
 =item new()
 
-The C<new()> method creates a new HTTP::Proxy object. All attributes can
+The C<new()> method creates a new L<HTTP::Proxy> object. All attributes can
 be passed as parameters to replace the default.
 
-Parameters that are not C<HTTP::Proxy> attributes will be ignored and
-passed to the chosen C<HTTP::Proxy::Engine> object.
+Parameters that are not L<HTTP::Proxy> attributes will be ignored and
+passed to the chosen L<HTTP::Proxy::Engine> object.
 
 =item init()
 
@@ -966,7 +966,7 @@ It is fully described in section L<FILTERS>.
 
 =head2 Accessors and mutators
 
-The HTTP::Proxy has several accessors and mutators.
+L<HTTP::Proxy> class has several accessors and mutators.
 
 Called with arguments, the accessor returns the current value.
 Called with a single argument, it sets the current value and
@@ -981,11 +981,11 @@ The defined accessors are (in alphabetical order):
 
 =item agent
 
-The LWP::UserAgent object used internally to connect to remote sites.
+The L<LWP::UserAgent> object used internally to connect to remote sites.
 
 =item chunk
 
-The chunk size for the LWP::UserAgent callbacks.
+The chunk size for the L<LWP::UserAgent> callbacks.
 
 =item client_socket (read-only)
 
@@ -994,14 +994,14 @@ The socket currently connected to the client. Mostly useful in filters.
 =item client_headers
 
 This attribute holds a reference to the client headers set up by
-LWP::UserAgent
+L<LWP::UserAgent>
 (C<Client-Aborted>, C<Client-Bad-Header-Line>, C<Client-Date>,
 C<Client-Junk>, C<Client-Peer>, C<Client-Request-Num>,
 C<Client-Response-Num>, C<Client-SSL-Cert-Issuer>,
 C<Client-SSL-Cert-Subject>, C<Client-SSL-Cipher>, C<Client-SSL-Warning>,
 C<Client-Transfer-Encoding>, C<Client-Warning>).
 
-They are removed by the filter HTTP::Proxy::HeaderFilter::standard from
+They are removed by the filter L<HTTP::Proxy::HeaderFilter::standard> from
 the request and response objects received by the proxy.
 
 If a filter (such as a SSL certificate verification filter) need to
@@ -1009,16 +1009,16 @@ access them, it must do it through this accessor.
 
 =item conn (read-only)
 
-The number of connections processed by this HTTP::Proxy instance.
+The number of connections processed by this L<HTTP::Proxy> instance.
 
 =item daemon
 
-The HTTP::Daemon object used to accept incoming connections.
+The L<HTTP::Daemon> object used to accept incoming connections.
 (You usually never need this.)
 
 =item engine
 
-The HTTP::Proxy::Engine object that manages the child processes.
+The L<HTTP::Proxy::Engine> object that manages the child processes.
 
 =item hop_headers
 
@@ -1034,7 +1034,7 @@ it must do it through this accessor.
 
 =item host
 
-The proxy HTTP::Daemon host (default: 'localhost').
+The proxy L<HTTP::Daemon> host (default: 'localhost').
 
 This means that by default, the proxy answers only to clients on the
 local machine. You can pass a specific interface address or C<"">/C<undef>
@@ -1055,11 +1055,11 @@ group name is passed.
 
 =item logfh
 
-A filehandle to a logfile (default: *STDERR).
+A filehandle to a logfile (default: C<*STDERR>).
 
 =item logmask( [$mask] )
 
-Be verbose in the logs (default: NONE).
+Be verbose in the logs (default: C<NONE>).
 
 Here are the various elements that can be added to the mask (their values
 are powers of 2, starting from 0 and listed here in ascending order):
@@ -1092,10 +1092,10 @@ Internal. False when the main loop is about to be broken.
 
 =item maxchild
 
-The maximum number of child process the HTTP::Proxy object will spawn
+The maximum number of child process the L<HTTP::Proxy> object will spawn
 to handle client requests (default: depends on the engine).
 
-This method is currently delegated to the HTTP::Proxy::Engine object.
+This method is currently delegated to the L<HTTP::Proxy::Engine> object.
 
 C<maxchild> is deprecated and will disappear.
 
@@ -1110,7 +1110,7 @@ connections.
 C<maxconn> is deprecated.
 
 Note: C<max_connections> will be deprecated soon, for two reasons: 1)
-it is more of an HTTP::Proxy::Engine attribute, 2) not all engines will
+it is more of an L<HTTP::Proxy::Engine> attribute, 2) not all engines will
 support it.
 
 =item max_keep_alive_requests
@@ -1124,7 +1124,7 @@ C<maxserve> is deprecated.
 
 =item port
 
-The proxy C<HTTP::Daemon> port (default: 8080).
+The proxy L<HTTP::Daemon> port (default: 8080).
 
 =item request
 
@@ -1168,7 +1168,7 @@ only shared between filters in the same child process.
 
 =item timeout
 
-The timeout used by the internal LWP::UserAgent (default: 60).
+The timeout used by the internal L<LWP::UserAgent> (default: 60).
 
 =item url (read-only)
 
@@ -1193,7 +1193,7 @@ If set to a true value, the proxy will send the C<X-Forwarded-For:> header.
 =item start()
 
 This method works like Tk's C<MainLoop>: you hand over control to the
-C<HTTP::Proxy> object you created and configured.
+L<HTTP::Proxy> object you created and configured.
 
 If C<maxconn> is not zero, C<start()> will return after accepting
 at most that many connections. It will return the total number of
@@ -1230,7 +1230,7 @@ Returns a boolean indicating if $scheme is supported by the proxy.
 
 This method is only used internaly.
 
-It is essential to allow HTTP::Proxy users to create "pseudo-schemes"
+It is essential to allow L<HTTP::Proxy> users to create "pseudo-schemes"
 that LWP doesn't know about, but that one of the proxy filters can handle
 directly. New schemes are added as follows:
 
@@ -1241,17 +1241,17 @@ directly. New schemes are added as follows:
 =item new_connection()
 
 Increase the proxy's TCP connections counter. Only used by
-C<HTTP::Proxy::Engine> objects.
+L<HTTP::Proxy::Engine> objects.
 
 =back
 
 =head2 Apache-like attributes
 
-C<HTTP::Proxy> has several Apache-like attributes that control the
+L<HTTP::Proxy> has several Apache-like attributes that control the
 way the HTTP and TCP connections are handled.
 
 The following attributes control the TCP connection. They are passed to
-the underlying C<HTTP::Proxy::Engine>, which may (or may not) use them
+the underlying L<HTTP::Proxy::Engine>, which may (or may not) use them
 to change its behaviour.
 
 =over 4
@@ -1323,7 +1323,7 @@ work on WinXP ActiveState Perl 5.8.
 Several people have tried to help, but we haven't found a way to make it work
 correctly yet.
 
-As from version 0.16, the default engine is C<HTTP::Proxy::Engine::NoFork>.
+As from version 0.16, the default engine is L<HTTP::Proxy::Engine::NoFork>.
 Let me know if it works better.
 
 =head1 SEE ALSO
@@ -1338,9 +1338,8 @@ Philippe "BooK" Bruhat, E<lt>book@cpan.orgE<gt>.
 The module has its own web page at L<http://http-proxy.mongueurs.net/>
 complete with older versions and repository snapshot.
 
-There are also two mailing-lists: http-proxy@mongueurs.net for general
-discussion about C<HTTP::Proxy> and http-proxy-cvs@mongueurs.net for
-CVS commits emails.
+There is also a mailing-list: http-proxy@mongueurs.net for general
+discussion about L<HTTP::Proxy>.
 
 =head1 THANKS
 
@@ -1353,13 +1352,13 @@ I<Mongueurs> (for code tricks, beers and encouragements) and my growing
 user base... C<;-)>
 
 I'd like to particularly thank Dan Grigsby, who's been using
-C<HTTP::Proxy> since 2003 (before the filter classes even existed).  He is
-apparently making a living from a product based on C<HTTP::Proxy>. Thanks
+L<HTTP::Proxy> since 2003 (before the filter classes even existed).  He is
+apparently making a living from a product based on L<HTTP::Proxy>. Thanks
 a lot for your confidence in my work!
 
 =head1 COPYRIGHT
 
-Copyright 2002-2008, Philippe Bruhat.
+Copyright 2002-2013, Philippe Bruhat.
 
 =head1 LICENSE
 
@@ -1367,5 +1366,4 @@ This module is free software; you can redistribute it or modify it under
 the same terms as Perl itself.
 
 =cut
-
 

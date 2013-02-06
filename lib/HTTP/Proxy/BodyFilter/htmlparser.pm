@@ -50,22 +50,22 @@ HTTP::Proxy::BodyFilter::htmlparser - Filter using HTML::Parser
 
 =head1 DESCRIPTION
 
-The HTTP::Proxy::BodyFilter::htmlparser lets you create a
-filter based on the HTML::Parser object of your choice.
+The L<HTTP::Proxy::BodyFilter::htmlparser> lets you create a
+filter based on the L<HTML::Parser> object of your choice.
 
-This filter takes a HTML::Parser object as an argument to its constructor.
+This filter takes a L<HTML::Parser> object as an argument to its constructor.
 The filter is either read-only or read-write. A read-only filter will
 not allow you to change the data on the fly. If you request a read-write
 filter, you'll have to rewrite the response-body completely.
 
 With a read-write filter, you B<must> recreate the whole body data. This
-is mainly due to the fact that the HTML::Parser has its own buffering
+is mainly due to the fact that the L<HTML::Parser> has its own buffering
 system, and that there is no easy way to correlate the data that triggered
-the HTML::Parser event and its original position in the chunk sent by the
+the L<HTML::Parser> event and its original position in the chunk sent by the
 origin server. See below for details.
 
 Note that a simple filter that modify the HTML text (not the tags) can
-be created more easily with HTTP::Proxy::BodyFilter::htmltext.
+be created more easily with L<HTTP::Proxy::BodyFilter::htmltext>.
 
 =head2 Creating a HTML::Parser that rewrites pages
 
@@ -74,13 +74,13 @@ A read-write filter is declared by passing C<rw =E<gt> 1> to the constructor:
      HTTP::Proxy::BodyFilter::htmlparser->new( $parser, rw => 1 );
 
 To be able to modify the body of a message, a filter created with
-HTTP::Proxy::BodyFilter::htmlparser must rewrite it completely. The
-HTML::Parser object can update a special attribute named C<output>.
-To do so, the HTML::Parser handler will have to request the C<self>
+L<HTTP::Proxy::BodyFilter::htmlparser> must rewrite it completely. The
+L<HTML::Parser> object can update a special attribute named C<output>.
+To do so, the L<HTML::Parser> handler will have to request the C<self>
 attribute (that is to say, require access to the parser itself) and
 update its C<output> key.
 
-The following attributes are added to the HTML::Parser object by this filter:
+The following attributes are added to the L<HTML::Parser> object by this filter:
 
 =over 4
 
@@ -96,11 +96,11 @@ Data should always be B<appended> to C<$parser-E<gt>{output}>.
 
 =item message
 
-A reference to the HTTP::Message that triggered the filter.
+A reference to the L<HTTP::Message> that triggered the filter.
 
 =item protocol
 
-A reference to the HTTP::Protocol object.
+A reference to the L<HTTP::Protocol> object.
 
 =back
 
@@ -112,7 +112,7 @@ This filter defines three methods, called automatically:
 
 =item filter()
 
-The C<filter()> method handles all the interactions with the HTML::Parser
+The C<filter()> method handles all the interactions with the L<HTML::Parser>
 object.
 
 =item init()
@@ -138,7 +138,7 @@ Philippe "BooK" Bruhat, E<lt>book@cpan.orgE<gt>.
 
 =head1 COPYRIGHT
 
-Copyright 2003-2006, Philippe Bruhat.
+Copyright 2003-2013, Philippe Bruhat.
 
 =head1 LICENSE
 

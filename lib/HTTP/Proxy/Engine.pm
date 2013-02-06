@@ -81,7 +81,7 @@ HTTP::Proxy::Engine - Generic child process manager engine for HTTP::Proxy
 
 =head1 DESCRIPTION
 
-The HTTP::Proxy::Engine class is a front-end to actual proxy
+The L<HTTP::Proxy::Engine> class is a front-end to actual proxy
 engine classes.
 
 The role of an engine is to implement the main fork+serve loop
@@ -107,7 +107,7 @@ do not need the C<engine> parameter).
 =head1 CREATING YOUR OWN ENGINE
 
 It is possible to create one's own engine, by creating
-a simple subclass of HTTP::Proxy::Engine with the following
+a simple subclass of L<HTTP::Proxy::Engine> with the following
 methods:
 
 =over 4
@@ -125,8 +125,8 @@ It defines how child processes are forked, checked and killed.
 The engine MUST have a run() method, and it will be called again
 and again until the proxy exits.
 
-$self->proxy->daemon returns the listening socket that can accept()
-connections. The child must call $self->proxy->serve_connections()
+C<< $self->proxy->daemon >> returns the listening socket that can C<accept()>
+connections. The child must call C<< $self->proxy->serve_connections() >>
 on the returned socket to handle actual TCP connections.
 
 =item stop()
@@ -141,14 +141,14 @@ contains the default values for the fields used internaly.
 
 =head1 METHODS PROVIDED TO SUBCLASSES
 
-HTTP::Proxy::Engine provides the following methods to its
+L<HTTP::Proxy::Engine> provides the following methods to its
 subclasses:
 
 =over 4
 
 =item proxy()
 
-Return the HTTP::Proxy object that runs the engine.
+Return the L<HTTP::Proxy> object that runs the engine.
 
 =item max_clients()
 
@@ -156,7 +156,7 @@ Get or set the maximum number of TCP clients, that is to say
 the maximum number of forked child process.
 
 Some engines may understand a value of C<0> as I<do not fork at all>.
-This is what HTTP::Proxy::Engine::Legacy does.
+This is what L<HTTP::Proxy::Engine::Legacy> does.
 
 =item make_accessors( @names )
 
@@ -173,7 +173,7 @@ Philippe "BooK" Bruhat, C<< <book@cpan.org> >>.
 
 =head1 COPYRIGHT
 
-Copyright 2005, Philippe Bruhat.
+Copyright 2005-2013, Philippe Bruhat.
 
 =head1 LICENSE
 

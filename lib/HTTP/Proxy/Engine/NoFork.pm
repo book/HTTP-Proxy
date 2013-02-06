@@ -43,9 +43,7 @@ HTTP::Proxy::Engine::NoFork - A basic, non forking HTTP::Proxy engine
 
 =head1 DESCRIPTION
 
-The HTTP::Proxy::Engine::NoFork engine runs the proxy without forking.
-
-This 
+The L<HTTP::Proxy::Engine::NoFork> engine runs the proxy without forking.
 
 =head1 METHODS
 
@@ -57,7 +55,7 @@ Initialise the engine.
 
 =item run()
 
-Implements the non-forking logic by calling $proxy->serve_requests()
+Implements the non-forking logic by calling C<< $proxy->serve_requests() >>
 directly.
 
 =back
@@ -72,7 +70,7 @@ Philippe "BooK" Bruhat, C<< <book@cpan.org> >>.
 
 =head1 COPYRIGHT
 
-Copyright 2005, Philippe Bruhat.
+Copyright 2005-2013, Philippe Bruhat.
 
 =head1 LICENSE
 

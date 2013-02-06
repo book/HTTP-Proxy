@@ -45,7 +45,7 @@ HTTP::Proxy::BodyFilter - A base class for HTTP messages body filters
 
 =head1 DESCRIPTION
 
-The HTTP::Proxy::BodyFilter class is used to create filters for
+The L<HTTP::Proxy::BodyFilter> class is used to create filters for
 HTTP request/response body data.
 
 =head2 Creating a BodyFilter
@@ -65,32 +65,32 @@ The signature of the filter() method is the following:
         ...
     }
 
-where $self is the filter object, $dataref is a reference to the chunk
+where C<$self> is the filter object, C<$dataref> is a reference to the chunk
 of body data received, 
-$message is a reference to either a HTTP::Request or a HTTP::Response
-object, and $protocol is a reference to the LWP::Protocol protocol object.
+C<$message> is a reference to either a L<HTTP::Request> or a L<HTTP::Response>
+object, and C<$protocol> is a reference to the L<LWP::Protocol> protocol object.
 
 Note that this subroutine signature looks a lot like that of the call-
-backs of LWP::UserAgent (except that $message is either a HTTP::Request
-or a HTTP::Response object).
+backs of L<LWP::UserAgent> (except that C<$message> is either a L<HTTP::Request>
+or a L<HTTP::Response> object).
 
-$buffer is a reference to a buffer where some of the unprocessed data
+C<$buffer> is a reference to a buffer where some of the unprocessed data
 can be stored for the next time the filter will be called (see L</Using
 a buffer to store data for a later use> for details). Thanks to the
 built-in HTTP::Proxy::BodyFilter::* filters, this is rarely needed.
 
 It is possible to access the headers of the message with
-C<< $message->headers() >>. This HTTP::Headers object is the one
+C<< $message->headers() >>. This L<HTTP::Headers> object is the one
 that was sent to the client
 (if the filter is on the response stack) or origin server (if the filter
-is on the request stack). Modifying it in the filter() method is useless,
+is on the request stack). Modifying it in the C<filter()> method is useless,
 since the headers have already been sent.
 
-Since $dataref is a I<reference> to the data string, the referent
+Since C<$dataref> is a I<reference> to the data string, the referent
 can be modified and the changes will be transmitted through the
 filters that follows, until the data reaches its recipient.
 
-A HTTP::Proxy::BodyFilter object is a blessed hash, and the base class
+A L<HTTP::Proxy::BodyFilter> object is a blessed hash, and the base class
 reserves only hash keys that start with C<_hpbf>.
 
 =item new()
@@ -150,9 +150,9 @@ But the filter will fail is the chunk of data contains a tag
 that is cut before the final C<E<gt>>.
 
 It would be extremely complicated and error-prone to let each filter
-(and its author) do its own buffering, so the HTTP::Proxy architecture
+(and its author) do its own buffering, so the L<HTTP::Proxy> architecture
 handles this too. The proxy passes to each filter, each time it is called,
-a reference to an empty string ($buffer in the above signature) that
+a reference to an empty string (C<$buffer> in the above signature) that
 the filter can use to store some data for next run.
 
 When the reference is C<undef>, it means that the filter cannot
@@ -160,7 +160,7 @@ store any data, because this is the very last run, needed to gather
 all the data left in all buffers.
 
 It is recommended to store as little data as possible in the buffer,
-so as to avoid (badly) reproducing what HTTP::Proxy::BodyFilter::complete
+so as to avoid (badly) reproducing what L<HTTP::Proxy::BodyFilter::complete>
 does.
 
 In particular, you have to remember that all the data that remains in
@@ -169,18 +169,18 @@ server will be sent back to your filter in one big piece.
 
 =head2 The store and forward approach
 
-HTTP::Proxy implements a I<store and forward> mechanism, for those filters
+L<HTTP::Proxy> implements a I<store and forward> mechanism, for those filters
 which need to have the whole message body to work. It's enabled simply by
-pushing the HTTP::Proxy::BodyFilter::complete filter on the filter stack.
+pushing the L<HTTP::Proxy::BodyFilter::complete> filter on the filter stack.
 
 The data is stored in memory by the "complete" filter, which passes it
 on to the following filter once the full message body has been received.
 
 =head2 Standard BodyFilters
 
-Standard HTTP::Proxy::BodyFilter classes are lowercase.
+Standard L<HTTP::Proxy::BodyFilter> classes are lowercase.
 
-The following BodyFilters are included in the HTTP::Proxy distribution:
+The following BodyFilters are included in the L<HTTP::Proxy> distribution:
 
 =over 4
 
@@ -217,7 +217,7 @@ by the proxy.
 
 =item tags
 
-The HTTP::Proxy::BodyFilter::tags filter makes sure that the next filter
+The L<HTTP::Proxy::BodyFilter::tags> filter makes sure that the next filter
 in the filter chain will only receive complete tags. The current
 implementation is not 100% perfect, though.
 
@@ -235,7 +235,7 @@ mostly are accessors.
 
 =item proxy()
 
-Gets a reference to the HTTP::Proxy objects that owns the filter.
+Gets a reference to the L<HTTP::Proxy> objects that owns the filter.
 This gives access to some of the proxy methods.
 
 =back
@@ -250,7 +250,7 @@ L<HTTP::Proxy>, L<HTTP::Proxy::HeaderFilter>.
 
 =head1 COPYRIGHT
 
-Copyright 2003-2005, Philippe Bruhat.
+Copyright 2003-2013, Philippe Bruhat.
 
 =head1 LICENSE
 

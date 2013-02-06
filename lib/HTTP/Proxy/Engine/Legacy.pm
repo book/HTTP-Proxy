@@ -112,7 +112,7 @@ HTTP::Proxy::Engine::Legacy - The "older" HTTP::Proxy engine
 
 =head1 DESCRIPTION
 
-This engine reproduces the older child creation algorithm of HTTP::Proxy.
+This engine reproduces the older child creation algorithm of L<HTTP::Proxy>.
 
 Angelos Karageorgiou C<< <angelos@unix.gr> >> reports:
 
@@ -128,7 +128,7 @@ I<It seems that forked children are really slow when calling select for handling
 
 =head1 METHODS
 
-The module defines the following methods, used by HTTP::Proxy main loop:
+The module defines the following methods, used by L<HTTP::Proxy> main loop:
 
 =over 4
 
@@ -167,7 +167,7 @@ Philippe "BooK" Bruhat, C<< <book@cpan.org> >>.
 
 =head1 COPYRIGHT
 
-Copyright 2005, Philippe Bruhat.
+Copyright 2005-2013, Philippe Bruhat.
 
 =head1 LICENSE
 

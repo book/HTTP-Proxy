@@ -44,7 +44,7 @@ HTTP::Proxy::BodyFilter::tags - A filter that outputs only complete tags
 
 =head1 DESCRIPTION
 
-The HTTP::Proxy::BodyFilter::tags filter makes sure that the next filter
+The L<HTTP::Proxy::BodyFilter::tags> filter makes sure that the next filter
 in the filter chain will only receive complete tags.
 
 =head1 METHOD
@@ -75,7 +75,7 @@ Philippe "BooK" Bruhat, E<lt>book@cpan.orgE<gt>.
 
 =head1 COPYRIGHT
 
-Copyright 2003-2006, Philippe Bruhat.
+Copyright 2003-2013, Philippe Bruhat.
 
 =head1 LICENSE
 
