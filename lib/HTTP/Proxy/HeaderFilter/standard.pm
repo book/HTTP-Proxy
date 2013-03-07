@@ -87,12 +87,10 @@ sub filter {
         }
     }
 
-    # remove some headers
-    $headers->remove_header($_) for (
-
-        # no encoding accepted (gzip, compress, deflate)
-        qw( Accept-Encoding ),
-    );
+    # no encoding accepted (gzip, compress, deflate)
+    # if we plan to do anything with the response body
+    $headers->remove_header( 'Accept-Encoding' )
+        if @{ $self->proxy->{body}{response}{current} || [] };
 }
 
 1;
