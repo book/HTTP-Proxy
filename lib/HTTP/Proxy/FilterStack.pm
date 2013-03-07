@@ -180,6 +180,8 @@ L<HTTP::Proxy::BodyFilter>).
 
 C<$message> is the current L<HTTP::Message> handled by the proxy.
 It is used (with the help of each filter's match subroutine)
+to select the subset of filters that will be applied on the
+given message.
 
 =item filter( @args )
 
