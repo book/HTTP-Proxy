@@ -1,5 +1,12 @@
 Revision history for Perl extension HTTP::Proxy
 
+0.27 Fri Mar  8 2013
+        [IMPROVEMENTS]
+        - in HTTP::Proxy::HeaderFilter::standard, now remove the Accept-Encoding header
+          only when we know we'll actually look at the response body
+        [TESTS]
+        - use httpstat.us to test HTTP statuses
+
 0.26 Wed Feb  6 2013
         [IMPROVEMENTS]
         - remove a "Use of "goto" to jump into a construct is deprecated"
