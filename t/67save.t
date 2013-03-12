@@ -3,6 +3,7 @@ use warnings;
 use Test::More;
 use HTTP::Proxy::BodyFilter::save;
 use File::Temp qw( tempdir );
+use File::Spec::Functions;
 
 # a sandbox to play in
 my $dir = tempdir( CLEANUP => 1 );
@@ -25,54 +26,66 @@ my @d = ( prefix => $dir );    # defaults
 my @templates = (
 
     # args, URL => filename
-    [ [@d], 'http://bam.fr/zok/awk.html' => "$dir/bam.fr/zok/awk.html" ],
-    [   [ @d, multiple => 0 ],
-        'http://bam.fr/zok/awk.html' => "$dir/bam.fr/zok/awk.html"
+    [   [@d],
+        'http://bam.fr/zok/awk.html' =>
+            catfile( $dir, qw(bam.fr zok awk.html) )
     ],
-    [ [@d], 'http://bam.fr/zok/awk.html' => "$dir/bam.fr/zok/awk.html.1" ],
+    [   [ @d, multiple => 0 ],
+        'http://bam.fr/zok/awk.html' =>
+            catfile( $dir, qw(bam.fr zok awk.html) )
+    ],
+    [   [@d],
+        'http://bam.fr/zok/awk.html' =>
+            catfile( $dir, qw(bam.fr zok awk.html.1) )
+    ],
     [   [ @d, no_host => 1 ],
-        'http://bam.fr/zok/awk.html' => "$dir/zok/awk.html"
+        'http://bam.fr/zok/awk.html' => catfile( $dir, qw(zok awk.html ) )
     ],
     [   [ @d, no_dirs => 1 ],
-        'http://bam.fr/zok/awk.html' => "$dir/bam.fr/awk.html"
+        'http://bam.fr/zok/awk.html' => catfile( $dir, qw(bam.fr awk.html) )
     ],
     [   [ @d, no_host => 1, no_dirs => 1 ],
-        'http://bam.fr/zok/awk.html' => "$dir/awk.html"
+        'http://bam.fr/zok/awk.html' => catfile( $dir, 'awk.html' )
     ],
-    [   [ @d, no_dirs => 1 ], 'http://bam.fr/zok/' => "$dir/bam.fr/index.html"
+    [   [ @d, no_dirs => 1 ],
+        'http://bam.fr/zok/' => catfile( $dir, qw(bam.fr index.html) )
     ],
     #[ [@d], 'http://bam.fr/zok/' => "$dir/bam.fr/index.html" ],
     [   [ template => "$dir/%p" ],
-        'http://bam.fr/pow/zok.html' => "$dir/pow/zok.html"
+        'http://bam.fr/pow/zok.html' => catfile( $dir, qw(pow zok.html) )
     ],
     [   [ template => "$dir/%f" ],
-        'http://bam.fr/pow/zok.html' => "$dir/zok.html"
+        'http://bam.fr/pow/zok.html' => catfile( $dir, 'zok.html' )
     ],
     [   [ template => "$dir/%p" ],
-        'http://bam.fr/zam.html?q=pow' => "$dir/zam.html"
+        'http://bam.fr/zam.html?q=pow' => catfile( $dir, 'zam.html' )
     ],
     [   [ template => "$dir/%P" ],
-        'http://bam.fr/zam.html?q=pow' => "$dir/zam.html?q=pow"
+        'http://bam.fr/zam.html?q=pow' => catfile( $dir, 'zam.html?q=pow' )
     ],
     [   [ @d, cut_dirs => 2 ],
-        'http://bam.fr/a/b/c/d/e.html' => "$dir/bam.fr/c/d/e.html"
+        'http://bam.fr/a/b/c/d/e.html' =>
+            catfile( $dir, qw(bam.fr c d e.html) )
     ],
     [   [ @d, cut_dirs => 2, no_host => 1 ],
-        'http://bam.fr/a/b/c/d/e.html' => "$dir/c/d/e.html"
+        'http://bam.fr/a/b/c/d/e.html' => catfile( $dir, qw(c d e.html) )
     ],
     [   [ @d, cut_dirs => 5, no_host => 1 ],
-        'http://bam.fr/a/b/c/d/e.html' => "$dir/e.html"
+        'http://bam.fr/a/b/c/d/e.html' => catfile( $dir, 'e.html' )
     ],
 
     # won't save
     [ [ @d, keep_old => 1 ], 'http://bam.fr/zok/awk.html' => undef ],
 );
 my @responses = (
-    [ [@d], 'http://bam.fr/a.html' => 200, "$dir/bam.fr/a.html" ],
+    [   [@d],
+        'http://bam.fr/a.html' => 200,
+        catfile( $dir, qw(bam.fr a.html) )
+    ],
     [ [@d], 'http://bam.fr/b.html' => 404, undef ],
     [   [ @d, status => [ 200, 404 ] ],
         'http://bam.fr/c.html' => 404,
-        "$dir/bam.fr/c.html"
+        catfile( $dir, qw(bam.fr c.html) )
     ],
 );
 
@@ -107,7 +120,7 @@ ok( !$filter->will_modify, 'Filter does not modify content' );
 # loop on four requests
 # two that save, and two that won't
 for my $name ( qw( zlonk.pod kayo.html ), undef, '' ) {
-    $file = $name ? "$dir/$name" : $name;
+    $file = $name ? catfile( $dir, $name ) : $name;
 
     my $req = HTTP::Request->new( GET => 'http://www.example.com/' );
     ok( my $ok = eval {
