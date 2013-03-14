@@ -1,5 +1,15 @@
 Revision history for Perl extension HTTP::Proxy
 
+0.28 Thu Mar 14 2013
+        [FIXES]
+        - the Accept-Encoding header removal code was broken in the previous
+          version. Now the header will be removed as soon as a body filter
+          is configured.
+        [TEST]
+        - use File::Spec in the test suite to compute portable file names,
+          to avoid some test failures, like
+          http://www.cpantesters.org/cpan/report/856ca676-6bf5-1014-bfa1-9d8aa3912248
+
 0.27 Fri Mar  8 2013
         [IMPROVEMENTS]
         - in HTTP::Proxy::HeaderFilter::standard, now remove the Accept-Encoding header
