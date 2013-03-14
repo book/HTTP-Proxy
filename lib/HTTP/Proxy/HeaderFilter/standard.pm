@@ -90,7 +90,7 @@ sub filter {
     # no encoding accepted (gzip, compress, deflate)
     # if we plan to do anything with the response body
     $headers->remove_header( 'Accept-Encoding' )
-        if @{ $self->proxy->{body}{response}{current} || [] };
+        if @{ $self->proxy->{body}{response}{filters} };
 }
 
 1;
