@@ -4,6 +4,7 @@ use HTTP::Proxy;
 
 # objects
 my $proxy  = HTTP::Proxy->new;
+$proxy->init;
 my $filter = HTTP::Proxy::HeaderFilter::standard->new;
 
 # a few hacks because we aren't actually connected
