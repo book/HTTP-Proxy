@@ -119,6 +119,10 @@ C<X-Forwarded-For:> headers (except when the proxy was instructed not
 to add them), decrementing the C<Max-Forwards:> header and removing
 the hop-by-hop and L<LWP::UserAgent> headers.
 
+Note that the filter will automatically remove the C<Accept-Encoding>
+headers if the proxy has at least one L<HTTP::Proxy::BodyFilter> filter.
+(This is to ensure that the filters will receive uncompressed data.)
+
 =back
 
 =head1 SEE ALSO
