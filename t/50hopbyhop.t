@@ -3,8 +3,8 @@ use Test::More tests => 28;
 use HTTP::Proxy;
 
 # objects
-my $proxy  = HTTP::Proxy->new;
-$proxy->init;
+my $proxy  = HTTP::Proxy->new( port => 0 );
+$proxy->init;    # needed to setup the filter stacks
 my $filter = HTTP::Proxy::HeaderFilter::standard->new;
 
 # a few hacks because we aren't actually connected
