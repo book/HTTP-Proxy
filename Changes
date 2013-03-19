@@ -1,10 +1,15 @@
 Revision history for Perl extension HTTP::Proxy
 
+0.29 Tue Mar 19 2013
+        [TEST]
+        - fix t/50hopbyhop.t to open the proxy on a random port,
+          and avoid failures when port 8080 is "already in use"
+
 0.28 Thu Mar 14 2013
         [FIXES]
         - the Accept-Encoding header removal code was broken in the previous
           version. Now the header will be removed as soon as a body filter
-          is configured.
+          is configured for the proxy.
         [TEST]
         - use File::Spec in the test suite to compute portable file names,
           to avoid some test failures, like
