@@ -60,9 +60,12 @@ my @templates = (
     [   [ template => "$dir/%p" ],
         'http://bam.fr/zam.html?q=pow' => catfile( $dir, 'zam.html' )
     ],
-    [   [ template => "$dir/%P" ],
-        'http://bam.fr/zam.html?q=pow' => catfile( $dir, 'zam.html?q=pow' )
-    ],
+    # Win32 does not accept '?' in file names
+    (   [   [ template => "$dir/%P" ],
+            'http://bam.fr/zam.html?q=pow' =>
+                catfile( $dir, 'zam.html?q=pow' )
+        ]
+        ) x ( $^O ne 'MSWin32' ),
     [   [ @d, cut_dirs => 2 ],
         'http://bam.fr/a/b/c/d/e.html' =>
             catfile( $dir, qw(bam.fr c d e.html) )
