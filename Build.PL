@@ -7,8 +7,13 @@ my $builder = Module::Build->new(
     license             => 'perl',
     dist_author         => 'Philippe "BooK" Bruhat <book@cpan.org>',
     dist_version_from   => 'lib/HTTP/Proxy.pm',
-    requires => {
+    configure_requires  => {
+        'Module::Build' => 0.40,
+    },
+    test_requires       => {
         'Test::More' => 0,
+    },
+    requires => {
         'HTTP::Daemon' => 1.25,
         'LWP::UserAgent' => 2,
     },
