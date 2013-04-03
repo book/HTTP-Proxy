@@ -315,7 +315,7 @@ sub serve_connections {
 
         # Got a request?
         unless ( defined $req ) {
-            $self->log( CONNECT, "INFO",
+            $self->log( SOCKET, "SOCKET",
                 "Getting request failed: " . $conn->reason )
                 if $conn->reason ne 'No more requests from this connection';
             return;
