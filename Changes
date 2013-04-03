@@ -5,6 +5,11 @@ Revision history for Perl extension HTTP::Proxy
         - Downgrade a disconnect message from ERROR to SOCKET debug level
           in order to reduce the amount of runtime log output. Disconnects
           are /very/ common in HTTP, and shoudn't be considered errors.
+          (thanks to Salve J. Nilsen)
+        [TEST]
+        - include t/90httpstatus.t in the MANIFEST
+        - fix t/67save.t to not try to create files with a "?" in
+          their name under MSWin32
 
 0.29 Tue Mar 19 2013
         [TEST]
