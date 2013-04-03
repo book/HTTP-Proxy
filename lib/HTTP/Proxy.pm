@@ -20,7 +20,7 @@ require Exporter;
                  DATA  CONNECT ENGINE ALL );
 %EXPORT_TAGS = ( log => [@EXPORT_OK] );    # only one tag
 
-$VERSION = '0.29';
+$VERSION = '0.30';
 
 my $CRLF = "\015\012";                     # "\r\n" is not portable
 
@@ -315,7 +315,7 @@ sub serve_connections {
 
         # Got a request?
         unless ( defined $req ) {
-            $self->log( ERROR, "ERROR",
+            $self->log( CONNECT, "INFO",
                 "Getting request failed: " . $conn->reason )
                 if $conn->reason ne 'No more requests from this connection';
             return;
