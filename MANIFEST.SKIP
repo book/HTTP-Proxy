@@ -1,5 +1,7 @@
 CVS/.*
-.svn
+\.svn
+\.gitignore$
+\.git
 \.bak$
 \.sw[a-z]$
 \.tar$
@@ -26,3 +28,4 @@ CVS/.*
 ^http-proxy
 ^HTTP-Proxy-
 ^MYMETA.yml$
+^MYMETA.json$
