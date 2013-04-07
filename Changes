@@ -1,6 +1,6 @@
 Revision history for Perl extension HTTP::Proxy
 
-0.300
+0.300 Sun Apr  7 2013
         [IMPROVEMENTS]
         - Downgrade a disconnect message from ERROR to SOCKET debug level
           in order to reduce the amount of runtime log output. Disconnects

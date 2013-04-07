@@ -8,7 +8,7 @@ my $builder = Module::Build->new(
     dist_author         => 'Philippe "BooK" Bruhat <book@cpan.org>',
     dist_version_from   => 'lib/HTTP/Proxy.pm',
     configure_requires  => {
-        'Module::Build' => 0.40,
+        'Module::Build' => 0.38,
     },
     test_requires       => {
         'Test::More' => 0,
