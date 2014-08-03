@@ -1,5 +1,12 @@
 Revision history for Perl extension HTTP::Proxy
 
+0.301 Sun Aug  3 2014
+        [TEST]
+        - fix t/02pod-coverage.t to skip HTTP::Proxy::Engine::Threaded
+          when running under an unthreaded Perl (Masahiro Nagano (KAZEBURO))
+        - fix t/01pod.t and t/02pod-coverage.t to only run under
+          RELEASE_TESTING (thanks to Masahiro Nagano (KAZEBURO))
+
 0.300 Sun Apr  7 2013
         [IMPROVEMENTS]
         - Downgrade a disconnect message from ERROR to SOCKET debug level
