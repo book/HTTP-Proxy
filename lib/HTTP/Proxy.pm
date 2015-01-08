@@ -365,7 +365,7 @@ sub serve_connections {
         # massage the request
         $self->{headers}{request}->filter( $req->headers, $req );
 
-        # FIXME I don't know how to get the LWP::Protocol objet...
+        # FIXME I don't know how to get the LWP::Protocol object...
         # NOTE: the request is always received in one piece
         $self->{body}{request}->filter( $req->content_ref, $req, undef );
         $self->{body}{request}->eod;    # end of data
@@ -392,10 +392,10 @@ sub serve_connections {
                 my ( $data, $response, $proto ) = @_;
 
                 # first time, filter the headers
-                if ( !$sent ) { 
+                if ( !$sent ) {
                     $sent++;
                     $self->response( $response );
-                    
+
                     # select the response filters
                     $self->{$_}{response}->select_filters( $response )
                       for qw( headers body );
@@ -624,7 +624,7 @@ sub _handle_CONNECT {
 
             # read the data
             my $read = $sock->sysread( $data, 4096 );
-          
+
             # check for errors
             if(not defined $read ) {
                 $self->log( ERROR, "CONNECT", "Read undef from $from ($!)" );
@@ -714,7 +714,7 @@ sub push_filter {
         $stack = 'headers' if $filter->isa('HTTP::Proxy::HeaderFilter');
         $stack = 'body'    if $filter->isa('HTTP::Proxy::BodyFilter');
 
-        # MIME can only match on reponse
+        # MIME can only match on response
         my $mime = $mime;
         undef $mime if $message eq 'request';
 
@@ -791,18 +791,18 @@ HTTP::Proxy - A pure Perl HTTP proxy
 
 =head1 DESCRIPTION
 
-This module implements a HTTP proxy, using a L<HTTP::Daemon> to accept
-client connections, and a LWP::UserAgent to ask for the requested pages.
+This module implements an HTTP proxy, using an L<HTTP::Daemon> to
+accept client connections, and an L<LWP::UserAgent> to ask for the
+requested pages.
 
 The most interesting feature of this proxy object is its ability to
 filter the HTTP requests and responses through user-defined filters.
 
-Once the proxy is created, with the C<new()> method, it is possible
-to alter its behaviour by adding so-called "filters". This is
-done by the C<push_filter()> method. Once the filter is ready to
-run, it can be launched, with the C<start()> method. This method
-does not normally return until the proxy is killed or otherwise
-stopped.
+Once the proxy is created, with the C<new()> method, it is possible to
+alter its behaviour by adding so-called "filters." This is done by the
+C<push_filter()> method. Once the filter is ready to run, it can be
+launched, with the C<start()> method. This method does not normally
+return until the proxy is killed or otherwise stopped.
 
 An important thing to note is that the proxy is (except when running
 the C<NoFork> engine) a I<forking> proxy: it doesn't support passing
@@ -812,18 +812,18 @@ response).
 
 =head1 FILTERS
 
-You can alter the way the default L<HTTP::Proxy> works by plugging callbacks
-(filter objects, actually) at different stages of the request/response
-handling.
+You can alter the way the default L<HTTP::Proxy> works by plugging
+callbacks (filter objects, actually) at different stages of the
+request/response handling.
 
-When a request is received by the L<HTTP::Proxy> object, it is filtered through
-a standard filter that transform this request accordingly to RFC 2616
-(by adding the C<Via:> header, and a few other transformations). This is
-the default, bare minimum behaviour.
+When a request is received by the L<HTTP::Proxy> object, it is
+filtered through a standard filter that transforms the request
+according to RFC 2616 (by adding the C<Via:> header, and other
+transformations). This is the default, bare minimum behaviour.
 
-The response is also filtered in the same manner. There is a total of four
-filter chains: C<request-headers>, C<request-body>, C<reponse-headers> and
-C<response-body>.
+The response is also filtered in the same manner. There is a total of
+four filter chains: C<request-headers>, C<request-body>,
+C<response-headers> and C<response-body>.
 
 You can add your own filters to the default ones with the
 C<push_filter()> method. The method pushes a filter on the appropriate
@@ -831,11 +831,11 @@ filter stack.
 
     $proxy->push_filter( response => $filter );
 
-The headers/body category is determined by the base class of the filter.
-There are two base classes for filters, which are
+The headers/body category is determined by the base class of the
+filter. There are two base classes for filters, which are
 L<HTTP::Proxy::HeaderFilter> and L<HTTP::Proxy::BodyFilter> (the names
-are self-explanatory). See the documentation of those two classes
-to find out how to write your own header or body filters.
+are self-explanatory). See the documentation of those two classes to
+find out how to write your own header and body filters.
 
 The named parameter is used to determine the request/response part.
 
@@ -847,10 +847,10 @@ stacks, as in the following example:
 If several filters match the message, they will be applied in the order
 they were pushed on their filter stack.
 
-Named parameters can be used to create the match routine. They are: 
+Named parameters can be used to create the match routine. They are:
 
     method - the request method
-    scheme - the URI scheme         
+    scheme - the URI scheme
     host   - the URI authority (host:port)
     path   - the URI path
     query  - the URI query string
@@ -868,9 +868,9 @@ which are:
     mime   => 'text/*'
 
 The C<mime> parameter is a glob-like string, with a required C</>
-character and a C<*> as a joker. Thus, C<*/*> matches I<all> responses,
-and C<""> those with no C<Content-Type:> header. To match any
-reponse (with or without a C<Content-Type:> header), use C<undef>.
+character and a C<*> as a wildcard. Thus, C<*/*> matches I<all>
+responses, and C<""> those with no C<Content-Type:> header. To match
+any repines (with or without a C<Content-Type:> header), use C<undef>.
 
 The C<mime> parameter is only meaningful with the C<response-body>
 filter stack. It is ignored if passed to any other filter stack.
@@ -1066,7 +1066,7 @@ are powers of 2, starting from 0 and listed here in ascending order):
 
     NONE    - Log only errors
     PROXY   - Proxy information
-    STATUS  - Requested URL, reponse status and total number
+    STATUS  - Requested URL, response status and total number
               of connections processed
     PROCESS - Subprocesses information (fork, wait, etc.)
     SOCKET  - Information about low-level sockets
@@ -1081,7 +1081,7 @@ If you only want status and process information, you can use:
 
     $proxy->logmask( STATUS | PROCESS );
 
-Note that all the logging constants are not exported by default, but 
+Note that all the logging constants are not exported by default, but
 by the C<:log> tag. They can also be exported one by one.
 
 =item loop (read-only)
@@ -1128,7 +1128,7 @@ The proxy L<HTTP::Daemon> port (default: 8080).
 
 =item request
 
-The request originaly received by the proxy from the user-agent, which
+The request originally received by the proxy from the user-agent, which
 will be modified by the request filters.
 
 =item response
@@ -1219,7 +1219,7 @@ The output looks like:
 
     [Thu Dec  5 12:30:12 2002] ($$) $prefix: $message
 
-where C<$$> is the current processus id.
+where C<$$> is the current process's id.
 
 If C<$message> is a multiline string, several log lines will be output,
 each line starting with C<$prefix>.
@@ -1228,7 +1228,7 @@ each line starting with C<$prefix>.
 
 Returns a boolean indicating if $scheme is supported by the proxy.
 
-This method is only used internaly.
+This method is only used internally.
 
 It is essential to allow L<HTTP::Proxy> users to create "pseudo-schemes"
 that LWP doesn't know about, but that one of the proxy filters can handle
@@ -1315,8 +1315,8 @@ I guess it is because C<fork()> is not well supported.
 
 =item However, David Fishburn says:
 
-This did not work for me under WinXP - ActiveState Perl 5.6, but it DOES        
-work on WinXP ActiveState Perl 5.8. 
+This did not work for me under WinXP - ActiveState Perl 5.6, but it
+DOES work on WinXP ActiveState Perl 5.8.
 
 =back
 
