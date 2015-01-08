@@ -175,7 +175,7 @@ __END__
 
 =head1 NAME
 
-HTTP::Proxy::BodyFilter::save - A filter that saves transfered data to a file
+HTTP::Proxy::BodyFilter::save - A filter that saves transferred data to a file
 
 =head1 SYNOPSIS
 
@@ -365,7 +365,7 @@ options:
 
 =head1 METHODS
 
-This filter implements several methods, which are all called atuomatically:
+This filter implements several methods, which are all called automatically:
 
 =over 4
 
