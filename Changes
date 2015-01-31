@@ -1,5 +1,14 @@
 Revision history for Perl extension HTTP::Proxy
 
+{{$NEXT}}
+
+0.302 Sat Jan 31 2015
+    [DOCUMENTATION]
+    - fix RT #85632 (Ashley Pond V)
+    - multiple documentation fixes (Ashley Pond V)
+    [PACKAGING]
+    - switch to Dist::Zilla for maintaining the distribution
+
 0.301 Sun Aug  3 2014
     [TEST]
     - fix t/02pod-coverage.t to skip HTTP::Proxy::Engine::Threaded
