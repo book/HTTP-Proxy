@@ -2,7 +2,12 @@ package HTTP::Proxy::Engine::Threaded;
 
 use strict;
 use HTTP::Proxy;
-use threads;
+
+my $can_use_threads;
+
+BEGIN {
+    $can_use_threads = eval 'use threads; 1';
+}
 
 # A massive hack of Engine::Fork to use the threads stuff
 # Basically created to work under win32 so that the filters
@@ -14,8 +19,13 @@ our %defaults = (
     max_clients => 60,
 );
 
-
 __PACKAGE__->make_accessors( qw( kids select ), keys %defaults );
+
+sub new {
+    die "This Perl not built to support threads"
+        if !$can_use_threads;
+    shift->SUPER::new(@_);
+}
 
 sub start {
     my $self = shift;
