@@ -113,7 +113,7 @@ Reap remaining child processes.
 
 L<HTTP::Proxy>, L<HTTP::Proxy::Engine>.
 
-=head1 AUTHOR
+=head1 AUTHORS
 
 Angelos Karageorgiou C<< <angelos@unix.gr> >>. (Actual code)
 
