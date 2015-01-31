@@ -20,8 +20,6 @@ require Exporter;
                  DATA  CONNECT ENGINE ALL );
 %EXPORT_TAGS = ( log => [@EXPORT_OK] );    # only one tag
 
-$VERSION = '0.301';
-
 my $CRLF = "\015\012";                     # "\r\n" is not portable
 
 # standard filters
@@ -770,6 +768,8 @@ sub log {
 1;
 
 __END__
+
+=for Pod::Coverage::TrustPod ERROR
 
 =head1 NAME
 

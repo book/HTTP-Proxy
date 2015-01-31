@@ -4,7 +4,7 @@
 # (the PDF file never arrives to the client, but is replaced by
 # a simple HTML file)
 #
-# Based on a request by Emmanuel Di Prétoro
+# Based on a request by Emmanuel Di PrÃ©toro
 # 
 use strict;
 use warnings;

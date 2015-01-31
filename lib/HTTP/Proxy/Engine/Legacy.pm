@@ -1,4 +1,5 @@
 package HTTP::Proxy::Engine::Legacy;
+
 use strict;
 use POSIX 'WNOHANG';
 use HTTP::Proxy;

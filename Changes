@@ -227,7 +227,7 @@ Revision history for Perl extension HTTP::Proxy
           subclasses. Use begin() instead.
         [EXAMPLES]
         - eg/pdf.pl    - save \.pdf files and send a HTML confirmation instead
-                         (idea by Emmanuel Di Prétoro)
+                         (idea by Emmanuel Di PrÃ©toro)
 
 0.14  Tue Mar 29 11:40:51 CEST 2005
         [ANNOUNCE]
@@ -400,7 +400,7 @@ Revision history for Perl extension HTTP::Proxy
 
 0.06  Mon Feb 17 00:21:37 CET 2003
         - better forking system and better reaping of zombies
-          (thanks to David Landgren and Stéphane Payrard)
+          (thanks to David Landgren and StÃ©phane Payrard)
           Still won't work under Windows, though :-(
         - replaced verbose() by logmask(), so as to fine-tune
           the logging system

@@ -1,4 +1,5 @@
 package HTTP::Proxy::Engine::NoFork;
+
 use strict;
 
 our @ISA = qw( HTTP::Proxy::Engine );
