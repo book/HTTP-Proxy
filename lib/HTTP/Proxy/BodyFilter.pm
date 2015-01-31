@@ -250,7 +250,7 @@ L<HTTP::Proxy>, L<HTTP::Proxy::HeaderFilter>.
 
 =head1 COPYRIGHT
 
-Copyright 2003-2013, Philippe Bruhat.
+Copyright 2003-2015, Philippe Bruhat.
 
 =head1 LICENSE
 

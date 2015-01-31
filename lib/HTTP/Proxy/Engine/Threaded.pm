@@ -121,7 +121,7 @@ Philippe "BooK" Bruhat, C<< <book@cpan.org> >>. (Documentation)
 
 =head1 COPYRIGHT
 
-Copyright 2010-2013, Philippe Bruhat.
+Copyright 2010-2015, Philippe Bruhat.
 
 =head1 LICENSE
 

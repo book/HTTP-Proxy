@@ -272,7 +272,7 @@ Many thanks to Randal L. Schwartz for his help in implementing this module.
 
 =head1 COPYRIGHT
 
-Copyright 2005-2013, Philippe Bruhat.
+Copyright 2005-2015, Philippe Bruhat.
 
 =head1 LICENSE
 

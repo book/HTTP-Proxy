@@ -168,7 +168,7 @@ Philippe "BooK" Bruhat, C<< <book@cpan.org> >>.
 
 =head1 COPYRIGHT
 
-Copyright 2005-2013, Philippe Bruhat.
+Copyright 2005-2015, Philippe Bruhat.
 
 =head1 LICENSE
 

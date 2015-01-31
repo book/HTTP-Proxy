@@ -432,7 +432,7 @@ L<http://rt.cpan.org/Ticket/Display.html?id=33018>).
 
 =head1 COPYRIGHT
 
-Copyright 2004-2013, Philippe Bruhat.
+Copyright 2004-2015, Philippe Bruhat.
 
 =head1 LICENSE
 
