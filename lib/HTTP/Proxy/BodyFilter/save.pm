@@ -411,7 +411,7 @@ Wget(1) provided the inspiration for many of the file naming options.
 
 Thanks to Nicolas Chuche for telling me about C<O_EXCL>.
 
-Thanks to Rafaël Garcia-Suarez and David Rigaudiere for their help on
+Thanks to RafaÃ«l Garcia-Suarez and David Rigaudiere for their help on
 irc while coding the nasty C<begin()> method. C<;-)>
 
 Thanks to Howard Jones for the inspiration and initial patch for the

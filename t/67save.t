@@ -92,11 +92,11 @@ my @responses = (
     ],
 );
 
-plan tests => 2 * @errors    # error checking
+plan tests => 2 * @errors    # error checking
     + 1                      # simple test
     + 7 * 2                  # filename tests: 2 that save
     + 5 * 2                  # filename tests: 2 that don't
-    + 2 * @templates         # all template tests
+    + 2 * @templates         # all template tests
     + 2 * @responses         # all responses tests
     ;
 
