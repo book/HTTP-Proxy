@@ -769,6 +769,8 @@ sub log {
 
 __END__
 
+=for Pod::Coverage::TrustPod ERROR
+
 =head1 NAME
 
 HTTP::Proxy - A pure Perl HTTP proxy
