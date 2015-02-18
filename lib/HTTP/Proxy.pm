@@ -10,7 +10,7 @@ use Sys::Hostname;          # hostname()
 use Carp;
 
 use strict;
-use vars qw( $VERSION $AUTOLOAD @METHODS
+use vars qw( $VERSION @METHODS
              @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS );
 
 require Exporter;
