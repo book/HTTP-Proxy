@@ -247,7 +247,7 @@ Revision history for Perl extension HTTP::Proxy
     - the start() method of HTTP::Proxy::Bodyfilter subclasses
       is renamed begin(), since it now has an end() counterpart.
       (On a related note, I improve my English. Be sure to check out
-      http://www.landgren.net/perl/lt-2004.html for details)          
+      http://www.landgren.net/perl/lt-2004.html for details)
     - start() in filters is therefore declared deprecated, an error
       message is logged. The start() method will not be called any
       more as from 0.15.
@@ -273,7 +273,7 @@ Revision history for Perl extension HTTP::Proxy
     [BUGS]
     - the proxy does not work under Win32, except if you force
       maxchild to 0 (no forking at all).
-    - t/20dummy.t (and a few otrhers) hanged under Win32
+    - t/20dummy.t (and a few others) hanged under Win32
       + Ken Hirsch proposed a patch for HTTP::Daemon
         (and a workaround for HTTP::Proxy's daemon object)
       + Bruno De Fraine tracked down the problem to the fork()
