@@ -7,6 +7,7 @@ use LWP::ConnCache;
 use Fcntl ':flock';         # import LOCK_* constants
 use IO::Select;
 use Sys::Hostname;          # hostname()
+use Socket qw( SOL_SOCKET SO_SNDBUF SO_RCVBUF );
 use Carp;
 
 use strict;
@@ -594,6 +595,9 @@ sub _handle_CONNECT {
         $self->response($response);
         return $last;
     }
+
+    $upstream->setsockopt( SOL_SOCKET, SO_SNDBUF,
+        $conn->getsockopt( SOL_SOCKET, SO_RCVBUF ) );
 
     # send the response headers (FIXME more headers required?)
     my $response = HTTP::Response->new(200);
