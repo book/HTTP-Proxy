@@ -1,10 +1,10 @@
 use Test::More;
 use strict;
-use t::Utils; use HTTP::Proxy;
+use t::Utils;
+use HTTP::Proxy;
 use LWP::UserAgent;
 use IO::Socket::INET;
 
-plan skip_all => "Unable to make this test work correctly";
 plan skip_all => "This test fails on MSWin32. HTTP::Proxy is usable on Win32 with maxchild => 0"
   if $^O eq 'MSWin32';
 
@@ -58,9 +58,9 @@ plan tests => 4;
 
     # run a client
     my $ua = LWP::UserAgent->new;
-    $ua->proxy( https => $proxy->url );
+    $ua->proxy( http => $proxy->url );
 
-    my $req = HTTP::Request->new( CONNECT => "https://$host/" );
+    my $req = HTTP::Request->new( CONNECT => "http://$host/" );
     my $res = $ua->request($req);
     my $sock = $res->{client_socket};
 
