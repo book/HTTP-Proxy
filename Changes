@@ -2,10 +2,20 @@ Revision history for Perl extension HTTP::Proxy
 
 {{$NEXT}}
 
+0.303 Wed Apr 29 2015
+    [FIXES]
+    - closed RT #90414 (Vincenzo Buttazzo), fixing HTTPS data transfer
+    - closed RT #62950 (Slaven Rezic), adding the port to the Via: header
+    [DOCUMENTATION]
+    - added many more contributors in the META file
+    [TEST]
+    - fixed t/23connect.t
+
 0.302 Sat Jan 31 2015
     [DOCUMENTATION]
     - fix RT #85632 (Ashley Pond V)
     - multiple documentation fixes (Ashley Pond V)
+    - list git contributors in the META file
     [PACKAGING]
     - switch to Dist::Zilla for maintaining the distribution
 
