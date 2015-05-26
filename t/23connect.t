@@ -32,7 +32,6 @@ my $banner = "President_of_Earth Barbarella Professor_Ping Stomoxys Dildano\n";
     if ( !$pid ) {
         my $sock = $server->accept;
         $sock->print($banner);
-        sleep 2;
         $sock->close;
         exit;
     }
@@ -53,9 +52,6 @@ plan tests => 4;
         }
     );
 
-    # wait for the server and proxy to be ready
-    sleep 2;
-
     # run a client
     my $ua = LWP::UserAgent->new;
     $ua->proxy( http => $proxy->url );
@@ -63,7 +59,10 @@ plan tests => 4;
     my $req = HTTP::Request->new( CONNECT => "http://$host/" );
     my $res = $ua->request($req);
     my $sock = $res->{client_socket};
-
+    if ( !$sock->blocking ) {
+        diag("socket is non blocking, switching to blocking mode");
+        $sock->blocking(1);
+    }
 
     # what does the proxy say?
     is( $res->code, 200, "The proxy accepts CONNECT requests" );
@@ -75,7 +74,7 @@ plan tests => 4;
         alarm 30;
         $read = <$sock>;
     };
-    
+
     ok( $read, "Read some data from the socket" );
     is( $read, $banner, "CONNECTed to the TCP server and got the banner" );
     close $sock;
