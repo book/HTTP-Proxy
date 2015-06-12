@@ -38,6 +38,11 @@ for my $key ( sort keys %meth ) {
 like( $proxy->via(), qr!\(HTTP::Proxy/$HTTP::Proxy::VERSION\)$!,
       "via has the correct default");
 
+{
+    my $my_via_proxy = HTTP::Proxy->new( via => 'VIA!VIA!VIA!' );
+    is( $my_via_proxy->via(), 'VIA!VIA!VIA!', 'custom via' );
+}
+
 # test deprecated accessors
 $proxy = HTTP::Proxy->new( maxserve => 127,  maxconn => 255 );
 is( $proxy->max_keep_alive_requests, 127, "deprecated maxserve");
