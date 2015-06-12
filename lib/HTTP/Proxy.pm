@@ -90,6 +90,7 @@ sub new {
         port     => 8080,
         stash    => {},
         timeout  => 60,
+        via      => undef,
         x_forwarded_for => 1,
     );
 
