@@ -28,7 +28,7 @@ my %meth = (
     # loop is not used/internal for now
 );
 
-plan tests => 15 + keys %meth;
+plan tests => 16 + keys %meth;
 
 for my $key ( sort keys %meth ) {
     no strict 'refs';
