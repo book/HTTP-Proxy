@@ -117,7 +117,10 @@ sub new {
       for keys %defaults;
 
     if (!defined $self->{via}) {
-	$self->{via} = hostname() . ($self->{port} != 80 ? ':' . $self->{port} : '') . " (HTTP::Proxy/$VERSION)";
+        $self->{via} =
+            hostname()
+          . ( $self->{port} != 80 ? ":$self->{port}" : '' )
+          . " (HTTP::Proxy/$VERSION)";
     }
 
     # choose an engine with the remaining parameters
