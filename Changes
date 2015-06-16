@@ -2,6 +2,14 @@ Revision history for Perl extension HTTP::Proxy
 
 {{$NEXT}}
 
+0.304 Tue Jun 16 2015
+    [FIXES]
+    - fix RT #105177 (Slaven Rezic and Gregor Herrmann), regarding Via: header
+    [TEST]
+    - improvement on the fix for t/23connect.t (thanks to e477),
+      but that does not seem to be enough
+    - fix RT #71771 (test using HTML::Parser)
+
 0.303 Wed Apr 29 2015
     [FIXES]
     - closed RT #90414 (Vincenzo Buttazzo), fixing HTTPS data transfer
