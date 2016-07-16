@@ -127,7 +127,7 @@ and are called automatically:
 
 =item init()
 
-Initalise the filter instance with the code references passed to the
+Initialise the filter instance with the code references passed to the
 constructor.
 
 =item can()
