@@ -7,6 +7,7 @@ use IO::Handle;
 use File::Temp;
 use HTTP::Proxy;
 
+use HTTP::Proxy::Engine;
 our @ISA = qw( HTTP::Proxy::Engine );
 our %defaults = (
     start_servers          => 4,      # start this many, and don't go below

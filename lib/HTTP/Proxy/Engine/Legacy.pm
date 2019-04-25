@@ -4,6 +4,7 @@ use strict;
 use POSIX 'WNOHANG';
 use HTTP::Proxy;
 
+use HTTP::Proxy::Engine;
 our @ISA = qw( HTTP::Proxy::Engine );
 our %defaults = (
     max_clients => 12,

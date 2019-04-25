@@ -14,6 +14,7 @@ BEGIN {
 # can share global caches among themselves
 # Angelos Karageorgiou angelos@unix.gr
 
+use HTTP::Proxy::Engine;
 our @ISA = qw( HTTP::Proxy::Engine );
 our %defaults = (
     max_clients => 60,

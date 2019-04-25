@@ -2,6 +2,7 @@ package HTTP::Proxy::Engine::NoFork;
 
 use strict;
 
+use HTTP::Proxy::Engine;
 our @ISA = qw( HTTP::Proxy::Engine );
 
 __PACKAGE__->make_accessors( 'select' );
