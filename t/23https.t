@@ -1,6 +1,7 @@
 use Test::More skip_all => "Can't make this work with Crypt::SSLeay";
 use strict;
-use t::Utils;
+use lib 't/lib';
+use ProxyUtils;
 use HTTP::Proxy;
 use LWP::UserAgent;
 

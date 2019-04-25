@@ -15,7 +15,8 @@ BEGIN {
 }
 
 use Test::More tests => @requests + 1;
-use t::Utils;
+use lib 't/lib';
+use ProxyUtils;
 use LWP::UserAgent;
 use HTTP::Proxy;
 

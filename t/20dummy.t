@@ -17,7 +17,8 @@ plan tests => 3 * @requests + 1;
 
 use LWP::UserAgent;
 use HTTP::Proxy;
-use t::Utils;    # some helper functions for the server
+use lib 't/lib';
+use ProxyUtils;  # some helper functions for the server
 
 my $test = Test::Builder->new;
 

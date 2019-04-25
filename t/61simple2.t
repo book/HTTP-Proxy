@@ -2,7 +2,8 @@ use Test::More tests => 4;
 use strict;
 use HTTP::Proxy;
 use HTTP::Proxy::BodyFilter::simple;
-use t::Utils;
+use lib 't/lib';
+use ProxyUtils;
 
 # test configuration
 my $test = Test::Builder->new;

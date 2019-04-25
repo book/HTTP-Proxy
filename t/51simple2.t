@@ -2,7 +2,8 @@ use Test::More tests => 2;
 use strict;
 use HTTP::Proxy;
 use HTTP::Proxy::HeaderFilter::simple;
-use t::Utils;
+use lib 't/lib';
+use ProxyUtils;
 
 # create the filter
 my $sub = sub {

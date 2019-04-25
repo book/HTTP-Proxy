@@ -16,8 +16,8 @@ localhost tests work as follows:
  - each of those process can run its own tests independantly,
    thanks to Test::More
 
-The t/Utils.pm files (use t::Utils in some test files) exports
-several functions:
+The t/lib/ProxyUtils.pm file (`use lib 't/lib'; use ProxyUtils;` in some test files)
+exports several functions:
  - server_start()
    starts a new HTTP::Daemon
  - server_next( [ \&answer ] )

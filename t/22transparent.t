@@ -1,6 +1,7 @@
 use strict;
 use Test::More;
-use t::Utils;
+use lib 't/lib';
+use ProxyUtils;
 use LWP::UserAgent;
 use HTTP::Proxy;
 

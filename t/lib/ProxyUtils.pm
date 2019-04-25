@@ -1,4 +1,4 @@
-package t::Utils;
+package ProxyUtils;
 
 use strict;
 use Exporter ();

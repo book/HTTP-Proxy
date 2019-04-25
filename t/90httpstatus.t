@@ -17,7 +17,8 @@ BEGIN {
 use Test::More;
 use HTTP::Proxy;
 use HTTP::Request::Common;
-use t::Utils;
+use lib 't/lib';
+use ProxyUtils;
 
 my $base = 'http://httpstat.us';
 

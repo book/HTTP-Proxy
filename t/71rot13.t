@@ -2,7 +2,8 @@ use Test::More tests => 4;
 use HTTP::Proxy;
 use HTTP::Proxy::BodyFilter::tags;
 use HTTP::Proxy::BodyFilter::htmltext;
-use t::Utils;
+use lib 't/lib';
+use ProxyUtils;
 use strict;
 
 # a very simple proxy
